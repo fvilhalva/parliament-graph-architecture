@@ -1,41 +1,50 @@
-# Prerequisites
-*.d
+# ==========================================
+# 1. Banco de Dados e Arquivos de Dados
+# ==========================================
+# Ignora o banco SQLite (como você bem pontuou)
+*.db
+*.sqlite
+*.sqlite3
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Ignora a pasta inteira de dados que o Docker vai gerar
+# (Onde ficarão os JSONs da API e os CSVs/GEXF do Gephi)
+/data/
+*.csv
+*.json
+*.gexf
 
-# Precompiled Headers
-*.gch
-*.pch
+# ==========================================
+# 2. Python e Ambientes Virtuais
+# ==========================================
+# Cache do Python (arquivos compilados)
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Linker files
-*.ilk
+# Ambientes virtuais (caso você teste no Arch/Windows sem o Docker)
+venv/
+env/
+.venv/
 
-# Debugger Files
-*.pdb
+# ==========================================
+# 3. Jupyter Notebooks (Ciência de Dados)
+# ==========================================
+# Se você usar notebooks para testar o TF-IDF antes de passar pro script
+.ipynb_checkpoints/
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+# ==========================================
+# 4. Configurações de IDE e SO
+# ==========================================
+# VS Code / PyCharm
+.vscode/
+.idea/
 
-# Fortran module files
-*.mod
-*.smod
+# Windows (já que você alterna entre Arch e Windows)
+Thumbs.db
+Desktop.ini
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
+# ==========================================
+# 5. Variáveis de Ambiente e Segurança
+# ==========================================
+# Nunca suba senhas ou chaves de API (mesmo que a da Câmara seja aberta, é boa prática)
+.env

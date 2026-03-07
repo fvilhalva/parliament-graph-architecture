@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  pipeline_camara:
+    build: .
+    container_name: tcc_pipeline
+    env_file:          
+      - .env           
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
