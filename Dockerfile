@@ -15,4 +15,4 @@ COPY . .
 
 RUN mkdir -p /app/data
 
-CMD ["python", "src/main.py"]
+CMD ["python", "src/testar.py"]

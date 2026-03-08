@@ -1,5 +1,6 @@
 # extraction/client.py
 import requests # type: ignore
+import time
 
 class CamaraExtractor:
     def __init__(self, api_url, legislatura):
@@ -15,6 +16,5 @@ class CamaraExtractor:
         except Exception as e:
             print(f"Erro ao buscar: {e}")
             return []
-    
-    def search_proposicoes(self, limite=20):
+    def search_coautorias(self, anos=[2023, 2024, 2025, 2026], tipo='PL', limite=100):
         ...
