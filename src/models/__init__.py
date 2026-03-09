@@ -1,4 +1,12 @@
 # extraction/__init__.py
-from .model import function_1, function_2
+from .deputado  import Deputado
+from .proposicao import Proposicao
+from .aresta_coautoria import ArestaCoautoria
+from .rede_parlamentar import RedeParlamentar
 
-__all__ = ['function_1', function_2]
+__all__ = [
+           'Deputado',
+           'Proposicao',
+           'ArestaCoautoria',
+           'RedeParlamentar'
+        ]

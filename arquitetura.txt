@@ -1,0 +1,6 @@
+1 - A camada extraction/ devolve um DataFrame bruto.
+2 - A camada processing/ limpa esse DataFrame e converte as linhas em listas de objetos Proposicao e Deputado.
+3 - A camada core/ recebe essas listas puras, cria as ArestaCoautoria e monta a RedeParlamentar. --> cerebro do bagulho
+4 - A camada visualization/ recebe os dados para visualização
+5 - A camada repository/ exportar os dados para terceiros(gephi, banco de dados etc)
+6 - A camada config/ é para configurações gerais
