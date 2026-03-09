@@ -57,22 +57,23 @@ def main():
     
     try:
         # 1. Extraction
-        df_bruto = etapa_extraction()
+        #df_bruto = etapa_extraction()
         
         # 2. Processing
-        deputados, proposicoes, arestas = etapa_processing(df_bruto)
+        #deputados, proposicoes, arestas = etapa_processing(df_bruto)
         
         # 3. Core
-        grafo = etapa_core(deputados, proposicoes, arestas)
+        #grafo = etapa_core(deputados, proposicoes, arestas)
         
         # 4. Algorithms
-        etapa_algorithms(grafo, deputados)
+        #etapa_algorithms(grafo, deputados)
         
         # 5. Repository
-        etapa_repository(grafo, deputados, proposicoes, arestas)
+        #etapa_repository(grafo, deputados, proposicoes, arestas)
         
         # 6. Visualization
-        etapa_visualization(grafo, deputados)
+        #etapa_visualization(grafo, deputados)
+        print("Hello Docker")
         
         logger.info("✅ PIPELINE CONCLUÍDO COM SUCESSO!")
     except Exception as e:
