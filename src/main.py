@@ -1,13 +1,10 @@
 import os
-import logging
 from dotenv import load_dotenv  # type: ignore
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(levelname)s] %(message)s'
-)
-logger = logging.getLogger(__name__)
+from config import Configs, setup_logger
+
+logger = setup_logger(__name__)
+print(Configs.DATA_DIR)
 
 # Carrega variáveis de ambiente
 load_dotenv()
