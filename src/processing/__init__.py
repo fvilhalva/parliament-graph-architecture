@@ -1,4 +1,4 @@
-# extraction/__init__.py
-from .processing import function_1, function_2
+# processing/__init__.py
+from .processing import GraphNetwork
 
-__all__ = ['function_1', function_2]
+__all__ = ['GraphNetwork']

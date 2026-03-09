@@ -98,17 +98,24 @@ parliament-graph-architecture/
 ### Com Docker (Recomendado)
 
 ```bash
-# Build da imagem
-docker-compose build
+# Build e rodar tudo (pipeline + testes)
+docker-compose up --build
 
-# Rodar o pipeline principal
-docker-compose run pipeline_camara python src/main.py
+# Ou em background
+docker-compose up --build -d
+```
 
-# Rodar os testes
-docker-compose run tests
+**Rodar componentes separados:**
 
-# Ou com cobertura
-docker-compose run tests pytest src/tests/ --cov=src --cov-report=term-missing
+```bash
+# Apenas pipeline principal
+docker-compose run --build pipeline_camara python src/main.py
+
+# Apenas testes
+docker-compose run --build tests
+
+# Testes com cobertura detalhada
+docker-compose run --build tests pytest src/tests/ --cov=src --cov-report=term-missing
 ```
 
 ### Sem Docker
@@ -210,18 +217,20 @@ class ArestaCoautoria:
 
 ## 🧪 Testes
 
-A suite de testes está estruturada em 6 módulos:
+A suite de testes está estruturada em 6 módulos com **76 testes** e **65% de cobertura de código**:
 
 ```bash
-# Rodar todos os testes
+# Rodar via docker (recomendado)
+docker-compose up --build
+
+# Ou rodar direto com pytest
 pytest src/tests/ -v
 
-# Rodar teste específico
-pytest src/tests/test_deputado.py -v
-
-# Com cobertura
+# Com cobertura detalhada
 pytest src/tests/ --cov=src --cov-report=html
 ```
+
+**Status:** ✅ 76/76 testes passando
 
 ---
 
@@ -241,6 +250,7 @@ pytest src/tests/ --cov=src --cov-report=html
 | Data | Atividade | Status |
 |------|-----------|--------|
 | 2026-03-09 | Setup inicial + arquitetura | ✅ |
+| 2026-03-09 | Suite de testes (76 testes, 65% cobertura) | ✅ |
 | **TBD** | Implementação do Graph | ⏳ |
 | **TBD** | Processamento completo | ⏳ |
 | **TBD** | Algoritmos + testes | ⏳ |

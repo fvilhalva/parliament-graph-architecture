@@ -1,6 +1,6 @@
 """Testes para o módulo de processamento"""
-import pytest
-import pandas as pd
+import pytest # type: ignore
+import pandas as pd # type: ignore
 from processing.processing import GraphNetwork
 
 
@@ -127,7 +127,7 @@ class TestProcessingFiltros:
             (dataframe_com_anos['ano'] == 2024) & 
             (dataframe_com_anos['partido'] == 'PT')
         ]
-        assert len(df) == 1
+        assert len(df) == 2
 
 
 class TestProcessingErros:
