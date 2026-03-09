@@ -2,7 +2,6 @@ import os
 import json
 from dotenv import load_dotenv # type: ignore
 from extraction import CamaraExtractor
-from processing import GraphNetwork
 
 # Carrega o arquivo .env
 load_dotenv()
@@ -13,4 +12,5 @@ DB_PATH = os.getenv("DB_PATH")
 API_BASE_URL = os.getenv("API_BASE_URL")
 
 if __name__ == "__main__":
-    ...
+    extractor = CamaraExtractor()
+    print(extractor.teste())

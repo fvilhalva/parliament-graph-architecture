@@ -9,3 +9,13 @@ services:
     volumes:
       - ./data:/app/data
       - ./src:/app/src
+
+  tests:
+    build: .
+    container_name: tcc_tests
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data # testar leitura de arquivos reais
+      - ./src:/app/src
+    command: pytest src/tests/ -v --cov=src

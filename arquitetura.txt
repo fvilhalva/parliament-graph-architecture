@@ -4,3 +4,20 @@
 4 - A camada visualization/ recebe os dados para visualização
 5 - A camada repository/ exportar os dados para terceiros(gephi, banco de dados etc)
 6 - A camada config/ é para configurações gerais
+
+models/: 100% (crítico para dados)
+processing/: 80%+ (limpa dados)
+core/: 80%+ (lógica principal)
+extraction/: 60% (dependência externa)
+visualization/: 40% (menos crítico)
+
+models/: 100% (crítico para dados)
+processing/: 80%+ (limpa dados)
+core/: 80%+ (lógica principal)
+extraction/: 60% (dependência externa)
+visualization/: 40% (menos crítico)
+
+data → dados persistentes
+data/gexf/ → grafos
+data/metricas/ → CSVs
+data/parliament.db → banco de dados

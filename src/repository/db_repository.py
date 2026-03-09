@@ -2,8 +2,6 @@
 import requests # type: ignore
 import time
 
-class CamaraExtractor:
+class DB_Exporter:
     def __init__(self):
         ...
-    def teste(self):
-        return 'Hello Docker'
