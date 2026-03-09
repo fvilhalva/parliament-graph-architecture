@@ -187,4 +187,8 @@ print("="*70)
 # pegar o maior partido do ano baseado na centralidade e intermediação de 2006-2026 ou anual
 # pegar os politcos mais influentes(intermediação e centralidade) nos ultimos 20 anos(2006-2026)
 # detectar a influencia do 'centrão' nas proposições, como saber qual politico é de centrão?
-# 
+{
+    deputado_id: {
+        
+    }
+}
