@@ -1,21 +1,24 @@
 import os
 from dotenv import load_dotenv  # type: ignore
 
-from config import Configs, setup_logger
+from config import Config, setup_logger
+from extraction import CamaraExtractor
 
 logger = setup_logger(__name__)
-print(Configs.DATA_DIR)
+config = Config()
+print(Config.DATA_DIR)
 
 # Carrega variáveis de ambiente
 load_dotenv()
-LEGISLATURA_ATUAL = os.getenv("LEGISLATURA_ATUAL")
-DB_PATH = os.getenv("DB_PATH", "data/parliament.db")
-API_BASE_URL = os.getenv("API_BASE_URL")
+LEGISLATURA_INICIO = config.LEGISLATURA_INICIO
+LEGISLATURA_ATUAL = config.LEGISLATURA_ATUAL # = LEGISLATURA_INICIO  para iterar nos anos
+DB_PATH = config.DB_PATH
+API_BASE_URL = config.API_BASE_URL
 
 def etapa_extraction():
     """1️⃣ Extração de dados brutos"""
     logger.info("Extração de dados...")
-    pass
+    return CamaraExtractor(config, LEGISLATURA_ATUAL).extrair_dados(LEGISLATURA_ATUAL)
 
 
 def etapa_processing(df_bruto):
@@ -53,8 +56,12 @@ def main():
     logger.info("=== INICIANDO PIPELINE DE ANÁLISE PARLAMENTAR ===")
     
     try:
-        # 1. Extraction
-        #df_bruto = etapa_extraction()
+        # 1. Extraction df_bruto = 
+        mapa_deputados, proposicoes, coautorias = etapa_extraction()
+
+        print(f"Total de projetos com coautoria: {len(coautorias)}")
+        print(f"Total de projetos: {len(proposicoes)}")
+        print(f"Total de deputados: {len(mapa_deputados)}")
         
         # 2. Processing
         #deputados, proposicoes, arestas = etapa_processing(df_bruto)

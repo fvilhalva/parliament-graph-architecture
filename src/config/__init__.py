@@ -1,10 +1,10 @@
 # config/__init__.py
-from .configs import Configs
+from .configs import Config
 from .logging_config import setup_logger
 from .constants import PARTIDOS, ESTADOS, MIN_COAUTORIAS, MIN_PESO_ARESTA
 
 __all__ = [
-    'Configs',
+    'Config',
     'setup_logger',
     'PARTIDOS',
     'ESTADOS',

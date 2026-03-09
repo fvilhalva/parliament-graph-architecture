@@ -4,8 +4,7 @@ from dotenv import load_dotenv  # type: ignore
 
 load_dotenv()
 
-
-class Configs:
+class Config:
      # Paths (estáticos)
     BASE_DIR = Path(__file__).parent.parent.parent
     DATA_DIR = BASE_DIR / "data"
@@ -41,7 +40,13 @@ class Configs:
         """
         self.ano = ano or int(self.LEGISLATURA_ATUAL)
         self.url_csv = f"https://dadosabertos.camara.leg.br/arquivos/proposicoesAutores/csv/proposicoesAutores-{self.ano}.csv"
-    
+
+    @classmethod
+    def set_ano(self, ano):
+        self.ano = ano
+    @classmethod
+    def get_ano(self):
+        return self.ano
     @classmethod
     def get_url_csv(cls, ano: int) -> str:
         """Retorna URL do CSV para um ano específico"""
