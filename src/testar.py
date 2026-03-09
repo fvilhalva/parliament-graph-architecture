@@ -20,8 +20,8 @@ df_meta = df_deputados.drop_duplicates(subset=['iddeputadoautor'], keep='last')
 mapa_deputados = df_meta.set_index('iddeputadoautor')[['nomeautor', 'siglapartidoautor', 'siglaufautor']].to_dict('index')
 
 # 3. Agrupar por Proposição e filtrar Coautorias (> 1 autor)
-grupos = df_deputados.groupby('idproposicao')['iddeputadoautor'].apply(list)
-coautorias = grupos[grupos.apply(len) > 1]
+grupos = df_deputados.groupby('idproposicao')['iddeputadoautor'].apply(list) # pega o id da proposição e autores 'id_proposicao': [id_deputado1, iddeputado2]
+coautorias = grupos[grupos.apply(len) > 1] # pega só as coautorias
 
 print(f"Total de projetos com coautoria: {len(coautorias)}")
 
@@ -178,3 +178,13 @@ def ver_aliados(partido_alvo):
 if 'PT' in tamanho_bancada: ver_aliados('PT')
 if 'PL' in tamanho_bancada: ver_aliados('PL')
 if 'UNIÃO' in tamanho_bancada: ver_aliados('UNIÃO')
+
+print("\n" + "="*70)
+print(f"🤝 TOP 10 MAIORES ALIANÇAS INTERPARTIDÁRIAS (NORMALIZADAS) - {ano}")
+print("="*70)
+
+# ideais:
+# pegar o maior partido do ano baseado na centralidade e intermediação de 2006-2026 ou anual
+# pegar os politcos mais influentes(intermediação e centralidade) nos ultimos 20 anos(2006-2026)
+# detectar a influencia do 'centrão' nas proposições, como saber qual politico é de centrão?
+# 
