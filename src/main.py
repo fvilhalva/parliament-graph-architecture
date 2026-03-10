@@ -77,9 +77,9 @@ def run_pipeline(ano: int):
         df_bruto, df_meta = etapa_extraction(ano)
         # 2. Processing
         filtro =  ['PL', 'PEC', 'PLP']
-        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, filtro[:1], ano)
+        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, filtro[1:2], ano)
         print(f"Quantidade de deputados: {len(dict_deputados)}")
-        print(f"Quantidade de proposicoes({filtro[:1]}): {len(lista_proposicoes)}")
+        print(f"Quantidade de proposicoes({filtro[1:2]}): {len(lista_proposicoes)}")
         print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
         print("COAUTORIAS: ")
         #print(lista_coautorias)
@@ -88,6 +88,7 @@ def run_pipeline(ano: int):
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
         grafo.filtro_centralidade()
         grafo.filtro_intermediacao()
+        grafo.exibir_perfil_deputado("nikolas ferreira")
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)

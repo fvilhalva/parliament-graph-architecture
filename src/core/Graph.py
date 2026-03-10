@@ -22,17 +22,46 @@ class CamaraGraph:
         for deputado_id in self.G.nodes():
             info = self.deputados.get(deputado_id)
             if info:
-                # Se o objeto existe, usamos a notação de ponto (.)
                 self.G.nodes[deputado_id]['label'] = info.nome
                 self.G.nodes[deputado_id]['partido'] = info.sigla_partido
                 self.G.nodes[deputado_id]['uf'] = info.sigla_uf
             else:
-                # Fallback de segurança caso o deputado não esteja no mapeamento
                 self.G.nodes[deputado_id]['label'] = f"Desconhecido ({deputado_id})"
                 self.G.nodes[deputado_id]['partido'] = "N/A"
                 self.G.nodes[deputado_id]['uf'] = "N/A"
 
         print(f"Grafo Finalizado! Nós: {self.G.number_of_nodes()} | Arestas: {self.G.number_of_edges()}")
+
+
+    def search_deputados(self, termo):
+        if str(termo).isdigit():
+            dep_id = self.deputados.get(dep_id)
+            info = self.deputados.get(dep_id)
+            if(info):
+                return [info]
+            return []
+        termo_lower = str(termo).lower()
+        res = []
+        for info in self.deputados.values():
+            if termo_lower in info.nome.lower():
+               res.append(info)
+        return res
+    
+    def exibir_perfil_deputado(self, termo):
+        deps = self.search_deputados(termo)
+        if not deps:
+            print(f"⚠️ Nenhum deputado encontrado para: {termo}")
+            return
+        print(f"\n🔍 Resultados da busca para '{termo}':")
+        print("-" * 40)
+        for d in deps:
+            centralidade = self.G.degree(d.id_deputado) if self.G.has_node(d.id_deputado) else 0
+            print(f"Nome:    {d.nome}")
+            print(f"ID:      {d.id_deputado}")
+            print(f"Partido: {d.sigla_partido}/{d.sigla_uf}")
+            print(f"Conexões no Grafo Atual: {centralidade}")
+            print("-" * 40)
+
 
     def filtro_centralidade(self):
         grau = nx.degree_centrality(self.G)
@@ -82,5 +111,3 @@ class CamaraGraph:
         print("="*60)
 
 
-    def search_deputados(self):
-        pass

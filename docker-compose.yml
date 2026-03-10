@@ -4,6 +4,14 @@ services:
   pipeline_camara:
     build: .
     container_name: tcc_pipeline
+    environment:
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+        reservations:
+          memory: 4G
     env_file:          
       - .env           
     volumes:
@@ -13,9 +21,11 @@ services:
   tests:
     build: .
     container_name: tcc_tests
+    environment:
+      - PYTHONUNBUFFERED=1
     env_file:
       - .env
     volumes:
-      - ./data:/app/data # testar leitura de arquivos reais
+      - ./data:/app/data 
       - ./src:/app/src
     command: pytest src/tests/ -v --cov=src
