@@ -1,8 +1,10 @@
 import os
+import pandas as pd # type: ignore
 from dotenv import load_dotenv  # type: ignore
 
 from config import Config, setup_logger
 from extraction import CamaraExtractor
+from processing import CamaraProcessor
 
 logger = setup_logger(__name__)
 config = Config()
@@ -11,21 +13,21 @@ print(Config.DATA_DIR)
 # Carrega variáveis de ambiente
 load_dotenv()
 LEGISLATURA_INICIO = config.LEGISLATURA_INICIO
-LEGISLATURA_ATUAL = config.LEGISLATURA_ATUAL # = LEGISLATURA_INICIO  para iterar nos anos
+LEGISLATURA_ATUAL = config.LEGISLATURA_ATUAL
+LEGISLATURA_ITERATOR = LEGISLATURA_INICIO
 DB_PATH = config.DB_PATH
 API_BASE_URL = config.API_BASE_URL
 
-def etapa_extraction():
+def etapa_extraction(ano) -> pd.DataFrame:
     """1️⃣ Extração de dados brutos"""
     logger.info("Extração de dados...")
-    return CamaraExtractor(config, LEGISLATURA_ATUAL).extrair_dados(LEGISLATURA_ATUAL)
+    return CamaraExtractor(config).extrair_dados_brutos(ano)
 
 
 def etapa_processing(df_bruto):
     """2️⃣ Limpeza e conversão para objetos"""
     logger.info("Processamento de dados...")
-    pass
-
+    return CamaraProcessor().processar_coautorias(df_bruto)
 
 def etapa_core(deputados, proposicoes, arestas):
     """3️⃣ Construção do grafo"""
@@ -50,22 +52,15 @@ def etapa_visualization(grafo, deputados):
     logger.info("Gerando visualizações...")
     pass
 
-
-def main():
+def run_pipeline(ano: int):
     """Pipeline principal"""
     logger.info("=== INICIANDO PIPELINE DE ANÁLISE PARLAMENTAR ===")
     
     try:
-        # 1. Extraction df_bruto = 
-        mapa_deputados, proposicoes, coautorias = etapa_extraction()
-
-        print(f"Total de projetos com coautoria: {len(coautorias)}")
-        print(f"Total de projetos: {len(proposicoes)}")
-        print(f"Total de deputados: {len(mapa_deputados)}")
-        
+        # 1. Extraction df_bruto
+        df_bruto = etapa_extraction(ano)
         # 2. Processing
-        #deputados, proposicoes, arestas = etapa_processing(df_bruto)
-        
+        mapa_deputados, proposicoes, coautorias = etapa_processing(df_bruto)
         # 3. Core
         #grafo = etapa_core(deputados, proposicoes, arestas)
         
@@ -84,6 +79,5 @@ def main():
         logger.error(f"❌ Erro no pipeline: {e}")
         raise
 
-
 if __name__ == "__main__":
-    main()
+    run_pipeline(LEGISLATURA_ITERATOR)
