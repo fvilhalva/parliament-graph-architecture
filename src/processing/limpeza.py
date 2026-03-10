@@ -17,7 +17,7 @@ class CamaraProcessor:
     def _setup_logger(self) -> logging.Logger:
         """Configura logging para o processamento"""
         pass
-    def processar_dados_brutos(self, df_bruto: pd.DataFrame, df_proposicoes: pd.DataFrame):
+    def processar_dados_brutos(self, df_bruto: pd.DataFrame, df_proposicoes: pd.DataFrame, filtro=[]):
         # 1. Padronização
         df_a = df_bruto.copy()
         df_p = df_proposicoes.copy()
@@ -27,8 +27,7 @@ class CamaraProcessor:
 
         # 2. Filtro de Visão (Manter apenas o que tem valor político real)
         # Selecionamos apenas Projetos de Lei, Emendas à Constituição e Leis Complementares
-        tipos_nobres = ['PL', 'PEC', 'PLP']
-        df_p_filtrado = df_p[df_p['siglatipo'].isin(tipos_nobres)]
+        df_p_filtrado = df_p[df_p['siglatipo'].isin(filtro)]
 
         # 3. Cruzamento (Merge): O "filtro atômico"
         # O inner join remove instantaneamente os 90 mil registros de requerimentos e ofícios
@@ -55,6 +54,27 @@ class CamaraProcessor:
         coautorias = grupos[grupos.apply(len) > 1]
 
         return mapa_deputados, grupos, coautorias, mapa_tipos
+    
+    def processar_dados_brutos_sem_filtros(self, df_bruto: pd.DataFrame): # não recomendo, polui mt o grafo, basicamente é todo movimento de um deputado kkkk
+        # 1. Padronização
+        df = df_bruto.copy()
+
+        df.columns = [c.strip().lower() for c in df.columns]
+
+        # 2. Filtros de Domínio (Só Deputados Federais)
+        df_dep = df[df['codtipoautor'] == 10000].copy()
+        df_dep = df_dep.dropna(subset=['iddeputadoautor'])
+        df_dep['iddeputadoautor'] = df_dep['iddeputadoautor'].astype(int)
+
+        # 3. Metadados dos Nós (Vértices)
+        df_meta = df_dep.drop_duplicates(subset=['iddeputadoautor'], keep='last')
+        mapa_deputados = df_meta.set_index('iddeputadoautor')[['nomeautor', 'siglapartidoautor', 'siglaufautor']].to_dict('index')
+
+        # 4. Agrupamento (Arestas)
+        grupos = df_dep.groupby('idproposicao')['iddeputadoautor'].apply(list) # todos os projetos
+        coautorias = grupos[grupos.apply(len) > 1]
+
+        return mapa_deputados, grupos, coautorias
     
     def converter_para_modelos(self, mapa_deputados: dict, grupos: pd.Series, coautorias: pd.Series, mapa_tipos: dict, ano: int):
         # 1. Mapeamento de Deputados (Vértices)

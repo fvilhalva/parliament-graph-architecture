@@ -6,6 +6,7 @@ from dotenv import load_dotenv  # type: ignore
 from config import Config, setup_logger
 from extraction import CamaraExtractor
 from processing import CamaraProcessor
+from core import CamaraGraph
 
 logger = setup_logger(__name__)
 config = Config()
@@ -28,13 +29,13 @@ def etapa_extraction(ano) -> pd.DataFrame:
     return df_bruto, df_meta
 
 
-def etapa_processing(df_bruto, df_meta, ano):
+def etapa_processing(df_bruto, df_meta, filtro, ano):
     """2️⃣ Limpeza e conversão para objetos"""
     logger.info("Processamento de dados...")
     processor = CamaraProcessor()
     
     # 1. Limpeza e extração das coautorias (Pandas)
-    mapa_deputados, grupos, coautorias, mapa_tipos = processor.processar_dados_brutos(df_bruto, df_meta)
+    mapa_deputados, grupos, coautorias, mapa_tipos = processor.processar_dados_brutos(df_bruto, df_meta, filtro)
     
     # 2. Conversão para as dataclasses
     dict_deputados, lista_proposicoes, lista_coautorias = processor.converter_para_modelos(mapa_deputados, grupos, coautorias, mapa_tipos, ano)
@@ -42,10 +43,12 @@ def etapa_processing(df_bruto, df_meta, ano):
     # Retorne tudo o que for necessário para as próximas etapas
     return dict_deputados, lista_proposicoes, lista_coautorias
 
-def etapa_core(deputados, proposicoes, arestas):
+def etapa_core(deputados, proposicoes, coautorias):
     """3️⃣ Construção do grafo"""
     logger.info("Construindo grafo...")
-    pass
+    grafo = CamaraGraph(deputados, proposicoes, coautorias)
+    grafo.construir_grafo()
+    return grafo
 
 
 def etapa_algorithms(grafo, deputados):
@@ -73,16 +76,16 @@ def run_pipeline(ano: int):
         # 1. Extraction df_bruto
         df_bruto, df_meta = etapa_extraction(ano)
         # 2. Processing
-        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, ano)
+        filtro =  ['PL', 'PEC', 'PLP']
+        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, filtro[1:2], ano)
         print(f"Quantidade de deputados: {len(dict_deputados)}")
-        print(f"Quantidade de proposicoes(PL, PEC, PLP): {len(lista_proposicoes)}")
+        print(f"Quantidade de proposicoes({filtro[1:2]}): {len(lista_proposicoes)}")
         print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
         print("COAUTORIAS: ")
-        print(lista_coautorias)
+        #print(lista_coautorias)
 
         # 3. Core
-        #grafo = etapa_core(deputados, proposicoes, arestas)
-        # etapa_core(dict_deputados, lista_proposicoes)
+        grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias)
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
