@@ -5,5 +5,5 @@ from typing import List
 class Proposicao:
     id_proposicao: int
     ano: int
-    ementa: str
+    # ementa: str
     autores_ids: List[int] # Lista de IDs dos deputados que assinaram

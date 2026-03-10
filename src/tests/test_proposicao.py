@@ -10,7 +10,7 @@ class TestProposicaoCriacao:
         """Deve criar uma proposição com dados válidos"""
         assert proposicao_exemplo.id_proposicao == 100
         assert proposicao_exemplo.ano == 2024
-        assert proposicao_exemplo.ementa == "PL que trata de segurança na internet"
+        # assert proposicao_exemplo.ementa == "PL que trata de segurança na internet"
 
     def test_autores_ids_lista(self, proposicao_exemplo):
         """Autores devem ser uma lista de IDs"""
@@ -22,7 +22,7 @@ class TestProposicaoCriacao:
         prop = Proposicao(
             id_proposicao=50,
             ano=2024,
-            ementa="Proposição sem autores",
+            # ementa="Proposição sem autores",
             autores_ids=[]
         )
         assert len(prop.autores_ids) == 0
@@ -42,9 +42,9 @@ class TestProposicaoValidacoes:
         assert isinstance(proposicao_exemplo.ano, int)
         assert 1988 <= proposicao_exemplo.ano <= 2026
 
-    def test_ementa_nao_vazia(self, proposicao_exemplo):
-        """Ementa não deve estar vazia"""
-        assert len(proposicao_exemplo.ementa) > 0
+    #def test_ementa_nao_vazia(self, proposicao_exemplo):
+    #    """Ementa não deve estar vazia"""
+    #    assert len(proposicao_exemplo.ementa) > 0
 
     def test_id_proposicao_positivo(self, proposicao_exemplo):
         """ID da proposição deve ser positivo"""
@@ -59,13 +59,13 @@ class TestProposicaoIgualdade:
         prop1 = Proposicao(
             id_proposicao=100,
             ano=2024,
-            ementa="PL sobre X",
+            # ementa="PL sobre X",
             autores_ids=[1, 2]
         )
         prop2 = Proposicao(
             id_proposicao=100,
             ano=2024,
-            ementa="PL sobre X",
+            # ementa="PL sobre X",
             autores_ids=[1, 2]
         )
         assert prop1.id_proposicao == prop2.id_proposicao

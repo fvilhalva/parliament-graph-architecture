@@ -1,7 +1,6 @@
 """Testes para o módulo de processamento"""
 import pytest # type: ignore
 import pandas as pd # type: ignore
-from processing.processing import GraphNetwork
 
 
 class TestProcessingDataValidacao:

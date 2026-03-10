@@ -50,7 +50,7 @@ def proposicao_exemplo():
     return Proposicao(
         id_proposicao=100,
         ano=2024,
-        ementa="PL que trata de segurança na internet",
+        # ementa="PL que trata de segurança na internet",
         autores_ids=[1, 2, 3]
     )
 
@@ -61,7 +61,7 @@ def proposicao_outro():
     return Proposicao(
         id_proposicao=101,
         ano=2024,
-        ementa="PL sobre reforma tributária",
+        # ementa="PL sobre reforma tributária",
         autores_ids=[1, 2]
     )
 

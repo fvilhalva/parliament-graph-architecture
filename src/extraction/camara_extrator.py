@@ -7,7 +7,7 @@ class CamaraExtractor:
         
     def extrair_dados_brutos(self, ano: int) -> pd.DataFrame:
         url = self.config.get_url_csv(ano)
-        df_bruto = pd.read_csv(url, sep=';')
+        df_bruto = pd.  read_csv(url, sep=';')
         return df_bruto
     
     def _fazer_requisicao(self, url: str, params: dict) -> dict:
