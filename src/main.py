@@ -77,9 +77,9 @@ def run_pipeline(ano: int):
         df_bruto, df_meta = etapa_extraction(ano)
         # 2. Processing
         filtro =  ['PL', 'PEC', 'PLP']
-        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, filtro[1:2], ano)
+        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, filtro, ano)
         print(f"Quantidade de deputados: {len(dict_deputados)}")
-        print(f"Quantidade de proposicoes({filtro[1:2]}): {len(lista_proposicoes)}")
+        print(f"Quantidade de proposicoes({filtro}): {len(lista_proposicoes)}")
         print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
         print("COAUTORIAS: ")
         #print(lista_coautorias)
