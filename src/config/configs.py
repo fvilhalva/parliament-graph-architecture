@@ -51,3 +51,6 @@ class Config:
     def get_url_csv(cls, ano: int) -> str:
         """Retorna URL do CSV para um ano específico"""
         return f"https://dadosabertos.camara.leg.br/arquivos/proposicoesAutores/csv/proposicoesAutores-{ano}.csv"
+    def get_url_csv_proposicoes(cls, ano: int) -> str:
+        """Retorna URL do CSV para um ano específico"""
+        return f"https://dadosabertos.camara.leg.br/arquivos/proposicoes/csv/proposicoes-{ano}.csv"

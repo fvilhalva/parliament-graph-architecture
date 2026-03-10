@@ -1,4 +1,4 @@
 # extraction/__init__.py
-from .Graph import CamaraGraph
+from .graph import CamaraGraph
 
 __all__ = ['CamaraGraph']

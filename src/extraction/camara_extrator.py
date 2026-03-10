@@ -7,8 +7,14 @@ class CamaraExtractor:
         
     def extrair_dados_brutos(self, ano: int) -> pd.DataFrame:
         url = self.config.get_url_csv(ano)
-        df_bruto = pd.  read_csv(url, sep=';')
+        df_bruto = pd.read_csv(url, sep=';')
         return df_bruto
+    
+    def extrair_metadados_proposicoes(self, ano: int) -> pd.DataFrame:
+        """Extrai o CSV de Proposições (onde está a siglaTipo e Ementa)"""
+        url = self.config.get_url_csv_proposicoes(ano)
+        df_meta = pd.read_csv(url, sep=';')
+        return df_meta
     
     def _fazer_requisicao(self, url: str, params: dict) -> dict:
         # Wrapper com retry, timeout, tratamento de erro

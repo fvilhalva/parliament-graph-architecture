@@ -7,3 +7,4 @@ class Proposicao:
     ano: int
     # ementa: str
     autores_ids: List[int] # Lista de IDs dos deputados que assinaram
+    sigla_tipo: str = ""  # Novo campo

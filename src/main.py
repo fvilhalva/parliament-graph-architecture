@@ -22,15 +22,25 @@ API_BASE_URL = config.API_BASE_URL
 def etapa_extraction(ano) -> pd.DataFrame:
     """1️⃣ Extração de dados brutos"""
     logger.info("Extração de dados...")
-    return CamaraExtractor(config).extrair_dados_brutos(ano)
+    df = CamaraExtractor(config)
+    df_bruto = df.extrair_dados_brutos(ano) # extrai as proposicoes
+    df_meta = df.extrair_metadados_proposicoes(ano) # extrai as proposicoes
+    return df_bruto, df_meta
 
 
-def etapa_processing(df_bruto, ano):
+def etapa_processing(df_bruto, df_meta, ano):
     """2️⃣ Limpeza e conversão para objetos"""
     logger.info("Processamento de dados...")
-    df_meta = CamaraProcessor()
-    mapa_deputados, _ , coautorias = df_meta.processar_dados_brutos(df_bruto)
-    return df_meta.converter_para_modelos(mapa_deputados, coautorias, ano)
+    processor = CamaraProcessor()
+    
+    # 1. Limpeza e extração das coautorias (Pandas)
+    mapa_deputados, grupos, coautorias, mapa_tipos = processor.processar_dados_brutos(df_bruto, df_meta)
+    
+    # 2. Conversão para as dataclasses
+    dict_deputados, lista_proposicoes, lista_coautorias = processor.converter_para_modelos(mapa_deputados, grupos, coautorias, mapa_tipos, ano)
+    
+    # Retorne tudo o que for necessário para as próximas etapas
+    return dict_deputados, lista_proposicoes, lista_coautorias
 
 def etapa_core(deputados, proposicoes, arestas):
     """3️⃣ Construção do grafo"""
@@ -61,15 +71,18 @@ def run_pipeline(ano: int):
     
     try:
         # 1. Extraction df_bruto
-        df_bruto = etapa_extraction(ano)
+        df_bruto, df_meta = etapa_extraction(ano)
         # 2. Processing
-        dict_deputados, lista_proposicoes = etapa_processing(df_bruto, ano)
-        primeiros_5 = dict(islice(dict_deputados.items(), 5))
-        print(primeiros_5)
-        print(f"tamanho dict de deputads: {len(dict_deputados)}")
-        # print(lista_proposicoes)
+        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, ano)
+        print(f"Quantidade de deputados: {len(dict_deputados)}")
+        print(f"Quantidade de proposicoes(PL, PEC, PLP): {len(lista_proposicoes)}")
+        print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
+        print("COAUTORIAS: ")
+        print(lista_coautorias)
+
         # 3. Core
         #grafo = etapa_core(deputados, proposicoes, arestas)
+        # etapa_core(dict_deputados, lista_proposicoes)
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
@@ -87,4 +100,4 @@ def run_pipeline(ano: int):
         raise
 
 if __name__ == "__main__":
-    run_pipeline(LEGISLATURA_ITERATOR)
+    run_pipeline(2025)

@@ -17,10 +17,29 @@ class CamaraProcessor:
     def _setup_logger(self) -> logging.Logger:
         """Configura logging para o processamento"""
         pass
-    def processar_dados_brutos(self, df_bruto: pd.DataFrame):
+    def processar_dados_brutos(self, df_bruto: pd.DataFrame, df_proposicoes: pd.DataFrame):
         # 1. Padronização
-        df = df_bruto.copy()
-        df.columns = [c.strip().lower() for c in df.columns] # deixar tudo minusculo
+        df_a = df_bruto.copy()
+        df_p = df_proposicoes.copy()
+
+        df_a.columns = [c.strip().lower() for c in df_a.columns]
+        df_p.columns = [c.strip().lower() for c in df_p.columns]
+
+        # 2. Filtro de Visão (Manter apenas o que tem valor político real)
+        # Selecionamos apenas Projetos de Lei, Emendas à Constituição e Leis Complementares
+        tipos_nobres = ['PL', 'PEC', 'PLP']
+        df_p_filtrado = df_p[df_p['siglatipo'].isin(tipos_nobres)]
+
+        # 3. Cruzamento (Merge): O "filtro atômico"
+        # O inner join remove instantaneamente os 90 mil registros de requerimentos e ofícios
+        df = df_a.merge(
+            df_p_filtrado[['id', 'siglatipo']], 
+            left_on='idproposicao', 
+            right_on='id', 
+            how='inner'
+        )
+
+        mapa_tipos = df.drop_duplicates('idproposicao').set_index('idproposicao')['siglatipo'].to_dict()
 
         # 2. Filtros de Domínio (Só Deputados Federais)
         df_dep = df[df['codtipoautor'] == 10000].copy()
@@ -32,12 +51,13 @@ class CamaraProcessor:
         mapa_deputados = df_meta.set_index('iddeputadoautor')[['nomeautor', 'siglapartidoautor', 'siglaufautor']].to_dict('index')
 
         # 4. Agrupamento (Arestas)
-        grupos = df_dep.groupby('idproposicao')['iddeputadoautor'].apply(list)
+        grupos = df_dep.groupby('idproposicao')['iddeputadoautor'].apply(list) # todos os projetos
         coautorias = grupos[grupos.apply(len) > 1]
 
-        return mapa_deputados, grupos, coautorias
+        return mapa_deputados, grupos, coautorias, mapa_tipos
     
-    def converter_para_modelos(self, mapa_deputados: dict, coautorias: pd.Series, ano: int):
+    def converter_para_modelos(self, mapa_deputados: dict, grupos: pd.Series, coautorias: pd.Series, mapa_tipos: dict, ano: int):
+        # 1. Mapeamento de Deputados (Vértices)
         dict_deputados = {}
         for id_dep, info in mapa_deputados.items():
             dict_deputados[id_dep] = Deputado(
@@ -46,12 +66,25 @@ class CamaraProcessor:
                 sigla_partido=info['siglapartidoautor'],
                 sigla_uf=info['siglaufautor']
             )
-        lista_proposicoes = []
+        # 2. Subconjunto: Só o que vira aresta no Grafo
+        lista_coautorias = []
         for id_prop, autores in coautorias.items():
+            lista_coautorias.append(Proposicao(
+                id_proposicao=id_prop,
+                ano=ano,
+                # ementa="Ementa temporária",
+                autores_ids=autores,
+                sigla_tipo=mapa_tipos.get(id_prop, "N/A")
+        ))
+        
+        # 3. Catálogo Geral: Todos os projetos (Individuais + Coletivos)
+        lista_proposicoes = []
+        for id_prop, autores in grupos.items():
             lista_proposicoes.append(Proposicao(
                 id_proposicao=id_prop,
                 ano=ano,
                 # ementa="Ementa temporária",
-                autores_ids=autores
+                autores_ids=autores,
+                sigla_tipo=mapa_tipos.get(id_prop, "N/A")
         ))
-        return dict_deputados, lista_proposicoes
+        return dict_deputados, lista_proposicoes, lista_coautorias
