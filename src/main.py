@@ -88,17 +88,17 @@ def run_pipeline(ano: int):
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
         grafo.filtro_centralidade()
         grafo.filtro_intermediacao()
-        grafo.exibir_perfil_deputado("nikolas ferreira")
+        #grafo.exibir_perfil_deputado("nikolas ferreira")
+        grafo.analise_estrutural_avancada()
+        grafo.identificar_dependentes("Delegado Palumbo")
+        grafo.identificar_dependentes("Detinha")
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
-        
         # 5. Repository
         #etapa_repository(grafo, deputados, proposicoes, arestas)
-        
         # 6. Visualization
         #etapa_visualization(grafo, deputados)
-        print("Hello Docker")
         
         logger.info("✅ PIPELINE CONCLUÍDO COM SUCESSO!")
     except Exception as e:
@@ -106,4 +106,4 @@ def run_pipeline(ano: int):
         raise
 
 if __name__ == "__main__":
-    run_pipeline(2025)
+    run_pipeline(2024)

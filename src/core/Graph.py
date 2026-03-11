@@ -109,4 +109,65 @@ class CamaraGraph:
             print(f"ID: {id_dep:<6} | {nome[:25]:<25} | {partido:6}/{uf:2} | Intermediação: {valor:.4f}")
         print("="*60)
 
+    def analise_estrutural_avancada(self):
+        print("\n" + "!"*60)
+        print(f"ANÁLISE ESTRUTURAL AVANÇADA - {self.ano}")
+        print("!"*60)
+        # 1. Vértices de Corte (Pontos de Articulação)
+        pontos_articulacao = list(nx.articulation_points(self.G))
+        print(f"\n⚠️ Pontos de Articulação encontrados: {len(pontos_articulacao)}")
+        for id_dep in pontos_articulacao[:5]: # Mostrar só os top 5
+            info = self.deputados.get(id_dep)
+            nome = info.nome if info else id_dep
+            print(f" - {nome} é essencial para a conectividade da rede.")
+            # 2. Densidade do Grafo
+        densidade = nx.density(self.G)
+        print(f"\n📊 Densidade da Rede: {densidade:.4f}")
 
+        # 3. Componentes Conectados
+        componentes = nx.number_connected_components(self.G)
+        print(f"🔗 O grafo possui {componentes} grupos isolados.")
+        # 4. Diâmetro (só funciona se o grafo for totalmente conectado)
+        if componentes == 1:
+            diametro = nx.diameter(self.G, weight='distance')
+            print(f"📏 Diâmetro da Rede (menor caminho entre os mais distantes): {diametro:.4f}")
+
+    def identificar_dependentes(self, termo_busca="Luisa Canziani"):
+        # 1. Encontrar o ID da deputada
+        res = self.search_deputados(termo_busca)
+        if not res:
+            print(f"❌ Deputado {termo_busca} não encontrado.")
+            return
+        dep_id = res[0].id_deputado
+        nome_alvo = res[0].nome
+
+        # 2. Criar uma cópia para não estragar o grafo original do YGGDRASIL
+        G_temp = self.G.copy()
+        G_temp.remove_node(dep_id)
+
+        # 3. Pegar os novos componentes isolados
+        # O nx.connected_components devolve listas de nós que ainda se falam
+        componentes = list(nx.connected_components(G_temp))
+        
+        # Ordenamos para o maior (Giant Component) ficar primeiro
+        componentes.sort(key=len, reverse=True)
+
+        print("\n" + "!"*60)
+        print(f"ANÁLISE DE VULNERABILIDADE: {nome_alvo}")
+        print("!"*60)
+
+        if len(componentes) > 1:
+            print(f"⚠️ A remoção de {nome_alvo} fragmentou o grafo em {len(componentes)} partes.")
+            print("\n--- GRUPOS QUE FICARAM ISOLADOS ---")
+            
+            # O primeiro componente (index 0) é a massa principal, ignoramos ele.
+            for i, comp in enumerate(componentes[1:], 1):
+                print(f"\nSubgrupo {i} ({len(comp)} deputados):")
+                for node_id in comp:
+                    info = self.deputados.get(node_id)
+                    nome = info.nome if info else f"ID: {node_id}"
+                    partido = info.sigla_partido if info else "N/A"
+                    print(f" - {nome} ({partido})")
+        else:
+            print(f"✅ A remoção de {nome_alvo} não isolou nenhum grupo (Rede Resiliente).")
+        print("!"*60)
