@@ -177,16 +177,16 @@ class ArestaCoautoria:
 ### ✅ Concluído
 - [x] Estrutura de arquitetura em camadas
 - [x] Modelos de dados (Deputado, Proposição, ArestaCoautoria)
-- [x] Template da classe `GraphNetwork` (processamento)
 - [x] Template dos algoritmos (métricas + comunidades)
-- [x] Suite de testes estruturada (conftest + 6 módulos)
+- [x] Template da Suite de testes estruturada (conftest + 6 módulos)
 - [x] Docker + Docker Compose
-- [x] Dados históricos (20 anos em GEXF)
-- [x] Implementação completa do `Graph.py`
-- [x] Implementação do `CamaraProcessor` (processing)
+- [x] Implementação completa do `CamaraExtrator` (extraction)
+- [x] Implementação completa do `CamaraGraphy` (core)
+- [x] Implementação Completa do `CamaraProcessor` (processing)
 - [x] Algoritmos de centralidade (degree, betweenness, closeness, eigenvector)
 
 ### ⏳ Em Desenvolvimento
+- [ ] Dados históricos (20 anos em GEXF)
 - [ ] Detecção de comunidades (Louvain, Spectral Clustering)
 - [ ] Exportação para GEXF/Gephi
 - [ ] Persistência em SQLite
