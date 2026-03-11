@@ -86,12 +86,10 @@ def run_pipeline(ano: int):
 
         # 3. Core
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
-        grafo.filtro_centralidade()
-        grafo.filtro_intermediacao()
+        #print(grafo.filtro_centralidade())
+        print(grafo.filtro_intermediacao())
         #grafo.exibir_perfil_deputado("nikolas ferreira")
-        grafo.analise_estrutural_avancada()
-        grafo.identificar_dependentes("Delegado Palumbo")
-        grafo.identificar_dependentes("Detinha")
+        #grafo.analise_estrutural_avancada()
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)

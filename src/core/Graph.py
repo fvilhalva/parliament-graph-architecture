@@ -1,6 +1,12 @@
 import networkx as nx
 from itertools import combinations
 
+# No início do arquivo ou dentro da classe
+ID_MAPPER = {
+    130398: 220657,  # Mapeia o ID fantasma para o ID real do André Fernandes
+    # Adicione outros aqui se encontrar mais duplicatas
+}
+
 class CamaraGraph:
     def __init__(self, dict_deputados, lista_proposicoes, lista_coautorias, ano):
         self.G = nx.Graph()
@@ -14,7 +20,11 @@ class CamaraGraph:
 
         for prop in self.coautorias:
             # Pega a lista de IDs que está dentro do objeto
-            ids = prop.autores_ids
+            ids_originais = prop.autores_ids
+            ids = [ID_MAPPER.get(idx, idx) for idx in ids_originais]
+
+            # Remove duplicatas caso o cara tenha assinado com os dois IDs (raro, mas acontece)
+            ids = list(set(ids))
 
             valor_articulacao = pesos.get(prop.sigla_tipo, 1)
             distancia = 1 / valor_articulacao
@@ -73,41 +83,28 @@ class CamaraGraph:
         # grau = nx.degree_centrality(self.G)
         forca = dict(self.G.degree(weight='weight'))
         max_forca_encontrada = max(forca.values()) if forca else 1
-        top_10 = sorted(forca.items(), key=lambda x: x[1], reverse=True)[:10]
+        deputados_centralidade = sorted(forca.items(), key=lambda x: x[1], reverse=True)
 
-        print("\n" + "="*60)
-        print(f"RANKING YGGDRASIL - TOP 10 INFLUENTES (GRAU) - {self.ano}")
-        print("="*60)
-
-        for id_dep, valor in top_10:
+        res = [] 
+        for id_dep, valor in deputados_centralidade:
             valor_norm = valor / max_forca_encontrada
             info = self.deputados.get(id_dep, {})
-            nome = info.nome if info else f"ID: {id_dep}"
-            partido = info.sigla_partido if info else "N/A"
-            uf = info.sigla_uf if info else "N/A"
-    
-            # Formatação alinhada
-            print(f"ID: {id_dep:<6} | {nome[:25]:<25} | {partido:6}/{uf:2} | Centralidade: {valor_norm:.4f}")
-
-        print("="*60)
+            info.degree_centrality = valor_norm
+            res.append(info)
+        return res
 
     def filtro_intermediacao(self):
         # intermediacao = nx.betweenness_centrality(self.G)
         intermediacao = nx.betweenness_centrality(self.G, weight='distance')
-        top_10 = sorted(intermediacao.items(), key=lambda x: x[1], reverse=True)[:10]
+        deputados_intermediacao = sorted(intermediacao.items(), key=lambda x: x[1], reverse=True)
 
-        print("\n" + "="*60)
-        print(f"RANKING YGGDRASIL - TOP 10 PONTES (BETWEENNESS) - {self.ano}")
-        print("="*60)
-
-        for id_dep, valor in top_10:
+        res = []
+        for id_dep, valor in deputados_intermediacao:
             info = self.deputados.get(id_dep, {})
-            nome = info.nome if info else f"ID: {id_dep}"
-            partido = info.sigla_partido if info else "N/A"
-            uf = info.sigla_uf if info else "N/A"
+            info.betweenness_centrality = valor
+            res.append(info)
 
-            print(f"ID: {id_dep:<6} | {nome[:25]:<25} | {partido:6}/{uf:2} | Intermediação: {valor:.4f}")
-        print("="*60)
+        return res
 
     def analise_estrutural_avancada(self):
         print("\n" + "!"*60)
@@ -171,3 +168,8 @@ class CamaraGraph:
         else:
             print(f"✅ A remoção de {nome_alvo} não isolou nenhum grupo (Rede Resiliente).")
         print("!"*60)
+
+    def filtro_partidos_de_maior_grau(self):
+        pass
+    def filtro_partidos_de_maior_intermediacao(self):
+        pass
