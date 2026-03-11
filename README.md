@@ -2,7 +2,7 @@
 
 ## Análise de Estruturas de Influência Baseada em Teoria dos Grafos
 
-Projeto de TCC que implementa uma arquitetura modular para análise de redes parlamentares, identificando estruturas de influência através de métricas de centralidade e detecção de comunidades.
+Projeto de TCC/PFC(Projeto Final de Curso) que implementa uma arquitetura modular para análise de redes parlamentares, identificando estruturas de influência através de métricas de centralidade e detecção de comunidades.
 
 **Período**: 2006-2026 (20 anos de dados históricos do Congresso Nacional Brasileiro)
 
@@ -20,9 +20,9 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 
 | Camada | Responsabilidade | Status |
 |--------|------------------|--------|
-| **extraction/** | Coleta de dados brutos da API | ⏳ TODO |
-| **processing/** | Limpeza, transformação, conversão em objetos | ✅ Template pronto |
-| **core/Graph.py** | Construção e operações do grafo | ⏳ TODO |
+| **extraction/** | Coleta de dados brutos da API | ✅ Implementado |
+| **processing/** | Limpeza, transformação, conversão em objetos | ✅ Implementado |
+| **core/Graph.py** | Construção e operações do grafo | ✅ Implementado |
 | **core/algorithms/** | Métricas e detecção de comunidades | ✅ Template pronto |
 | **models/** | Entidades do domínio | ✅ Implementado |
 | **repository/** | Persistência (CSV, GEXF, SQLite) | ⏳ TODO |
@@ -182,11 +182,11 @@ class ArestaCoautoria:
 - [x] Suite de testes estruturada (conftest + 6 módulos)
 - [x] Docker + Docker Compose
 - [x] Dados históricos (20 anos em GEXF)
+- [x] Implementação completa do `Graph.py`
+- [x] Implementação do `CamaraProcessor` (processing)
+- [x] Algoritmos de centralidade (degree, betweenness, closeness, eigenvector)
 
 ### ⏳ Em Desenvolvimento
-- [ ] Implementação completa do `Graph.py`
-- [ ] Implementação do `GraphNetwork` (processing)
-- [ ] Algoritmos de centralidade (degree, betweenness, closeness, eigenvector)
 - [ ] Detecção de comunidades (Louvain, Spectral Clustering)
 - [ ] Exportação para GEXF/Gephi
 - [ ] Persistência em SQLite
@@ -203,7 +203,7 @@ class ArestaCoautoria:
 ---
 
 ## 📚 Dependências Principais
-
+- **requests** (2.31.0) - processar APIs
 - **pandas** (2.2.0) - Processamento de dados
 - **networkx** (3.2.1) - Análise de grafos
 - **scikit-learn** (1.4.1) - Clustering e ML
@@ -212,6 +212,8 @@ class ArestaCoautoria:
 - **seaborn** (0.13.2) - Gráficos estatísticos
 - **pytest** (7.4.3) - Framework de testes
 - **python-dotenv** (1.0.1) - Variáveis de ambiente
+- **pytest-cov** (4.1.0) - ajudar no pytest
+- **pyarrow** (15.0.0) - 
 
 ---
 
@@ -251,7 +253,7 @@ pytest src/tests/ --cov=src --cov-report=html
 |------|-----------|--------|
 | 2026-03-09 | Setup inicial + arquitetura | ✅ |
 | 2026-03-09 | Suite de testes (76 testes, 65% cobertura) | ✅ |
-| **TBD** | Implementação do Graph | ⏳ |
+| 2026-03-10 | Implementação do Graph (implementarei mais funcionalidades) | ✅ |
 | **TBD** | Processamento completo | ⏳ |
 | **TBD** | Algoritmos + testes | ⏳ |
 | **TBD** | Visualizações | ⏳ |
