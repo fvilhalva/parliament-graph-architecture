@@ -7,13 +7,13 @@ class CamaraExtractor:
         self.config = config
 
     def extrair_dados_brutos(self, ano: int) -> pd.DataFrame:
-        url = "https://dadosabertos.camara.leg.br/arquivos/proposicoes/csv/proposicoes-{ano}.csv"
+        url = self.config.get_url_csv(ano)
         df_bruto = pd.read_csv(url, sep=";")
         return df_bruto
 
     def extrair_metadados_proposicoes(self, ano: int) -> pd.DataFrame:
         """Extrai o CSV de Proposições (onde está a siglaTipo e Ementa)"""
-        url = "https://dadosabertos.camara.leg.br/arquivos/proposicoes/csv/proposicoes-{ano}.csvs"
+        url = self.config.get_url_csv_proposicoes(ano)
         df_meta = pd.read_csv(url, sep=";")
         return df_meta
 
