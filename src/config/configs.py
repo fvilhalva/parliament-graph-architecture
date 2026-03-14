@@ -8,6 +8,7 @@ class Config:
      # Paths (estáticos)
     BASE_DIR = Path(__file__).parent.parent.parent
     DATA_DIR = BASE_DIR / "data"
+    CACHE_DIR = DATA_DIR / "cache"
     GEXF_DIR = DATA_DIR / "gexf"
     METRICAS_DIR = DATA_DIR / "metricas"
     PLOTS_DIR = DATA_DIR / "plots"

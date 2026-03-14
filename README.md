@@ -292,3 +292,12 @@ MIT License - veja arquivo `LICENSE` para detalhes.
 **core** → constrói grafo + calcula métricas
 **repository** → salva em CSV/GEXF/SQLite
 **visualization** → gera plots
+
+---
+
+## ⚠️ Alerta de Conectividade
+
+Se estiver usando notebook com Wi-Fi fraco (ou sem conexão cabeada), baixe antes os arquivos para `data/cache/` usando os links completos:
+
+- `https://dadosabertos.camara.leg.br/arquivos/proposicoesAutores/csv/proposicoesAutores-YYYY.csv`
+- `https://dadosabertos.camara.leg.br/arquivos/proposicoes/csv/proposicoes-YYYY.csv`
