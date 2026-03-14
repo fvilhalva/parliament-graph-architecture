@@ -105,6 +105,20 @@ docker-compose up --build
 docker-compose up --build -d
 ```
 
+### Dados Offline (manual)
+
+O pipeline agora le os CSVs localmente (sem download automatico). Baixe os arquivos e coloque em `data/` ou `data/cache/`.
+
+Links diretos (exemplo para 2024):
+
+- `proposicoesAutores-2024.csv`: `https://dadosabertos.camara.leg.br/arquivos/proposicoesAutores/csv/proposicoesAutores-2024.csv`
+- `proposicoes-2024.csv`: `https://dadosabertos.camara.leg.br/arquivos/proposicoes/csv/proposicoes-2024.csv`
+
+Nomes esperados por ano `YYYY`:
+
+- `proposicoesAutores-YYYY.csv`
+- `proposicoes-YYYY.csv`
+
 **Rodar componentes separados:**
 
 ```bash
