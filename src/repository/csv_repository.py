@@ -2,7 +2,6 @@ from pathlib import Path
 from dataclasses import asdict
 import pandas as pd  # type: ignore
 
-
 class CsvRepository:
     def __init__(self, output_dir: Path | str):
         self.output_dir = Path(output_dir)
@@ -34,3 +33,6 @@ class CsvRepository:
         output_file = self.output_dir / f"deputados_metricas_{ano}.csv"
         df.to_csv(output_file, index=False, encoding="utf-8-sig")
         return output_file
+    
+    def exportar_metricas_coautorias(self, coautorias: list):
+        pass 

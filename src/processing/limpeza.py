@@ -17,7 +17,7 @@ class CamaraProcessor:
     def _setup_logger(self) -> logging.Logger:
         """Configura logging para o processamento"""
         pass
-    def processar_dados_brutos(self, df_bruto: pd.DataFrame, df_proposicoes: pd.DataFrame, filtro=[]):
+    def processar_dados_brutos(self, df_bruto: pd.DataFrame, df_proposicoes: pd.DataFrame, filtro=['PL', 'PEC', 'PLP']):
         # 1. Padronização
         df_a = df_bruto.copy()
         df_p = df_proposicoes.copy()

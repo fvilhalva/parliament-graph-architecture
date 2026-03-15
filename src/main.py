@@ -27,22 +27,22 @@ def etapa_extraction(ano) -> pd.DataFrame:
     df = CamaraExtractor(config)
     df_bruto = df.extrair_dados_brutos(ano) # extrai as proposicoes
     df_meta = df.extrair_metadados_proposicoes(ano) # extrai as proposicoes
-    return df_bruto, df_meta
+    return df_bruto, df_meta, df
 
 
-def etapa_processing(df_bruto, df_meta, filtro, ano):
+def etapa_processing(df_bruto, df_meta, ano):
     """2️⃣ Limpeza e conversão para objetos"""
     logger.info("Processamento de dados...")
     processor = CamaraProcessor()
     
     # 1. Limpeza e extração das coautorias (Pandas)
-    mapa_deputados, grupos, coautorias, mapa_tipos = processor.processar_dados_brutos(df_bruto, df_meta, filtro)
+    mapa_deputados, grupos, coautorias, mapa_tipos = processor.processar_dados_brutos(df_bruto, df_meta)
     
     # 2. Conversão para as dataclasses
     dict_deputados, lista_proposicoes, lista_coautorias = processor.converter_para_modelos(mapa_deputados, grupos, coautorias, mapa_tipos, ano)
     
     # Retorne tudo o que for necessário para as próximas etapas
-    return dict_deputados, lista_proposicoes, lista_coautorias
+    return dict_deputados, lista_proposicoes, lista_coautorias, processor
 
 def etapa_core(deputados, proposicoes, coautorias, ano):
     """3️⃣ Construção do grafo"""
@@ -77,17 +77,19 @@ def run_pipeline(ano: int):
     
     try:
         # 1. Extraction df_bruto
-        df_bruto, df_meta = etapa_extraction(ano)
-        # 2. Processing
-        filtro =  ['PL', 'PEC', 'PLP']
-        dict_deputados, lista_proposicoes, lista_coautorias = etapa_processing(df_bruto, df_meta, filtro, ano)
+        # _camaraExtrator é uma instancia de CamaraExtrator(Classe)
+        df_bruto, df_meta, _camaraExtrator = etapa_extraction(ano)
+        # 2. Processin
+        # _camaraProcessor é uma instancia de CamaraProcessor(Classe)
+        dict_deputados, lista_proposicoes, lista_coautorias, _camaraProcessor = etapa_processing(df_bruto, df_meta, ano)
         print(f"Quantidade de deputados: {len(dict_deputados)}")
-        print(f"Quantidade de proposicoes({filtro}): {len(lista_proposicoes)}")
+        print(f"Quantidade de proposicoes(): {len(lista_proposicoes)}")
         print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
         print("COAUTORIAS: ")
         #print(lista_coautorias)
 
         # 3. Core
+        # grafo ja é uma instancia de CamaraGraph
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
         deputados_centralidade = grafo.filtro_centralidade()
         grafo.filtro_intermediacao()
@@ -98,7 +100,7 @@ def run_pipeline(ano: int):
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
         # 5. Repository
-        etapa_repository(grafo, deputados_centralidade, ano)
+        #etapa_repository(grafo, deputados_centralidade, ano)
         # 6. Visualization
         #etapa_visualization(grafo, deputados)
         
