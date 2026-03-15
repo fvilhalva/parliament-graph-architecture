@@ -1,6 +1,6 @@
 """Testes para a classe CamaraGraph (core)"""
 import pytest # type: ignore
-from core.Graph import CamaraGraph
+from core import CamaraGraph
 from models.deputado import Deputado
 from models.aresta_coautoria import ArestaCoautoria
 

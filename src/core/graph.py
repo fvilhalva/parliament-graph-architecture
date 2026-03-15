@@ -8,11 +8,11 @@ ID_MAPPER = {
 }
 
 class CamaraGraph:
-    def __init__(self, dict_deputados, lista_proposicoes, lista_coautorias, ano):
+    def __init__(self, dict_deputados=None, lista_proposicoes=None, lista_coautorias=None, ano=None):
         self.G = nx.Graph()
-        self.deputados = dict_deputados
-        self.proposicoes = lista_proposicoes
-        self.coautorias = lista_coautorias
+        self.deputados = dict_deputados or {}
+        self.proposicoes = lista_proposicoes or []
+        self.coautorias = lista_coautorias or []
         self.ano = ano
     
     def construir_grafo(self):
