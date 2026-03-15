@@ -7,6 +7,7 @@ from config import Config, setup_logger
 from extraction import CamaraExtractor
 from processing import CamaraProcessor
 from core import CamaraGraph
+from repository import CsvRepository
 
 logger = setup_logger(__name__)
 config = Config()
@@ -57,10 +58,12 @@ def etapa_algorithms(grafo, deputados):
     pass
 
 
-def etapa_repository(grafo, deputados, proposicoes, arestas):
+def etapa_repository(grafo, deputados, ano):
     """5️⃣ Exportação para GEXF, CSV e SQLite"""
     logger.info("Exportando dados...")
-    pass
+    csv_repository = CsvRepository(Config.METRICAS_DIR)
+    output_file = csv_repository.exportar_metricas_deputados(deputados, ano)
+    logger.info(f"CSV de métricas exportado em: {output_file}")
 
 
 def etapa_visualization(grafo, deputados):
@@ -86,15 +89,16 @@ def run_pipeline(ano: int):
 
         # 3. Core
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
-        print(grafo.filtro_centralidade())
-        print(grafo.filtro_intermediacao())
+        deputados_centralidade = grafo.filtro_centralidade()
+        grafo.filtro_intermediacao()
+        print(deputados_centralidade)
         grafo.exibir_perfil_deputado("nikolas ferreira")
         grafo.analise_estrutural_avancada()
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
         # 5. Repository
-        #etapa_repository(grafo, deputados, proposicoes, arestas)
+        etapa_repository(grafo, deputados_centralidade, ano)
         # 6. Visualization
         #etapa_visualization(grafo, deputados)
         
