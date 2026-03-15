@@ -80,15 +80,17 @@ class CamaraGraph:
 
 
     def filtro_centralidade(self):
-        # grau = nx.degree_centrality(self.G)
         forca = dict(self.G.degree(weight='weight'))
-        max_forca_encontrada = max(forca.values()) if forca else 1
+        total_forca = sum(forca.values()) if forca else 1
         deputados_centralidade = sorted(forca.items(), key=lambda x: x[1], reverse=True)
 
         res = [] 
         for id_dep, valor in deputados_centralidade:
-            valor_norm = valor / max_forca_encontrada
+            # Normalizacao por participacao na forca total da rede
+            # Mantem comparabilidade entre anos com tamanhos diferentes.
+            valor_norm = valor / total_forca
             info = self.deputados.get(id_dep, {})
+            info.weighted_degree = valor
             info.degree_centrality = valor_norm
             res.append(info)
         return res

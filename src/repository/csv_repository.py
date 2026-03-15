@@ -19,6 +19,7 @@ class CsvRepository:
                     "nome": dep_dict.get("nome"),
                     "sigla_partido": dep_dict.get("sigla_partido"),
                     "sigla_uf": dep_dict.get("sigla_uf"),
+                    "weighted_degree": dep_dict.get("weighted_degree", 0.0),
                     "degree_centrality": dep_dict.get("degree_centrality", 0.0),
                     "betweenness_centrality": dep_dict.get("betweenness_centrality", 0.0),
                 }
