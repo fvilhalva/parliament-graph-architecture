@@ -7,7 +7,7 @@ from config import Config, setup_logger
 from extraction import CamaraExtractor
 from processing import CamaraProcessor
 from core import CamaraGraph
-from repository import CsvRepository
+from repository import CsvRepository, GraphExporter, DB_Exporter
 
 logger = setup_logger(__name__)
 config = Config()
@@ -61,10 +61,18 @@ def etapa_algorithms(grafo, deputados):
 def etapa_repository(grafo, deputados, ano):
     """5️⃣ Exportação para GEXF, CSV e SQLite"""
     logger.info("Exportando dados...")
+
+    graph_exporter = GraphExporter(Config.GEXF_DIR)
+    gexf_file = graph_exporter.exportar_gexf(grafo, ano=ano)
+    logger.info(f"GEXF exportado em: {gexf_file}")
+
     csv_repository = CsvRepository(Config.METRICAS_DIR)
     output_file = csv_repository.exportar_metricas_deputados(deputados, ano)
     logger.info(f"CSV de métricas exportado em: {output_file}")
 
+    db_repository = DB_Exporter(Config.DB_PATH)
+    db_path = db_repository.exportar_metricas_deputados(deputados, ano)
+    logger.info(f"SQLite exportado em: {db_path}")
 
 def etapa_visualization(grafo, deputados):
     """6️⃣ Geração de visualizações"""
@@ -100,7 +108,7 @@ def run_pipeline(ano: int):
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
         # 5. Repository
-        #etapa_repository(grafo, deputados_centralidade, ano)
+        etapa_repository(grafo, deputados_centralidade, ano)
         # 6. Visualization
         #etapa_visualization(grafo, deputados)
         
