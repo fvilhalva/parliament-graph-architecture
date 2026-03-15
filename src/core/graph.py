@@ -1,4 +1,4 @@
-import networkx as nx
+import networkx as nx # type: ignore
 from itertools import combinations
 
 # No início do arquivo ou dentro da classe
