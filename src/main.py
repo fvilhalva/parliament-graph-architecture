@@ -104,4 +104,4 @@ def run_pipeline(ano: int):
         raise
 
 if __name__ == "__main__":
-    run_pipeline(2024)
+    run_pipeline(2025)
