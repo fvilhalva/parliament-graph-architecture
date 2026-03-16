@@ -99,16 +99,15 @@ def run_pipeline(ano: int):
         # 3. Core
         # grafo ja é uma instancia de CamaraGraph
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
-        deputados_centralidade = grafo.filtro_centralidade()
+        deputados_centralidade = grafo.filtro_centralidade() # alterar para alterar na instacia
         grafo.filtro_intermediacao()
-        print(deputados_centralidade)
         grafo.exibir_perfil_deputado("nikolas ferreira")
         grafo.analise_estrutural_avancada()
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
         # 5. Repository
-        etapa_repository(grafo, deputados_centralidade, ano)
+        # etapa_repository(grafo, deputados_centralidade, ano)
         # 6. Visualization
         #etapa_visualization(grafo, deputados)
         
