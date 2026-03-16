@@ -8,6 +8,7 @@ from extraction import CamaraExtractor
 from processing import CamaraProcessor
 from core import CamaraGraph
 from repository import CsvRepository, GraphExporter, DB_Exporter
+from visualization import gerar_analise_plots
 
 logger = setup_logger(__name__)
 config = Config()
@@ -74,10 +75,11 @@ def etapa_repository(grafo, deputados, ano):
     db_path = db_repository.exportar_metricas_deputados(deputados, ano)
     logger.info(f"SQLite exportado em: {db_path}")
 
-def etapa_visualization(grafo, deputados):
+def etapa_visualization(grafo, deputados, ano):
     """6️⃣ Geração de visualizações"""
     logger.info("Gerando visualizações...")
-    pass
+    output_dir = gerar_analise_plots(ano)
+    logger.info(f"Plots exportados em: {output_dir}")
 
 def run_pipeline(ano: int):
     """Pipeline principal"""
@@ -94,22 +96,20 @@ def run_pipeline(ano: int):
         print(f"Quantidade de proposicoes(): {len(lista_proposicoes)}")
         print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
         print("COAUTORIAS: ")
-        print(lista_coautorias)
+        # print(lista_coautorias)
 
         # 3. Core
         # grafo ja é uma instancia de CamaraGraph
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
         deputados_centralidade = grafo.filtro_centralidade() # alterar para alterar na instacia
         grafo.filtro_intermediacao()
-        grafo.exibir_perfil_deputado("nikolas ferreira")
-        grafo.analise_estrutural_avancada()
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
         # 5. Repository
-        # etapa_repository(grafo, deputados_centralidade, ano)
+        etapa_repository(grafo, deputados_centralidade, ano)
         # 6. Visualization
-        #etapa_visualization(grafo, deputados)
+        etapa_visualization(grafo, deputados_centralidade, ano)
         
         logger.info("✅ PIPELINE CONCLUÍDO COM SUCESSO!")
     except Exception as e:
