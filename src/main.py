@@ -58,7 +58,6 @@ def etapa_algorithms(grafo, deputados):
     logger.info("Calculando métricas...")
     pass
 
-
 def etapa_repository(grafo, deputados, ano):
     """5️⃣ Exportação para GEXF, CSV e SQLite"""
     logger.info("Exportando dados...")
@@ -95,21 +94,21 @@ def run_pipeline(ano: int):
         print(f"Quantidade de deputados: {len(dict_deputados)}")
         print(f"Quantidade de proposicoes(): {len(lista_proposicoes)}")
         print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
-        print("COAUTORIAS: ")
+        # print("COAUTORIAS: ")
         # print(lista_coautorias)
 
         # 3. Core
         # grafo ja é uma instancia de CamaraGraph
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
         deputados_centralidade = grafo.filtro_centralidade() # alterar para alterar na instacia
-        grafo.filtro_intermediacao()
+        deputados_intermediacao = grafo.filtro_intermediacao()
         
         # 4. Algorithms
         #etapa_algorithms(grafo, deputados)
         # 5. Repository
-        etapa_repository(grafo, deputados_centralidade, ano)
+        # etapa_repository(grafo, deputados_centralidade, ano) # ta legal, mas pode surgir mais funcionalidades
         # 6. Visualization
-        etapa_visualization(grafo, deputados_centralidade, ano)
+        # etapa_visualization(grafo, deputados_centralidade, ano) # alterar para usar a instancia do grafo etc
         
         logger.info("✅ PIPELINE CONCLUÍDO COM SUCESSO!")
     except Exception as e:
