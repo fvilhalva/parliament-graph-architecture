@@ -94,7 +94,7 @@ def run_pipeline(ano: int):
         print(f"Quantidade de proposicoes(): {len(lista_proposicoes)}")
         print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
         print("COAUTORIAS: ")
-        #print(lista_coautorias)
+        print(lista_coautorias)
 
         # 3. Core
         # grafo ja é uma instancia de CamaraGraph
