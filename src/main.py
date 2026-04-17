@@ -7,6 +7,7 @@ from config import Config, setup_logger
 from extraction import CamaraExtractor
 from processing import CamaraProcessor
 from core import CamaraGraph
+from core.algorithms.community_detection import compare_community_methods, detect_communities
 from repository import CsvRepository, GraphExporter, DB_Exporter
 from visualization import gerar_analise_plots
 
@@ -53,10 +54,20 @@ def etapa_core(deputados, proposicoes, coautorias, ano):
     return grafo
 
 
-def etapa_algorithms(grafo, deputados):
+def etapa_algorithms(grafo):
     """4️⃣ Cálculo de métricas e detecção de comunidades"""
-    logger.info("Calculando métricas...")
-    pass
+    logger.info("Executando deteccao de comunidades e comparacao de modularidade...")
+    communities_comparison = compare_community_methods(grafo.G)
+    logger.info(f"Comparacao de comunidades: {communities_comparison}")
+
+    # Mantem uma particao principal no grafo para exportacao/analise posterior.
+    louvain_partition = detect_communities(grafo.G, method="louvain")
+    if louvain_partition:
+        for node_id, community_id in louvain_partition.items():
+            if grafo.G.has_node(node_id):
+                grafo.G.nodes[node_id]["community_louvain"] = int(community_id)
+
+    return communities_comparison
 
 def etapa_repository(grafo, deputados, ano):
     """5️⃣ Exportação para GEXF, CSV e SQLite"""
@@ -101,14 +112,15 @@ def run_pipeline(ano: int):
         # grafo ja é uma instancia de CamaraGraph
         grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
         deputados_centralidade = grafo.filtro_centralidade() # alterar para alterar na instacia
-        deputados_intermediacao = grafo.filtro_intermediacao()
+        grafo.filtro_intermediacao()
         
         # 4. Algorithms
-        #etapa_algorithms(grafo, deputados)
+        communities_info = etapa_algorithms(grafo)
+        logger.info(f"Resumo comunidades (ano={ano}): {communities_info}")
         # 5. Repository
-        # etapa_repository(grafo, deputados_centralidade, ano) # ta legal, mas pode surgir mais funcionalidades
+        etapa_repository(grafo, deputados_centralidade, ano) # ta legal, mas pode surgir mais funcionalidades
         # 6. Visualization
-        # etapa_visualization(grafo, deputados_centralidade, ano) # alterar para usar a instancia do grafo etc
+        etapa_visualization(grafo, deputados_centralidade, ano) # alterar para usar a instancia do grafo etc
         
         logger.info("✅ PIPELINE CONCLUÍDO COM SUCESSO!")
     except Exception as e:

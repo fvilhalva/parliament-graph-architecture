@@ -4,7 +4,7 @@
 
 Projeto de TCC/PFC(Projeto Final de Curso) que implementa uma arquitetura modular para análise de redes parlamentares, identificando estruturas de influência através de métricas de centralidade e detecção de comunidades.
 
-**Período**: 2006-2026 (20 anos de dados históricos do Congresso Nacional Brasileiro)
+**Período**: 2015-2025 (11 anos de dados históricos do Congresso Nacional Brasileiro)
 
 ---
 
@@ -23,7 +23,7 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 | **extraction/** | Coleta de dados brutos da API | ✅ Implementado |
 | **processing/** | Limpeza, transformação, conversão em objetos | ✅ Implementado |
 | **core/Graph.py** | Construção e operações do grafo | ✅ Implementado |
-| **core/algorithms/** | Métricas e detecção de comunidades | ✅ Template pronto |
+| **core/algorithms/** | Métricas e detecção de comunidades | ✅ Implementado |
 | **models/** | Entidades do domínio | ✅ Implementado |
 | **repository/** | Persistência (CSV, GEXF, SQLite) | ⏳ TODO |
 | **visualization/** | Visualizações e plots | ⏳ TODO |
@@ -74,7 +74,7 @@ parliament-graph-architecture/
 │   ├── main.py              # Entrada principal
 │   └── testar.py            # Script de testes
 ├── data/
-│   ├── gexf/                # Grafos em formato GEXF (2006-2026)
+│   ├── gexf/                # Grafos em formato GEXF (2015-2025)
 │   ├── metricas/            # CSVs com métricas de centralidade
 │   ├── plots/               # Gráficos gerados
 │   ├── historico_*.csv      # Dados históricos agregados
@@ -200,8 +200,8 @@ class ArestaCoautoria:
 - [x] Algoritmos de centralidade (degree, betweenness, closeness, eigenvector)
 
 ### ⏳ Em Desenvolvimento
-- [ ] Dados históricos (20 anos em GEXF)
-- [ ] Detecção de comunidades (Louvain, Spectral Clustering)
+- [ ] Dados históricos (2015-2025 em GEXF)
+- [x] Detecção de comunidades (Louvain, Label Propagation)
 - [ ] Exportação para GEXF/Gephi
 - [ ] Persistência em SQLite
 - [ ] Visualizações (matplotlib, seaborn)
