@@ -1,6 +1,10 @@
 """Testes para o módulo de processamento"""
+import ast
+
 import pytest # type: ignore
 import pandas as pd # type: ignore
+
+from processing import CamaraProcessor
 
 
 class TestProcessingDataValidacao:
@@ -83,17 +87,52 @@ class TestProcessingConversao:
 
     def test_converter_dataframe_para_objetos(self, dataframe_proposicoes):
         """Deve converter DataFrame em lista de objetos"""
-        # proposicoes = GraphNetwork.dataframe_to_proposicoes(dataframe_proposicoes)
-        # assert len(proposicoes) == 3
-        # assert all(hasattr(p, 'id_proposicao') for p in proposicoes)
-        pass
+        processor = CamaraProcessor()
+        mapa_deputados = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': 'PT', 'siglaufautor': 'SP'},
+            2: {'nomeautor': 'Santos', 'siglapartidoautor': 'PSDB', 'siglaufautor': 'MG'},
+            3: {'nomeautor': 'Oliveira', 'siglapartidoautor': 'MDB', 'siglaufautor': 'RJ'},
+        }
+        grupos = dataframe_proposicoes.set_index('id_proposicao')['autores'].apply(ast.literal_eval)
+        coautorias = grupos[grupos.apply(len) > 1]
+        mapa_tipos = {100: 'PL', 101: 'PLP', 102: 'PEC'}
+
+        dict_deputados, lista_proposicoes, lista_coautorias = processor.converter_para_modelos(
+            mapa_deputados=mapa_deputados,
+            grupos=grupos,
+            coautorias=coautorias,
+            mapa_tipos=mapa_tipos,
+            ano=2024,
+        )
+
+        assert len(dict_deputados) == 3
+        assert len(lista_proposicoes) == 3
+        assert len(lista_coautorias) == 3
+        assert all(hasattr(p, 'id_proposicao') for p in lista_proposicoes)
 
     def test_preservar_dados_conversao(self, dataframe_proposicoes):
         """Dados não devem ser perdidos na conversão"""
-        # proposicoes = GraphNetwork.dataframe_to_proposicoes(dataframe_proposicoes)
-        # assert proposicoes[0].id_proposicao == 100
-        # assert proposicoes[0].ano == 2024
-        pass
+        processor = CamaraProcessor()
+        mapa_deputados = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': 'PT', 'siglaufautor': 'SP'},
+            2: {'nomeautor': 'Santos', 'siglapartidoautor': 'PSDB', 'siglaufautor': 'MG'},
+        }
+        grupos = pd.Series({100: [1, 2], 101: [2]})
+        coautorias = pd.Series({100: [1, 2]})
+        mapa_tipos = {100: 'PL', 101: 'PEC'}
+
+        dict_deputados, lista_proposicoes, lista_coautorias = processor.converter_para_modelos(
+            mapa_deputados=mapa_deputados,
+            grupos=grupos,
+            coautorias=coautorias,
+            mapa_tipos=mapa_tipos,
+            ano=2024,
+        )
+
+        assert dict_deputados[1].nome == 'Silva'
+        assert lista_proposicoes[0].id_proposicao == 100
+        assert lista_proposicoes[0].ano == 2024
+        assert lista_coautorias[0].sigla_tipo == 'PL'
 
 
 class TestProcessingFiltros:
@@ -137,16 +176,27 @@ class TestProcessingErros:
         df_invalido = pd.DataFrame({
             'coluna_errada': [1, 2, 3]
         })
-        # Deve lançar uma exceção (implementação específica)
-        # with pytest.raises(ValueError):
-        #     GraphNetwork.processar(df_invalido)
-        pass
+        df_props = pd.DataFrame({'id': [1], 'siglatipo': ['PL']})
+        processor = CamaraProcessor()
+
+        with pytest.raises(KeyError):
+            processor.processar_dados_brutos(df_invalido, df_props)
 
     def test_dados_inconsistentes(self):
         """Deve detectar dados inconsistentes"""
-        df = pd.DataFrame({
-            'id_deputado': [1, 2, 3],
-            'id_proposicao': [100, 101, 'INVALIDO']
+        df_autores = pd.DataFrame({
+            'idproposicao': [100],
+            'codtipoautor': [10000],
+            'iddeputadoautor': ['INVALIDO'],
+            'nomeautor': ['Silva'],
+            'siglapartidoautor': ['PT'],
+            'siglaufautor': ['SP'],
         })
-        # assert not validar_dados(df)
-        pass
+        df_props = pd.DataFrame({
+            'id': [100],
+            'siglatipo': ['PL'],
+        })
+        processor = CamaraProcessor()
+
+        with pytest.raises(ValueError):
+            processor.processar_dados_brutos(df_autores, df_props)
