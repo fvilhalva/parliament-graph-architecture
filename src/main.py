@@ -11,7 +11,7 @@ from visualization import generate_analysis_plots
 def build_pipeline_dependencies() -> PipelineDependencies:
     """Assemble concrete collaborators for the pipeline."""
     config = Config()
-    return PipelineDependencies(
+    return config, PipelineDependencies(
         extractor=ChamberExtractor(config),
         processor=ChamberProcessor(),
         graph_exporter=GraphExporter(Config.GEXF_DIR),
@@ -21,4 +21,5 @@ def build_pipeline_dependencies() -> PipelineDependencies:
     )
 
 if __name__ == "__main__":
-    run_pipeline(2025, build_pipeline_dependencies())
+    config, pipeline_dependecies = build_pipeline_dependencies()
+    run_pipeline(config.CURRENT_PILOTO, pipeline_dependecies)

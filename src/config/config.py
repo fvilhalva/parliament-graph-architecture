@@ -26,6 +26,7 @@ class Config:
     
     # --- LEGISLATURE ---
     CURRENT_LEGISLATURE = int(os.getenv("LEGISLATURA_ATUAL", "2026"))
+    CURRENT_PILOTO = int(os.getenv("LEGISLATURA_PILOTO", "2025"))
     LEGISLATURE_START = int(os.getenv("LEGISLATURA_INICIO", "2006"))
     
     # --- CÂMARA API ---
