@@ -38,7 +38,7 @@ parliament-graph-architecture/
 ├── src/
 │   ├── config/              # Configurações gerais
 │   │   ├── __init__.py
-│   │   └── configs.py
+│   │   └── config.py
 │   ├── core/
 │   │   ├── Graph.py         # Classe principal do grafo
 │   │   └── algorithms/      # Módulo de análise
@@ -123,7 +123,7 @@ Nomes esperados por ano `YYYY`:
 
 ```bash
 # Apenas pipeline principal
-docker-compose run --build pipeline_camara python src/main.py
+docker-compose run --build pipeline_chamber python src/main.py
 
 # Apenas testes
 docker-compose run --build tests
@@ -194,9 +194,9 @@ class ArestaCoautoria:
 - [x] Template dos algoritmos (métricas + comunidades)
 - [x] Template da Suite de testes estruturada (conftest + 6 módulos)
 - [x] Docker + Docker Compose
-- [x] Implementação completa do `CamaraExtrator` (extraction)
-- [x] Implementação completa do `CamaraGraphy` (core)
-- [x] Implementação Completa do `CamaraProcessor` (processing)
+- [x] Implementação completa do `ChamberExtractor` (extraction)
+- [x] Implementação completa do `ChamberGraphy` (core)
+- [x] Implementação Completa do `ChamberProcessor` (processing)
 - [x] Algoritmos de centralidade (degree, betweenness, closeness, eigenvector)
 
 ### ⏳ Em Desenvolvimento

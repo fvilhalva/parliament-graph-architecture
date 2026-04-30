@@ -14,10 +14,10 @@ class CsvRepository:
             dep_dict = asdict(deputado)
             registros.append(
                 {
-                    "id_deputado": dep_dict.get("id_deputado"),
-                    "nome": dep_dict.get("nome"),
-                    "sigla_partido": dep_dict.get("sigla_partido"),
-                    "sigla_uf": dep_dict.get("sigla_uf"),
+                    "id_deputado": dep_dict.get("id"),
+                    "nome": dep_dict.get("name"),
+                    "sigla_partido": dep_dict.get("party_code"),
+                    "sigla_uf": dep_dict.get("state_code"),
                     "weighted_degree": dep_dict.get("weighted_degree", 0.0),
                     "degree_centrality": dep_dict.get("degree_centrality", 0.0),
                     "betweenness_centrality": dep_dict.get("betweenness_centrality", 0.0),

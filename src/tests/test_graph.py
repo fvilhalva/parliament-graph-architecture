@@ -1,94 +1,93 @@
-"""Testes para a classe CamaraGraph (core)."""
+"""Tests for the ParliamentaryGraph class (core)."""
 
 import pytest  # type: ignore
 
-from core import CamaraGraph
-from models.deputado import Deputado
-from models.proposicao import Proposicao
+from core import ParliamentaryGraph
+from models.deputy import Deputy
+from models.proposition import Proposition
 
 
-def _build_deputados() -> dict[int, Deputado]:
+def _build_deputies() -> dict[int, Deputy]:
     return {
-        1: Deputado(id_deputado=1, nome="A", sigla_partido="PT", sigla_uf="SP"),
-        2: Deputado(id_deputado=2, nome="B", sigla_partido="PSB", sigla_uf="RJ"),
-        3: Deputado(id_deputado=3, nome="C", sigla_partido="MDB", sigla_uf="MG"),
-        4: Deputado(id_deputado=4, nome="D", sigla_partido="UNI", sigla_uf="BA"),
+        1: Deputy(id=1, name="A", party_code="PT", state_code="SP"),
+        2: Deputy(id=2, name="B", party_code="PSB", state_code="RJ"),
+        3: Deputy(id=3, name="C", party_code="MDB", state_code="MG"),
+        4: Deputy(id=4, name="D", party_code="UNI", state_code="BA"),
     }
 
 
-def _build_proposicoes() -> list[Proposicao]:
-    # Padrão determinístico para validar pesos:
+def _build_propositions() -> list[Proposition]:
+    # Deterministic pattern for weight validation:
     # P1 (PL): [1,2,3] -> (1,2),(1,3),(2,3) += 10
     # P2 (PLP): [1,2]   -> (1,2) += 5
     # P3 (PEC): [3,4]   -> (3,4) += 1
     return [
-        Proposicao(id_proposicao=100, ano=2025, autores_ids=[1, 2, 3], sigla_tipo="PL"),
-        Proposicao(id_proposicao=101, ano=2025, autores_ids=[1, 2], sigla_tipo="PLP"),
-        Proposicao(id_proposicao=102, ano=2025, autores_ids=[3, 4], sigla_tipo="PEC"),
+        Proposition(id=100, year=2025, author_ids=[1, 2, 3], proposition_type="PL"),
+        Proposition(id=101, year=2025, author_ids=[1, 2], proposition_type="PLP"),
+        Proposition(id=102, year=2025, author_ids=[3, 4], proposition_type="PEC"),
     ]
 
 
 @pytest.fixture
-def grafo_exemplo() -> CamaraGraph:
-    deputados = _build_deputados()
-    proposicoes = _build_proposicoes()
-    grafo = CamaraGraph(
-        dict_deputados=deputados,
-        lista_proposicoes=proposicoes,
-        lista_coautorias=proposicoes,
-        ano=2025,
+def example_graph() -> ParliamentaryGraph:
+    deputies = _build_deputies()
+    propositions = _build_propositions()
+    graph = ParliamentaryGraph(
+        deputies=deputies,
+        propositions=propositions,
+        coauthorships=propositions,
+        year=2025,
     )
-    grafo.construir_grafo()
-    return grafo
+    graph.build()
+    return graph
 
 
-class TestCamaraGraphEstrutura:
-    def test_criar_grafo_vazio(self):
-        grafo = CamaraGraph()
-        assert grafo.G.number_of_nodes() == 0
-        assert grafo.G.number_of_edges() == 0
+class TestParliamentaryGraphStructure:
+    def test_create_empty_graph(self):
+        graph = ParliamentaryGraph()
+        assert graph.graph.number_of_nodes() == 0
+        assert graph.graph.number_of_edges() == 0
 
-    def test_construir_grafo_com_nos_e_arestas(self, grafo_exemplo):
-        assert grafo_exemplo.G.number_of_nodes() == 4
-        assert grafo_exemplo.G.number_of_edges() == 4
+    def test_build_graph_with_nodes_and_edges(self, example_graph):
+        assert example_graph.graph.number_of_nodes() == 4
+        assert example_graph.graph.number_of_edges() == 4
 
-    def test_arestas_sem_self_loop(self, grafo_exemplo):
-        for u, v in grafo_exemplo.G.edges():
+    def test_no_self_loops(self, example_graph):
+        for u, v in example_graph.graph.edges():
             assert u != v
 
 
-class TestCamaraGraphPesosEDistancias:
-    def test_agregacao_de_peso_por_par(self, grafo_exemplo):
-        assert grafo_exemplo.G[1][2]["weight"] == 15
-        assert grafo_exemplo.G[1][3]["weight"] == 10
-        assert grafo_exemplo.G[2][3]["weight"] == 10
-        assert grafo_exemplo.G[3][4]["weight"] == 1
+class TestParliamentaryGraphWeights:
+    def test_weight_aggregation_by_pair(self, example_graph):
+        assert example_graph.graph[1][2]["weight"] == pytest.approx(10/2 + 5/1)
+        assert example_graph.graph[1][3]["weight"] == pytest.approx(10/2)
+        assert example_graph.graph[2][3]["weight"] == pytest.approx(10/2)
+        assert example_graph.graph[3][4]["weight"] == pytest.approx(1/1)
 
-    def test_distancia_inversa_ao_peso_da_proposicao(self, grafo_exemplo):
-        assert grafo_exemplo.G[1][2]["distance"] == pytest.approx(1 / 10 + 1 / 5)
-        assert grafo_exemplo.G[1][3]["distance"] == pytest.approx(1 / 10)
-        assert grafo_exemplo.G[3][4]["distance"] == pytest.approx(1 / 1)
+    def test_normalization_by_author_count(self, example_graph):
+        # With 3 authors in P1: normalization factor = 1/(3-1) = 0.5
+        # With 2 authors in P2: normalization factor = 1/(2-1) = 1.0
+        # P1 (PL): 10 * 0.5 = 5 per edge
+        # P2 (PLP): 5 * 1.0 = 5 per edge
+        assert example_graph.graph[1][2]["weight"] == pytest.approx(5 + 5)
 
 
-class TestCamaraGraphAtributosEMetricas:
-    def test_atributos_de_no_preenchidos(self, grafo_exemplo):
-        node_data = grafo_exemplo.G.nodes[1]
-        assert node_data["label"] == "A"
-        assert node_data["partido"] == "PT"
-        assert node_data["uf"] == "SP"
+class TestParliamentaryGraphNodeAttributes:
+    def test_node_attributes_populated(self, example_graph):
+        node_data = example_graph.graph.nodes[1]
+        assert node_data["name"] == "A"
+        assert node_data["party_code"] == "PT"
+        assert node_data["state_code"] == "SP"
 
-    def test_filtro_centralidade_normalizado(self, grafo_exemplo):
-        resultado = grafo_exemplo.filtro_centralidade()
-        assert len(resultado) == 4
-        total = sum(dep.degree_centrality for dep in resultado)
+    def test_degree_centrality_normalized(self, example_graph):
+        result = example_graph.compute_degree_centrality()
+        assert len(result) == 4
+        total = sum(dep.degree_centrality for dep in result)
         assert total == pytest.approx(1.0)
-        top = max(resultado, key=lambda dep: dep.weighted_degree)
-        assert top.id_deputado == 1
-        assert top.weighted_degree == 25
+        top = max(result, key=lambda dep: dep.weighted_degree)
+        assert top.id == 1
 
-    def test_filtro_intermediacao_preenche_campo(self, grafo_exemplo):
-        resultado = grafo_exemplo.filtro_intermediacao()
-        assert len(resultado) == 4
-        assert all(dep.betweenness_centrality >= 0 for dep in resultado)
-        top = max(resultado, key=lambda dep: dep.betweenness_centrality)
-        assert top.id_deputado == 3
+    def test_betweenness_centrality_computed(self, example_graph):
+        result = example_graph.compute_betweenness_centrality()
+        assert len(result) == 4
+        assert all(dep.betweenness_centrality >= 0 for dep in result)

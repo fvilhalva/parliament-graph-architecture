@@ -15,8 +15,12 @@ class GraphExporter:
         if isinstance(grafo, nx.Graph):
             return grafo
 
+        # Backwards-compatible: accept attribute names `G` (legacy) or `graph` (current dataclass)
         if hasattr(grafo, "G") and isinstance(grafo.G, nx.Graph):
             return grafo.G
+
+        if hasattr(grafo, "graph") and isinstance(grafo.graph, nx.Graph):
+            return grafo.graph
 
         raise TypeError("'grafo' deve ser nx.Graph ou objeto com atributo 'G' do tipo nx.Graph")
 
@@ -39,9 +43,9 @@ class GraphExporter:
         if nome_arquivo:
             nome = nome_arquivo if nome_arquivo.endswith(".gexf") else f"{nome_arquivo}.gexf"
         elif ano is not None:
-            nome = f"grafo_camara_{ano}.gexf"
+            nome = f"chamber_graph_{ano}.gexf"
         else:
-            nome = "grafo_camara.gexf"
+            nome = "chamber_graph.gexf"
 
         output_file = self.output_dir / nome
         nx.write_gexf(grafo_nx, output_file)

@@ -1,4 +1,5 @@
 # processing/__init__.py
-from .limpeza import CamaraProcessor
+"""Data processing module for parliamentary network analysis."""
+from .data_cleaning import ChamberProcessor
 
-__all__ = ['CamaraProcessor']
+__all__ = ['ChamberProcessor']

@@ -1,177 +1,279 @@
+"""Parliamentary co-authorship network graph construction and analysis."""
+from typing import Dict, List, Optional, Tuple
 import networkx as nx # type: ignore
 from itertools import combinations
 
-# No início do arquivo ou dentro da classe
+# Mapping for duplicate deputy IDs
 ID_MAPPER = {
-    130398: 220657,  # Mapeia o ID fantasma para o ID real do André Fernandes
-    # Adicione outros aqui se encontrar mais duplicatas
+    130398: 220657,  # Maps phantom ID to real André Fernandes ID
 }
 
-class CamaraGraph:
-    def __init__(self, dict_deputados=None, lista_proposicoes=None, lista_coautorias=None, ano=None):
-        self.G = nx.Graph()
-        self.deputados = dict_deputados or {}
-        self.proposicoes = lista_proposicoes or []
-        self.coautorias = lista_coautorias or []
-        self.ano = ano
+class ParliamentaryGraph:
+    """Builds and analyzes weighted, undirected parliamentary co-authorship networks.
     
-    def construir_grafo(self):
-        pesos = {'PL': 10, 'PEC': 1, 'PLP': 5}
-
-        for prop in self.coautorias:
-            # Pega a lista de IDs que está dentro do objeto
-            ids_originais = prop.autores_ids
-            ids = [ID_MAPPER.get(idx, idx) for idx in ids_originais]
-
-            # Remove duplicatas caso o cara tenha assinado com os dois IDs (raro, mas acontece)
-            ids = list(set(ids))
-
-            valor_articulacao = pesos.get(prop.sigla_tipo, 1)
-            distancia = 1 / valor_articulacao
-
-            for u, v in combinations(ids, 2):
-                if self.G.has_edge(u, v):
-                   self.G[u][v]['weight'] += valor_articulacao
-                   self.G[u][v]['distance'] += distancia
-                else:
-                    self.G.add_edge(u, v, weight=valor_articulacao, distance=distancia)
-
-        for deputado_id in self.G.nodes():
-            info = self.deputados.get(deputado_id)
-            if info:
-                self.G.nodes[deputado_id]['label'] = info.nome
-                self.G.nodes[deputado_id]['partido'] = info.sigla_partido
-                self.G.nodes[deputado_id]['uf'] = info.sigla_uf
-            else:
-                self.G.nodes[deputado_id]['label'] = f"Desconhecido ({deputado_id})"
-                self.G.nodes[deputado_id]['partido'] = "N/A"
-                self.G.nodes[deputado_id]['uf'] = "N/A"
-
-        print(f"Grafo Finalizado! Nós: {self.G.number_of_nodes()} | Arestas: {self.G.number_of_edges()}")
-
-
-    def search_deputados(self, termo):
-        if str(termo).isdigit():
-            dep_id = int(termo)
-            info = self.deputados.get(dep_id)
-            return [info] if info else []
-        
-        termo_lower = str(termo).lower()
-        res = []
-        for info in self.deputados.values():
-            if termo_lower in info.nome.lower():
-               res.append(info)
-        return res
+    Represents a graph G = (V, E, w) where:
+    - V: set of deputies
+    - E: set of co-authorship edges
+    - w: edge weight function representing co-authorship strength
     
-    def exibir_perfil_deputado(self, termo):
-        deps = self.search_deputados(termo)
-        if not deps:
-            print(f"⚠️ Nenhum deputado encontrado para: {termo}")
-            return
-        print(f"\n🔍 Resultados da busca para '{termo}':")
-        print("-" * 40)
-        for d in deps:
-            centralidade = self.G.degree(d.id_deputado) if self.G.has_node(d.id_deputado) else 0
-            print(f"Nome:    {d.nome}")
-            print(f"ID:      {d.id_deputado}")
-            print(f"Partido: {d.sigla_partido}/{d.sigla_uf}")
-            print(f"Conexões no Grafo Atual: {centralidade}")
-            print("-" * 40)
-
-
-    def filtro_centralidade(self):
-        forca = dict(self.G.degree(weight='weight'))
-        total_forca = sum(forca.values()) if forca else 1
-        deputados_centralidade = sorted(forca.items(), key=lambda x: x[1], reverse=True)
-
-        res = [] 
-        for id_dep, valor in deputados_centralidade:
-            # Normalizacao por participacao na forca total da rede
-            # Mantem comparabilidade entre anos com tamanhos diferentes.
-            valor_norm = valor / total_forca
-            info = self.deputados.get(id_dep, {})
-            info.weighted_degree = valor
-            info.degree_centrality = valor_norm
-            res.append(info)
-        return res
-
-    def filtro_intermediacao(self):
-        # intermediacao = nx.betweenness_centrality(self.G)
-        intermediacao = nx.betweenness_centrality(self.G, weight='distance')
-        deputados_intermediacao = sorted(intermediacao.items(), key=lambda x: x[1], reverse=True)
-
-        res = []
-        for id_dep, valor in deputados_intermediacao:
-            info = self.deputados.get(id_dep, {})
-            info.betweenness_centrality = valor
-            res.append(info)
-
-        return res
-
-    def analise_estrutural_avancada(self):
-        print("\n" + "!"*60)
-        print(f"ANÁLISE ESTRUTURAL AVANÇADA - {self.ano}")
-        print("!"*60)
-        # 1. Vértices de Corte (Pontos de Articulação)
-        pontos_articulacao = list(nx.articulation_points(self.G))
-        print(f"\n⚠️ Pontos de Articulação encontrados: {len(pontos_articulacao)}")
-        for id_dep in pontos_articulacao[:5]: # Mostrar só os top 5
-            info = self.deputados.get(id_dep)
-            nome = info.nome if info else id_dep
-            print(f" - {nome} é essencial para a conectividade da rede.")
-            # 2. Densidade do Grafo
-        densidade = nx.density(self.G)
-        print(f"\n📊 Densidade da Rede: {densidade:.4f}")
-
-        # 3. Componentes Conectados
-        componentes = nx.number_connected_components(self.G)
-        print(f"🔗 O grafo possui {componentes} grupos isolados.")
-        # 4. Diâmetro (só funciona se o grafo for totalmente conectado)
-        if componentes == 1:
-            diametro = nx.diameter(self.G, weight='distance')
-            print(f"📏 Diâmetro da Rede (menor caminho entre os mais distantes): {diametro:.4f}")
-
-    def identificar_dependentes(self, termo_busca="Luisa Canziani"):
-        # 1. Encontrar o ID da deputada
-        res = self.search_deputados(termo_busca)
-        if not res:
-            print(f"❌ Deputado {termo_busca} não encontrado.")
-            return
-        dep_id = res[0].id_deputado
-        nome_alvo = res[0].nome
-
-        # 2. Criar uma cópia para não estragar o grafo original do YGGDRASIL
-        G_temp = self.G.copy()
-        G_temp.remove_node(dep_id)
-
-        # 3. Pegar os novos componentes isolados
-        # O nx.connected_components devolve listas de nós que ainda se falam
-        componentes = list(nx.connected_components(G_temp))
+    Attributes:
+        graph: NetworkX Graph instance
+        deputies: Mapping of deputy_id -> Deputy object
+        propositions: List of Proposition objects
+        coauthorships: List of CoauthorshipEdge objects
+        year: Analysis year
+    """
+    
+    def __init__(
+        self,
+        deputies: Optional[Dict] = None,
+        propositions: Optional[List] = None,
+        coauthorships: Optional[List] = None,
+        year: Optional[int] = None
+    ) -> None:
+        """Initialize parliamentary graph with empty structure."""
+        self.graph = nx.Graph()
+        self.deputies = deputies or {}
+        self.propositions = propositions or []
+        self.coauthorships = coauthorships or []
+        self.year = year
+    
+    def build(self) -> None:
+        """Build the co-authorship network from propositions.
         
-        # Ordenamos para o maior (Giant Component) ficar primeiro
-        componentes.sort(key=len, reverse=True)
+        Applies weight normalization by number of authors to mitigate
+        distortions caused by propositions with many co-authors.
+        """
+        # Weights by proposition type (relative importance)
+        weights = {'PL': 10, 'PEC': 1, 'PLP': 5}
 
-        print("\n" + "!"*60)
-        print(f"ANÁLISE DE VULNERABILIDADE: {nome_alvo}")
-        print("!"*60)
-
-        if len(componentes) > 1:
-            print(f"⚠️ A remoção de {nome_alvo} fragmentou o grafo em {len(componentes)} partes.")
-            print("\n--- GRUPOS QUE FICARAM ISOLADOS ---")
+        for coauthorship in self.coauthorships:
+            # Get original author IDs from coauthorship
+            original_ids = coauthorship.author_ids
             
-            # O primeiro componente (index 0) é a massa principal, ignoramos ele.
-            for i, comp in enumerate(componentes[1:], 1):
-                print(f"\nSubgrupo {i} ({len(comp)} deputados):")
-                for node_id in comp:
-                    info = self.deputados.get(node_id)
-                    nome = info.nome if info else f"ID: {node_id}"
-                    partido = info.sigla_partido if info else "N/A"
-                    print(f" - {nome} ({partido})")
-        else:
-            print(f"✅ A remoção de {nome_alvo} não isolou nenhum grupo (Rede Resiliente).")
+            # Apply ID mapper to resolve duplicate entries
+            deputy_ids = [ID_MAPPER.get(idx, idx) for idx in original_ids]
+            
+            # Remove duplicates from mapping
+            deputy_ids = list(set(deputy_ids))
+            
+            # Apply weight by proposition type
+            weight_value = weights.get(coauthorship.proposition_type, 1)
+            
+            # Normalize weight by number of authors to avoid mass-signature distortion
+            # w(p)_ij = 1 / (n_authors - 1) * weight_type
+            normalization_factor = 1 / (len(deputy_ids) - 1) if len(deputy_ids) > 1 else 1
+            normalized_weight = weight_value * normalization_factor
+            
+            # Add or update edges in graph
+            for u, v in combinations(deputy_ids, 2):
+                if self.graph.has_edge(u, v):
+                    self.graph[u][v]['weight'] += normalized_weight
+                else:
+                    self.graph.add_edge(u, v, weight=normalized_weight)
+
+        # Enrich nodes with deputy metadata
+        for deputy_id in self.graph.nodes():
+            deputy_info = self.deputies.get(deputy_id)
+            if deputy_info:
+                self.graph.nodes[deputy_id]['name'] = deputy_info.name
+                self.graph.nodes[deputy_id]['party_code'] = deputy_info.party_code
+                self.graph.nodes[deputy_id]['state_code'] = deputy_info.state_code
+            else:
+                self.graph.nodes[deputy_id]['name'] = f"Unknown ({deputy_id})"
+                self.graph.nodes[deputy_id]['party_code'] = "N/A"
+                self.graph.nodes[deputy_id]['state_code'] = "N/A"
+
+        print(f"✅ Graph built! Nodes: {self.graph.number_of_nodes()} | Edges: {self.graph.number_of_edges()}")
+
+    def search_deputies(self, query: str) -> List:
+        """Search for deputies by ID or name.
+        
+        Args:
+            query: Deputy ID (numeric) or name substring
+            
+        Returns:
+            List of matching Deputy objects
+        """
+        # Search by ID if query is numeric
+        if str(query).isdigit():
+            deputy_id = int(query)
+            deputy = self.deputies.get(deputy_id)
+            return [deputy] if deputy else []
+        
+        # Search by name substring (case-insensitive)
+        query_lower = str(query).lower()
+        results = []
+        for deputy in self.deputies.values():
+            if query_lower in deputy.name.lower():
+                results.append(deputy)
+        return results
+    
+    def display_deputy_profile(self, query: str) -> None:
+        """Display detailed profile of a deputy.
+        
+        Args:
+            query: Deputy ID or name substring to search
+        """
+        deputies = self.search_deputies(query)
+        if not deputies:
+            print(f"⚠️  No deputy found for: {query}")
+            return
+        
+        print(f"\n🔍 Search results for '{query}':")
+        print("-" * 50)
+        for deputy in deputies:
+            degree = (
+                self.graph.degree(deputy.id, weight='weight') 
+                if self.graph.has_node(deputy.id) 
+                else 0
+            )
+            print(f"Name:           {deputy.name}")
+            print(f"ID:             {deputy.id}")
+            print(f"Party/State:    {deputy.party_code}/{deputy.state_code}")
+            print(f"Weighted Degree: {degree:.2f}")
+            print("-" * 50)
+
+    def compute_degree_centrality(self) -> List:
+        """Compute weighted degree centrality for all deputies.
+        
+        Returns list of Deputy objects sorted by degree centrality,
+        normalized by total network strength.
+        
+        Returns:
+            List of Deputy objects with updated centrality metrics
+        """
+        weighted_strengths = dict(self.graph.degree(weight='weight'))
+        total_strength = sum(weighted_strengths.values()) if weighted_strengths else 1
+        
+        # Sort by weighted degree (descending)
+        sorted_deputies = sorted(weighted_strengths.items(), key=lambda x: x[1], reverse=True)
+
+        results = []
+        for deputy_id, strength in sorted_deputies:
+            deputy = self.deputies.get(deputy_id, {})
+            # Normalize strength by total network strength for cross-year comparability
+            normalized_centrality = strength / total_strength
+            deputy.weighted_degree = strength
+            deputy.degree_centrality = normalized_centrality
+            results.append(deputy)
+        
+        return results
+
+    def compute_betweenness_centrality(self, normalized: bool = True) -> List:
+        """Compute betweenness centrality for all deputies.
+        
+        Betweenness measures how often a deputy lies on shortest paths
+        between other pairs in the network.
+        
+        Args:
+            normalized: If True, normalize by (n-1)(n-2)/2 for undirected graphs
+            
+        Returns:
+            List of Deputy objects with updated betweenness metrics
+        """
+        # Calculate betweenness with weighted edges
+        betweenness_scores = nx.betweenness_centrality(
+            self.graph, 
+            weight='weight',
+            normalized=normalized
+        )
+        
+        # Sort by betweenness (descending)
+        sorted_deputies = sorted(betweenness_scores.items(), key=lambda x: x[1], reverse=True)
+
+        results = []
+        for deputy_id, betweenness_score in sorted_deputies:
+            deputy = self.deputies.get(deputy_id, {})
+            deputy.betweenness_centrality = betweenness_score
+            results.append(deputy)
+
+        return results
+
+    def advanced_structural_analysis(self) -> None:
+        """Perform advanced network structural analysis.
+        
+        Identifies articulation points (cut vertices), density, 
+        connected components, and graph diameter.
+        """
+        print("\n" + "!"*60)
+        print(f"ADVANCED STRUCTURAL ANALYSIS - {self.year}")
+        print("!"*60)
+        
+        # 1. Articulation points (cut vertices)
+        articulation_points = list(nx.articulation_points(self.graph))
+        print(f"\n⚠️ Articulation points found: {len(articulation_points)}")
+        for deputy_id in articulation_points[:5]:  # Show top 5
+            deputy_info = self.deputies.get(deputy_id)
+            name = deputy_info.name if deputy_info else deputy_id
+            print(f" - {name} is essential for network connectivity.")
+        
+        # 2. Graph density
+        density = nx.density(self.graph)
+        print(f"\n📊 Network Density: {density:.4f}")
+
+        # 3. Connected components
+        num_components = nx.number_connected_components(self.graph)
+        print(f"🔗 Number of isolated groups: {num_components}")
+        
+        # 4. Diameter (only works if graph is fully connected)
+        if num_components == 1:
+            diameter = nx.diameter(self.graph, weight='weight')
+            print(f"📏 Network Diameter: {diameter:.4f}")
+
+    def identify_critical_deputies(self, query: str = "Luisa Canziani") -> None:
+        """Identify network dependencies if a deputy is removed.
+        
+        Shows which deputies/groups become isolated if the target deputy
+        is removed from the network (vulnerability analysis).
+        
+        Args:
+            query: Deputy name or ID to analyze
+        """
+        # 1. Find target deputy ID
+        results = self.search_deputies(query)
+        if not results:
+            print(f"❌ Deputy {query} not found.")
+            return
+        
+        target_deputy_id = results[0].id
+        target_name = results[0].name
+
+        # 2. Create temporary copy to avoid modifying original
+        temp_graph = self.graph.copy()
+        temp_graph.remove_node(target_deputy_id)
+
+        # 3. Get new connected components
+        # connected_components returns lists of nodes still connected
+        components = list(nx.connected_components(temp_graph))
+        
+        # Sort by size (largest first = Giant Component)
+        components.sort(key=len, reverse=True)
+
+        print("\n" + "!"*60)
+        print(f"VULNERABILITY ANALYSIS: {target_name}")
         print("!"*60)
 
-    def filtro_partidos_de_maior_grau(self):
+        if len(components) > 1:
+            print(f"⚠️ Removing {target_name} fragments graph into {len(components)} parts.")
+            print("\n--- ISOLATED GROUPS ---")
+            
+            # Skip first component (index 0) as it's the main mass
+            for i, component in enumerate(components[1:], 1):
+                print(f"\nSubgroup {i} ({len(component)} deputies):")
+                for node_id in component:
+                    deputy_info = self.deputies.get(node_id)
+                    name = deputy_info.name if deputy_info else f"ID: {node_id}"
+                    party = deputy_info.party_code if deputy_info else "N/A"
+                    print(f" - {name} ({party})")
+        else:
+            print(f"✅ Removing {target_name} doesn't isolate any groups (Resilient Network).")
+        print("!"*60)
+
+    def filter_parties_by_degree(self) -> None:
+        """Filter and rank parties by average weighted degree."""
         pass
-    def filtro_partidos_de_maior_intermediacao(self):
+    
+    def filter_parties_by_betweenness(self) -> None:
+        """Filter and rank parties by average betweenness centrality."""
         pass

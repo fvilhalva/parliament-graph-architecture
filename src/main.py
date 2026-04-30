@@ -1,130 +1,130 @@
+"""Main pipeline for parliamentary network analysis."""
 import os
 import pandas as pd # type: ignore
 from itertools import islice
 from dotenv import load_dotenv  # type: ignore
 
 from config import Config, setup_logger
-from extraction import CamaraExtractor
-from processing import CamaraProcessor
-from core import CamaraGraph
+from extraction import ChamberExtractor
+from processing import ChamberProcessor
+from core import ParliamentaryGraph
 from core.algorithms.community_detection import compare_community_methods, detect_communities
 from repository import CsvRepository, GraphExporter, DB_Exporter
-from visualization import gerar_analise_plots
+from visualization import generate_analysis_plots
 
 logger = setup_logger(__name__)
 config = Config()
 print(Config.DATA_DIR)
 
-# Carrega variáveis de ambiente
+# Load environment variables
 load_dotenv()
-LEGISLATURA_INICIO = config.LEGISLATURA_INICIO
-LEGISLATURA_ATUAL = config.LEGISLATURA_ATUAL
-LEGISLATURA_ITERATOR = LEGISLATURA_ATUAL #LEGISLATURA_INICIO
+LEGISLATURE_START = config.LEGISLATURE_START
+CURRENT_LEGISLATURE = config.CURRENT_LEGISLATURE
+LEGISLATURE_ITERATOR = CURRENT_LEGISLATURE
 DB_PATH = config.DB_PATH
 API_BASE_URL = config.API_BASE_URL
 
-def etapa_extraction(ano) -> pd.DataFrame:
-    """1️⃣ Extração de dados brutos"""
-    logger.info("Extração de dados...")
-    df = CamaraExtractor(config)
-    df_bruto = df.extrair_dados_brutos(ano) # extrai as proposicoes
-    df_meta = df.extrair_metadados_proposicoes(ano) # extrai as proposicoes
-    return df_bruto, df_meta, df
+def extraction_stage(year: int) -> tuple:
+    """Stage 1: Raw data extraction."""
+    logger.info("Extracting raw data...")
+    extractor = ChamberExtractor(config)
+    raw_dataframe = extractor.extract_raw_coauthorship_data(year)
+    metadata_dataframe = extractor.extract_propositions_metadata(year)
+    return raw_dataframe, metadata_dataframe, extractor
 
 
-def etapa_processing(df_bruto, df_meta, ano):
-    """2️⃣ Limpeza e conversão para objetos"""
-    logger.info("Processamento de dados...")
-    processor = CamaraProcessor()
+def processing_stage(raw_df: pd.DataFrame, metadata_df: pd.DataFrame, year: int) -> tuple:
+    """Stage 2: Data cleaning and conversion to domain objects."""
+    logger.info("Processing data...")
+    processor = ChamberProcessor()
+
+    # 1. Clean and extract co-authorships
+    deputy_map, groups, coauthorships, type_map = processor.process_raw_data(raw_df, metadata_df)
+
+    # 2. Convert to dataclass objects
+    deputies_dict, propositions_list, coauthorships_list = processor.convert_to_domain_objects(
+        deputy_map, groups, coauthorships, type_map, year
+    )
     
-    # 1. Limpeza e extração das coautorias (Pandas)
-    mapa_deputados, grupos, coautorias, mapa_tipos = processor.processar_dados_brutos(df_bruto, df_meta)
-    
-    # 2. Conversão para as dataclasses
-    dict_deputados, lista_proposicoes, lista_coautorias = processor.converter_para_modelos(mapa_deputados, grupos, coautorias, mapa_tipos, ano)
-    
-    # Retorne tudo o que for necessário para as próximas etapas
-    return dict_deputados, lista_proposicoes, lista_coautorias, processor
+    return deputies_dict, propositions_list, coauthorships_list, processor
 
-def etapa_core(deputados, proposicoes, coautorias, ano):
-    """3️⃣ Construção do grafo"""
-    logger.info("Construindo grafo...")
-    grafo = CamaraGraph(deputados, proposicoes, coautorias, ano)
-    grafo.construir_grafo()
-    return grafo
+def core_stage(deputies: dict, propositions: list, coauthorships: list, year: int) -> ParliamentaryGraph:
+    """Stage 3: Graph construction."""
+    logger.info("Building parliamentary graph...")
+    graph = ParliamentaryGraph(deputies, propositions, coauthorships, year)
+    graph.build()
+    return graph
 
 
-def etapa_algorithms(grafo):
-    """4️⃣ Cálculo de métricas e detecção de comunidades"""
-    logger.info("Executando deteccao de comunidades e comparacao de modularidade...")
-    communities_comparison = compare_community_methods(grafo.G)
-    logger.info(f"Comparacao de comunidades: {communities_comparison}")
+def algorithms_stage(graph: ParliamentaryGraph) -> dict:
+    """Stage 4: Metrics calculation and community detection."""
+    logger.info("Running community detection and modularity comparison...")
+    communities_comparison = compare_community_methods(graph.graph)
+    logger.info(f"Community comparison: {communities_comparison}")
 
-    # Mantem uma particao principal no grafo para exportacao/analise posterior.
-    louvain_partition = detect_communities(grafo.G, method="louvain")
+    # Keep main partition for later export/analysis
+    louvain_partition = detect_communities(graph.graph, method="louvain")
     if louvain_partition:
         for node_id, community_id in louvain_partition.items():
-            if grafo.G.has_node(node_id):
-                grafo.G.nodes[node_id]["community_louvain"] = int(community_id)
+            if graph.graph.has_node(node_id):
+                graph.graph.nodes[node_id]["community_louvain"] = int(community_id)
 
     return communities_comparison
 
-def etapa_repository(grafo, deputados, ano):
-    """5️⃣ Exportação para GEXF, CSV e SQLite"""
-    logger.info("Exportando dados...")
+def repository_stage(graph: ParliamentaryGraph, deputies: list, year: int) -> None:
+    """Stage 5: Export to GEXF, CSV and SQLite."""
+    logger.info("Exporting data...")
 
     graph_exporter = GraphExporter(Config.GEXF_DIR)
-    gexf_file = graph_exporter.exportar_gexf(grafo, ano=ano)
-    logger.info(f"GEXF exportado em: {gexf_file}")
+    gexf_file = graph_exporter.exportar_gexf(graph, ano=year)
+    logger.info(f"GEXF exported to: {gexf_file}")
 
-    csv_repository = CsvRepository(Config.METRICAS_DIR)
-    output_file = csv_repository.exportar_metricas_deputados(deputados, ano)
-    logger.info(f"CSV de métricas exportado em: {output_file}")
+    csv_repository = CsvRepository(Config.METRICS_DIR)
+    output_file = csv_repository.exportar_metricas_deputados(deputies, year)
+    logger.info(f"CSV metrics exported to: {output_file}")
 
     db_repository = DB_Exporter(Config.DB_PATH)
-    db_path = db_repository.exportar_metricas_deputados(deputados, ano)
-    logger.info(f"SQLite exportado em: {db_path}")
+    db_path = db_repository.exportar_metricas_deputados(deputies, year)
+    logger.info(f"SQLite exported to: {db_path}")
 
-def etapa_visualization(grafo, deputados, ano):
-    """6️⃣ Geração de visualizações"""
-    logger.info("Gerando visualizações...")
-    output_dir = gerar_analise_plots(ano)
-    logger.info(f"Plots exportados em: {output_dir}")
+def visualization_stage(graph: ParliamentaryGraph, deputies: list, year: int) -> None:
+    """Stage 6: Generate visualizations."""
+    logger.info("Generating visualizations...")
+    output_dir = generate_analysis_plots(year)
+    logger.info(f"Plots exported to: {output_dir}")
 
-def run_pipeline(ano: int):
-    """Pipeline principal"""
-    logger.info("=== INICIANDO PIPELINE DE ANÁLISE PARLAMENTAR ===")
+def run_pipeline(year: int) -> None:
+    """Execute the complete parliamentary analysis pipeline."""
+    logger.info("=== STARTING PARLIAMENTARY ANALYSIS PIPELINE ===")
     
     try:
-        # 1. Extraction df_bruto
-        # _camaraExtrator é uma instancia de CamaraExtrator(Classe)
-        df_bruto, df_meta, _camaraExtrator = etapa_extraction(ano)
-        # 2. Processin
-        # _camaraProcessor é uma instancia de CamaraProcessor(Classe)
-        dict_deputados, lista_proposicoes, lista_coautorias, _camaraProcessor = etapa_processing(df_bruto, df_meta, ano)
-        print(f"Quantidade de deputados: {len(dict_deputados)}")
-        print(f"Quantidade de proposicoes(): {len(lista_proposicoes)}")
-        print(f"Quantidade de coautorias(entre 2 ou mais deputados): {len(lista_coautorias)}")
-        # print("COAUTORIAS: ")
-        # print(lista_coautorias)
+        # Stage 1: Extraction
+        raw_df, metadata_df, extractor = extraction_stage(year)
+        
+        # Stage 2: Processing
+        deputies, propositions, coauthorships, processor = processing_stage(raw_df, metadata_df, year)
+        print(f"Deputies: {len(deputies)}")
+        print(f"Propositions: {len(propositions)}")
+        print(f"Co-authorships: {len(coauthorships)}")
 
-        # 3. Core
-        # grafo ja é uma instancia de CamaraGraph
-        grafo = etapa_core(dict_deputados, lista_proposicoes, lista_coautorias, ano)
-        deputados_centralidade = grafo.filtro_centralidade() # alterar para alterar na instacia
-        grafo.filtro_intermediacao()
+        # Stage 3: Core - Graph Construction
+        graph = core_stage(deputies, propositions, coauthorships, year)
+        deputy_centrality_list = graph.compute_degree_centrality()
+        deputy_betweenness_list = graph.compute_betweenness_centrality()
         
-        # 4. Algorithms
-        communities_info = etapa_algorithms(grafo)
-        logger.info(f"Resumo comunidades (ano={ano}): {communities_info}")
-        # 5. Repository
-        etapa_repository(grafo, deputados_centralidade, ano) # ta legal, mas pode surgir mais funcionalidades
-        # 6. Visualization
-        etapa_visualization(grafo, deputados_centralidade, ano) # alterar para usar a instancia do grafo etc
+        # Stage 4: Algorithms
+        communities_info = algorithms_stage(graph)
+        logger.info(f"Community summary (year={year}): {communities_info}")
         
-        logger.info("✅ PIPELINE CONCLUÍDO COM SUCESSO!")
+        # Stage 5: Repository
+        repository_stage(graph, deputy_centrality_list, year)
+        
+        # Stage 6: Visualization
+        visualization_stage(graph, deputy_centrality_list, year)
+        
+        logger.info("✅ PIPELINE COMPLETED SUCCESSFULLY!")
     except Exception as e:
-        logger.error(f"❌ Erro no pipeline: {e}")
+        logger.error(f"❌ Pipeline error: {e}")
         raise
 
 if __name__ == "__main__":

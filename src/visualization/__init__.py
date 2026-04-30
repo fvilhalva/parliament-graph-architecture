@@ -1,4 +1,4 @@
-# visualization/__init__.py
-from .plots import function_1, function_2, gerar_analise_plots
+"""Visualization module for parliamentary network analysis."""
+from .plots import generate_analysis_plots
 
-__all__ = ["function_1", "function_2", "gerar_analise_plots"]
+__all__ = ["generate_analysis_plots"]

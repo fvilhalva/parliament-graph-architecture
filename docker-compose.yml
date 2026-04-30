@@ -1,5 +1,5 @@
 services:
-  pipeline_camara:
+  pipeline_chamber:
     build: .
     container_name: tcc_pipeline
     environment:

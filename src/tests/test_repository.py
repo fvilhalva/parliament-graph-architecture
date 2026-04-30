@@ -1,4 +1,4 @@
-"""Testes para o módulo de persistência (repository)."""
+"""Tests for the persistence (repository) module."""
 
 import sqlite3
 import xml.etree.ElementTree as ET
@@ -7,21 +7,21 @@ import networkx as nx  # type: ignore
 import pandas as pd  # type: ignore
 import pytest  # type: ignore
 
-from models.deputado import Deputado
+from models.deputy import Deputy
 from repository.csv_repository import CsvRepository
 from repository.db_repository import DB_Exporter
 from repository.graph_exporter import GraphExporter
 
 
 class TestCSVRepository:
-    """Testes para exportação de métricas em CSV."""
+    """Tests for metrics export to CSV."""
 
     @pytest.fixture
-    def deputados_exemplo(self):
+    def example_deputies(self):
         return [
-            Deputado(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4, betweenness_centrality=0.2),
-            Deputado(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_centrality=0.2, betweenness_centrality=0.1),
-            Deputado(3, "Carla", "MDB", "MG", weighted_degree=30, degree_centrality=0.6, betweenness_centrality=0.3),
+            Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4, betweenness_centrality=0.2),
+            Deputy(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_centrality=0.2, betweenness_centrality=0.1),
+            Deputy(3, "Carla", "MDB", "MG", weighted_degree=30, degree_centrality=0.6, betweenness_centrality=0.3),
         ]
 
     def test_salvar_csv_cria_arquivo(self, tmp_path, deputados_exemplo):
@@ -87,7 +87,7 @@ class TestGraphExporter:
         arquivo = exporter.exportar_gexf(grafo_exemplo, ano=2025)
 
         assert arquivo.exists()
-        assert arquivo.name == "grafo_camara_2025.gexf"
+        assert arquivo.name == "chamber_graph_2025.gexf"
 
     def test_arquivo_gexf_valido_xml(self, tmp_path, grafo_exemplo):
         exporter = GraphExporter(tmp_path)
@@ -131,19 +131,19 @@ class TestGraphExporter:
 
 
 class TestDBExporter:
-    """Testes para persistência de métricas em SQLite."""
+    """Tests for metrics persistence in SQLite."""
 
     def test_exportar_metricas_cria_db_e_tabela(self, tmp_path):
         db_path = tmp_path / "metricas.db"
         exporter = DB_Exporter(db_path)
-        deputados = [
-            Deputado(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4, betweenness_centrality=0.2),
-            Deputado(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_centrality=0.2, betweenness_centrality=0.1),
+        deputies = [
+            Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4, betweenness_centrality=0.2),
+            Deputy(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_centrality=0.2, betweenness_centrality=0.1),
         ]
 
-        caminho_retorno = exporter.exportar_metricas_deputados(deputados, ano=2025)
+        path_return = exporter.exportar_metricas_deputados(deputies, ano=2025)
 
-        assert caminho_retorno == db_path
+        assert path_return == db_path
         assert db_path.exists()
 
         with sqlite3.connect(db_path) as conn:
@@ -155,11 +155,11 @@ class TestDBExporter:
         exporter = DB_Exporter(db_path)
 
         exporter.exportar_metricas_deputados(
-            [Deputado(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4)],
+            [Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4)],
             ano=2025,
         )
         exporter.exportar_metricas_deputados(
-            [Deputado(1, "Ana", "PT", "SP", weighted_degree=99, degree_centrality=0.9)],
+            [Deputy(1, "Ana", "PT", "SP", weighted_degree=99, degree_centrality=0.9)],
             ano=2025,
         )
 

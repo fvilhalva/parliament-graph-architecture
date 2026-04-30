@@ -38,10 +38,10 @@ class DB_Exporter:
             registros.append(
                 (
                     ano,
-                    dep.get("id_deputado"),
-                    dep.get("nome"),
-                    dep.get("sigla_partido"),
-                    dep.get("sigla_uf"),
+                    dep.get("id"),
+                    dep.get("name"),
+                    dep.get("party_code"),
+                    dep.get("state_code"),
                     dep.get("weighted_degree", 0.0),
                     dep.get("degree_centrality", 0.0),
                     dep.get("betweenness_centrality", 0.0),

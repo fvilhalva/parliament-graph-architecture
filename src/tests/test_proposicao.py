@@ -1,93 +1,87 @@
-"""Testes para a classe Proposicao"""
+"""Tests for the Proposition class."""
 import pytest # type: ignore
-from models.proposicao import Proposicao
+from models.proposition import Proposition
 
 
-class TestProposicaoCriacao:
-    """Testes de criação de Proposicao"""
+class TestPropositionCreation:
+    """Tests for proposition creation."""
 
-    def test_criar_proposicao_valida(self, proposicao_exemplo):
-        """Deve criar uma proposição com dados válidos"""
-        assert proposicao_exemplo.id_proposicao == 100
-        assert proposicao_exemplo.ano == 2024
-        # assert proposicao_exemplo.ementa == "PL que trata de segurança na internet"
+    def test_create_valid_proposition(self, proposition_example):
+        """Should create a proposition with valid data."""
+        assert proposition_example.id == 100
+        assert proposition_example.year == 2024
 
-    def test_autores_ids_lista(self, proposicao_exemplo):
-        """Autores devem ser uma lista de IDs"""
-        assert isinstance(proposicao_exemplo.autores_ids, list)
-        assert all(isinstance(id, int) for id in proposicao_exemplo.autores_ids)
+    def test_author_ids_list(self, proposition_example):
+        """Authors should be a list of IDs."""
+        assert isinstance(proposition_example.author_ids, list)
+        assert all(isinstance(id, int) for id in proposition_example.author_ids)
 
-    def test_proposicao_sem_autores(self):
-        """Deve permitir proposição sem autores (ou com lista vazia)"""
-        prop = Proposicao(
-            id_proposicao=50,
-            ano=2024,
-            # ementa="Proposição sem autores",
-            autores_ids=[]
+    def test_proposition_no_authors(self):
+        """Should allow proposition with no authors."""
+        proposition = Proposition(
+            id=50,
+            year=2024,
+            author_ids=[]
         )
-        assert len(prop.autores_ids) == 0
+        assert len(proposition.author_ids) == 0
 
-    def test_proposicao_multiplos_autores(self, proposicao_exemplo):
-        """Deve suportar múltiplos autores"""
-        assert len(proposicao_exemplo.autores_ids) == 3
-        assert 1 in proposicao_exemplo.autores_ids
-        assert 2 in proposicao_exemplo.autores_ids
-
-
-class TestProposicaoValidacoes:
-    """Testes de validações de dados"""
-
-    def test_ano_valido(self, proposicao_exemplo):
-        """Ano deve ser um inteiro válido"""
-        assert isinstance(proposicao_exemplo.ano, int)
-        assert 1988 <= proposicao_exemplo.ano <= 2026
-
-    #def test_ementa_nao_vazia(self, proposicao_exemplo):
-    #    """Ementa não deve estar vazia"""
-    #    assert len(proposicao_exemplo.ementa) > 0
-
-    def test_id_proposicao_positivo(self, proposicao_exemplo):
-        """ID da proposição deve ser positivo"""
-        assert proposicao_exemplo.id_proposicao > 0
+    def test_proposition_multiple_authors(self, proposition_example):
+        """Should support multiple authors."""
+        assert len(proposition_example.author_ids) == 3
+        assert 1 in proposition_example.author_ids
+        assert 2 in proposition_example.author_ids
 
 
-class TestProposicaoIgualdade:
-    """Testes de comparação entre proposições"""
+class TestPropositionValidation:
+    """Tests for data validation."""
 
-    def test_proposicoes_mesmo_id(self):
-        """Proposições com mesmo ID devem ser iguais"""
-        prop1 = Proposicao(
-            id_proposicao=100,
-            ano=2024,
-            # ementa="PL sobre X",
-            autores_ids=[1, 2]
+    def test_valid_year(self, proposition_example):
+        """Year should be a valid integer."""
+        assert isinstance(proposition_example.year, int)
+        assert 1988 <= proposition_example.year <= 2026
+
+    def test_positive_proposition_id(self, proposition_example):
+        """Proposition ID should be positive."""
+        assert proposition_example.id > 0
+
+
+class TestPropositionEquality:
+    """Tests for proposition comparison."""
+
+    def test_propositions_same_id(self):
+        """Propositions with same ID should be equal."""
+        proposition1 = Proposition(
+            id=100,
+            year=2024,
+            author_ids=[1, 2],
+            proposition_type="PL"
         )
-        prop2 = Proposicao(
-            id_proposicao=100,
-            ano=2024,
-            # ementa="PL sobre X",
-            autores_ids=[1, 2]
+        proposition2 = Proposition(
+            id=100,
+            year=2024,
+            author_ids=[1, 2],
+            proposition_type="PL"
         )
-        assert prop1.id_proposicao == prop2.id_proposicao
+        assert proposition1.id == proposition2.id
 
-    def test_proposicoes_ids_diferentes(self, proposicao_exemplo, proposicao_outro):
-        """Proposições com IDs diferentes devem ser diferentes"""
-        assert proposicao_exemplo.id_proposicao != proposicao_outro.id_proposicao
+    def test_propositions_different_ids(self, proposition_example, proposition_other):
+        """Propositions with different IDs should be different."""
+        assert proposition_example.id != proposition_other.id
 
 
-class TestProposicaoAutorias:
-    """Testes relacionados a autorias"""
+class TestPropositionAuthorship:
+    """Tests related to authorship."""
 
-    def test_deputado_eh_autor(self, proposicao_exemplo):
-        """Deve verificar se deputado é autor"""
-        assert 1 in proposicao_exemplo.autores_ids
-        assert 2 in proposicao_exemplo.autores_ids
-        assert 3 in proposicao_exemplo.autores_ids
+    def test_deputy_is_author(self, proposition_example):
+        """Should verify if deputy is an author."""
+        assert 1 in proposition_example.author_ids
+        assert 2 in proposition_example.author_ids
+        assert 3 in proposition_example.author_ids
 
-    def test_deputado_nao_eh_autor(self, proposicao_exemplo):
-        """Deve verificar se deputado não é autor"""
-        assert 999 not in proposicao_exemplo.autores_ids
+    def test_deputy_not_author(self, proposition_example):
+        """Should verify if deputy is not an author."""
+        assert 999 not in proposition_example.author_ids
 
-    def test_numero_de_autores(self, proposicao_exemplo):
-        """Deve contar número de autores corretamente"""
-        assert len(proposicao_exemplo.autores_ids) == 3
+    def test_number_of_authors(self, proposition_example):
+        """Should count authors correctly."""
+        assert len(proposition_example.author_ids) == 3
