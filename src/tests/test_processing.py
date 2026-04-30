@@ -1,32 +1,36 @@
-"""Testes para o módulo de processamento"""
+"""Tests for the processing module."""
+import ast
+
 import pytest # type: ignore
 import pandas as pd # type: ignore
 
+from processing import ChamberProcessor
 
-class TestProcessingDataValidacao:
-    """Testes de validação de dados de entrada"""
+
+class TestProcessingDataValidation:
+    """Tests for input data validation."""
 
     @pytest.fixture
-    def dataframe_valido(self):
-        """Cria um DataFrame válido para testes"""
+    def valid_dataframe(self):
+        """Create a valid DataFrame for testing."""
         return pd.DataFrame({
-            'id_deputado': [1, 2, 3],
-            'nome': ['Silva', 'Santos', 'Oliveira'],
-            'partido': ['PT', 'PSDB', 'PT'],
-            'uf': ['SP', 'MG', 'RJ'],
-            'id_proposicao': [100, 101, 102],
-            'ementa': ['PL 1', 'PL 2', 'PL 3']
+            'deputy_id': [1, 2, 3],
+            'name': ['Silva', 'Santos', 'Oliveira'],
+            'party': ['PT', 'PSDB', 'PT'],
+            'state': ['SP', 'MG', 'RJ'],
+            'proposition_id': [100, 101, 102],
+            'title': ['PL 1', 'PL 2', 'PL 3']
         })
 
-    def test_dataframe_nao_vazio(self, dataframe_valido):
-        """DataFrame não deve estar vazio"""
-        assert len(dataframe_valido) > 0
+    def test_dataframe_not_empty(self, valid_dataframe):
+        """DataFrame should not be empty."""
+        assert len(valid_dataframe) > 0
 
-    def test_colunas_obrigatorias_presentes(self, dataframe_valido):
-        """Colunas obrigatórias devem estar presentes"""
-        colunas_esperadas = ['id_deputado', 'nome', 'partido']
-        for coluna in colunas_esperadas:
-            assert coluna in dataframe_valido.columns
+    def test_required_columns_present(self, valid_dataframe):
+        """Required columns should be present."""
+        expected_columns = ['deputy_id', 'name', 'party']
+        for column in expected_columns:
+            assert column in valid_dataframe.columns
 
     def test_rejeitar_dataframe_vazio(self):
         """Deve rejeitar DataFrame vazio"""
@@ -82,18 +86,52 @@ class TestProcessingConversao:
         })
 
     def test_converter_dataframe_para_objetos(self, dataframe_proposicoes):
-        """Deve converter DataFrame em lista de objetos"""
-        # proposicoes = GraphNetwork.dataframe_to_proposicoes(dataframe_proposicoes)
-        # assert len(proposicoes) == 3
-        # assert all(hasattr(p, 'id_proposicao') for p in proposicoes)
-        pass
+        """Should convert DataFrame to list of objects."""
+        processor = ChamberProcessor()
+        deputy_map = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': 'PT', 'siglaufautor': 'SP'},
+            2: {'nomeautor': 'Santos', 'siglapartidoautor': 'PSDB', 'siglaufautor': 'MG'},
+            3: {'nomeautor': 'Oliveira', 'siglapartidoautor': 'MDB', 'siglaufautor': 'RJ'},
+        }
+        groups = dataframe_proposicoes.set_index('id_proposicao')['autores'].apply(ast.literal_eval)
+        coauthorships = groups[groups.apply(len) > 1]
+        type_map = {100: 'PL', 101: 'PLP', 102: 'PEC'}
+
+        dict_deputies, list_propositions, list_coauthorships = processor.convert_to_domain_objects(
+            deputy_map=deputy_map,
+            groups=groups,
+            coauthorships=coauthorships,
+            type_map=type_map,
+            year=2024,
+        )
+
+        assert len(dict_deputies) == 3
+        assert len(list_propositions) == 3
+        assert len(list_coauthorships) == 3  # Only those with 2+ authors
 
     def test_preservar_dados_conversao(self, dataframe_proposicoes):
-        """Dados não devem ser perdidos na conversão"""
-        # proposicoes = GraphNetwork.dataframe_to_proposicoes(dataframe_proposicoes)
-        # assert proposicoes[0].id_proposicao == 100
-        # assert proposicoes[0].ano == 2024
-        pass
+        """Data should not be lost during conversion."""
+        processor = ChamberProcessor()
+        deputy_map = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': 'PT', 'siglaufautor': 'SP'},
+            2: {'nomeautor': 'Santos', 'siglapartidoautor': 'PSDB', 'siglaufautor': 'MG'},
+        }
+        groups = pd.Series({100: [1, 2], 101: [2]})
+        coauthorships = pd.Series({100: [1, 2]})
+        type_map = {100: 'PL', 101: 'PEC'}
+
+        dict_deputies, list_propositions, list_coauthorships = processor.convert_to_domain_objects(
+            deputy_map=deputy_map,
+            groups=groups,
+            coauthorships=coauthorships,
+            type_map=type_map,
+            year=2024,
+        )
+
+        assert dict_deputies[1].name == 'Silva'
+        assert list_propositions[0].id == 100
+        assert list_propositions[0].year == 2024
+        assert list_propositions[0].proposition_type == 'PL'
 
 
 class TestProcessingFiltros:
@@ -137,16 +175,27 @@ class TestProcessingErros:
         df_invalido = pd.DataFrame({
             'coluna_errada': [1, 2, 3]
         })
-        # Deve lançar uma exceção (implementação específica)
-        # with pytest.raises(ValueError):
-        #     GraphNetwork.processar(df_invalido)
-        pass
+        df_props = pd.DataFrame({'id': [1], 'siglatipo': ['PL']})
+        processor = ChamberProcessor()
+
+        with pytest.raises(KeyError):
+                processor.process_raw_data(df_invalido, df_props)
 
     def test_dados_inconsistentes(self):
         """Deve detectar dados inconsistentes"""
-        df = pd.DataFrame({
-            'id_deputado': [1, 2, 3],
-            'id_proposicao': [100, 101, 'INVALIDO']
+        df_autores = pd.DataFrame({
+            'idproposicao': [100],
+            'codtipoautor': [10000],
+            'iddeputadoautor': ['INVALIDO'],
+            'nomeautor': ['Silva'],
+            'siglapartidoautor': ['PT'],
+            'siglaufautor': ['SP'],
         })
-        # assert not validar_dados(df)
-        pass
+        df_props = pd.DataFrame({
+            'id': [100],
+            'siglatipo': ['PL'],
+        })
+        processor = ChamberProcessor()
+
+        with pytest.raises(ValueError):
+                processor.process_raw_data(df_autores, df_props)

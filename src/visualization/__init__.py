@@ -1,4 +1,4 @@
-# extraction/__init__.py
-from .plots import function_1, function_2
+"""Visualization module for parliamentary network analysis."""
+from .plots import generate_analysis_plots
 
-__all__ = ['function_1', function_2]
+__all__ = ["generate_analysis_plots"]

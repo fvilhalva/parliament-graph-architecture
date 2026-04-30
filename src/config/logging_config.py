@@ -1,18 +1,23 @@
+"""Logging configuration for the parliamentary network analysis application."""
 import logging
 
 
-def setup_logger(name: str) -> logging.Logger:
-    """
-    Configura um logger para o módulo especificado.
+def setup_logger(module_name: str) -> logging.Logger:
+    """Configure and return a logger instance for a given module.
     
     Args:
-        name: Nome do módulo (__name__)
+        module_name: Module name (typically __name__)
         
     Returns:
-        Logger configurado
+        Configured Logger instance
+        
+    Example:
+        logger = setup_logger(__name__)
+        logger.info("Processing started")
     """
-    logger = logging.getLogger(name)
+    logger = logging.getLogger(module_name)
     
+    # Only configure if not already configured
     if not logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter('[%(levelname)s] %(message)s')

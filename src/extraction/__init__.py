@@ -1,4 +1,4 @@
 # extraction/__init__.py
-from .camara_extrator import CamaraExtractor
+from .chamber_extractor import ChamberExtractor
 
-__all__ = ['CamaraExtractor']
+__all__ = ['ChamberExtractor']

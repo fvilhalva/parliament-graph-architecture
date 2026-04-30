@@ -1,77 +1,115 @@
-"""Fixtures compartilhadas para todos os testes"""
+"""Shared test fixtures for all test modules."""
 import pytest # type: ignore
-from models.deputado import Deputado
-from models.proposicao import Proposicao
-from models.aresta_coautoria import ArestaCoautoria
+from models.deputy import Deputy
+from models.proposition import Proposition
+from models.coauthorship_edge import CoauthorshipEdge
 
 
 @pytest.fixture
-def deputado_silva():
-    """Cria um deputado para testes"""
-    return Deputado(
-        id_deputado=1,
-        nome="João Silva",
-        sigla_partido="PT",
-        sigla_uf="SP",
+def deputy_silva():
+    """Create a deputy for testing."""
+    return Deputy(
+        id=1,
+        name="João Silva",
+        party_code="PT",
+        state_code="SP",
         degree_centrality=0.5,
         betweenness_centrality=0.3
     )
 
 
 @pytest.fixture
-def deputado_santos():
-    """Cria outro deputado para testes"""
-    return Deputado(
-        id_deputado=2,
-        nome="Maria Santos",
-        sigla_partido="PSDB",
-        sigla_uf="MG",
+def deputy_santos():
+    """Create another deputy for testing."""
+    return Deputy(
+        id=2,
+        name="Maria Santos",
+        party_code="PSDB",
+        state_code="MG",
         degree_centrality=0.6,
         betweenness_centrality=0.4
     )
 
 
 @pytest.fixture
-def deputado_oliveira():
-    """Cria um terceiro deputado para testes"""
-    return Deputado(
-        id_deputado=3,
-        nome="Carlos Oliveira",
-        sigla_partido="PT",
-        sigla_uf="RJ",
+def deputy_oliveira():
+    """Create a third deputy for testing."""
+    return Deputy(
+        id=3,
+        name="Carlos Oliveira",
+        party_code="PT",
+        state_code="RJ",
         degree_centrality=0.4,
         betweenness_centrality=0.2
     )
 
 
 @pytest.fixture
-def proposicao_exemplo():
-    """Cria uma proposição para testes"""
-    return Proposicao(
-        id_proposicao=100,
-        ano=2024,
-        # ementa="PL que trata de segurança na internet",
-        autores_ids=[1, 2, 3]
+def proposition_example():
+    """Create a proposition for testing."""
+    return Proposition(
+        id=100,
+        year=2024,
+        author_ids=[1, 2, 3],
+        proposition_type="PL"
     )
 
 
 @pytest.fixture
-def proposicao_outro():
-    """Cria outra proposição para testes"""
-    return Proposicao(
-        id_proposicao=101,
-        ano=2024,
-        # ementa="PL sobre reforma tributária",
-        autores_ids=[1, 2]
+def proposition_other():
+    """Create another proposition for testing."""
+    return Proposition(
+        id=101,
+        year=2024,
+        author_ids=[1, 2],
+        proposition_type="PEC"
     )
 
 
 @pytest.fixture
-def aresta_coautoria():
-    """Cria uma aresta de coautoria para testes"""
-    return ArestaCoautoria(
+def coauthorship_edge():
+    """Create a coauthorship edge for testing."""
+    return CoauthorshipEdge(
         source_id=1,
         target_id=2,
-        peso_bruto=5,
-        forca_normalizada=0.8
+        raw_weight=5,
+        normalized_strength=0.8
     )
+
+
+# --- Portuguese alias fixtures for backward compatibility ---
+
+@pytest.fixture
+def deputado_silva(deputy_silva):
+    """Portuguese alias for deputy_silva fixture."""
+    return deputy_silva
+
+
+@pytest.fixture
+def proposicao_exemplo(proposition_example):
+    """Portuguese alias for proposition_example fixture."""
+    return proposition_example
+
+
+@pytest.fixture
+def proposicao_outro(proposition_other):
+    """Portuguese alias for proposition_other fixture."""
+    return proposition_other
+
+
+@pytest.fixture
+def aresta_coautoria(coauthorship_edge):
+    """Portuguese alias for coauthorship_edge fixture."""
+    return coauthorship_edge
+
+
+@pytest.fixture
+def example_deputies(deputy_silva, deputy_santos, deputy_oliveira):
+    """Create list of deputies for testing."""
+    return [deputy_silva, deputy_santos, deputy_oliveira]
+
+
+@pytest.fixture
+def deputados_exemplo(example_deputies):
+    """Portuguese alias for example_deputies fixture."""
+    return example_deputies

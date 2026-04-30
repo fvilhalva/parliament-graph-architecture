@@ -1,4 +1,4 @@
-# extraction/__init__.py
-from .Graph import CamaraGraph
+"""Core graph analysis and construction module."""
+from .graph import ParliamentaryGraph
 
-__all__ = ['CamaraGraph']
+__all__ = ['ParliamentaryGraph']

@@ -48,3 +48,4 @@ Desktop.ini
 # ==========================================
 # Nunca suba senhas ou chaves de API (mesmo que a da Câmara seja aberta, é boa prática)
 .env
+*.tex

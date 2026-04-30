@@ -1,122 +1,93 @@
-"""Testes para a classe CamaraGraph (core)"""
-import pytest # type: ignore
-from core.Graph import CamaraGraph
-from models.deputado import Deputado
-from models.aresta_coautoria import ArestaCoautoria
+"""Tests for the ParliamentaryGraph class (core)."""
+
+import pytest  # type: ignore
+
+from core import ParliamentaryGraph
+from models.deputy import Deputy
+from models.proposition import Proposition
 
 
-class TestCamaraGraphCriacao:
-    """Testes de criação e inicialização do grafo"""
-
-    def test_criar_grafo_vazio(self):
-        """Deve criar um grafo vazio"""
-        grafo = CamaraGraph()
-        assert grafo is not None
-
-    def test_grafo_inicia_sem_nodes(self):
-        """Grafo deve iniciar sem nós"""
-        grafo = CamaraGraph()
-        # Verificar se o grafo está vazio (implementação específica)
-        # assert len(grafo.nodes()) == 0
+def _build_deputies() -> dict[int, Deputy]:
+    return {
+        1: Deputy(id=1, name="A", party_code="PT", state_code="SP"),
+        2: Deputy(id=2, name="B", party_code="PSB", state_code="RJ"),
+        3: Deputy(id=3, name="C", party_code="MDB", state_code="MG"),
+        4: Deputy(id=4, name="D", party_code="UNI", state_code="BA"),
+    }
 
 
-class TestCamaraGraphNodes:
-    """Testes de adição e manipulação de nós (deputados)"""
-
-    def test_adicionar_deputado(self, deputado_silva):
-        """Deve adicionar um deputado ao grafo"""
-        grafo = CamaraGraph()
-        # grafo.add_deputado(deputado_silva)
-        # assert deputado_silva.id_deputado in grafo.nodes()
-        pass
-
-    def test_adicionar_multiplos_deputados(self, deputado_silva, deputado_santos, deputado_oliveira):
-        """Deve adicionar múltiplos deputados"""
-        grafo = CamaraGraph()
-        # grafo.add_deputado(deputado_silva)
-        # grafo.add_deputado(deputado_santos)
-        # grafo.add_deputado(deputado_oliveira)
-        # assert len(grafo.nodes()) == 3
-        pass
-
-    def test_buscar_deputado(self, deputado_silva):
-        """Deve buscar um deputado pelo ID"""
-        grafo = CamaraGraph()
-        # grafo.add_deputado(deputado_silva)
-        # encontrado = grafo.get_deputado(1)
-        # assert encontrado.nome == "João Silva"
-        pass
+def _build_propositions() -> list[Proposition]:
+    # Deterministic pattern for weight validation:
+    # P1 (PL): [1,2,3] -> (1,2),(1,3),(2,3) += 10
+    # P2 (PLP): [1,2]   -> (1,2) += 5
+    # P3 (PEC): [3,4]   -> (3,4) += 1
+    return [
+        Proposition(id=100, year=2025, author_ids=[1, 2, 3], proposition_type="PL"),
+        Proposition(id=101, year=2025, author_ids=[1, 2], proposition_type="PLP"),
+        Proposition(id=102, year=2025, author_ids=[3, 4], proposition_type="PEC"),
+    ]
 
 
-class TestCamaraGraphArestas:
-    """Testes de adição de arestas (coautorias)"""
-
-    def test_adicionar_aresta(self, deputado_silva, deputado_santos):
-        """Deve adicionar uma aresta de coautoria"""
-        grafo = CamaraGraph()
-        aresta = ArestaCoautoria(
-            source_id=deputado_silva.id_deputado,
-            target_id=deputado_santos.id_deputado,
-            peso_bruto=5
-        )
-        # grafo.add_deputado(deputado_silva)
-        # grafo.add_deputado(deputado_santos)
-        # grafo.add_aresta(aresta)
-        # assert grafo.edge_count() >= 1
-        pass
-
-    def test_aresta_conecta_deputados_corretos(self, aresta_coautoria):
-        """Aresta deve conectar os deputados corretos"""
-        assert aresta_coautoria.source_id == 1
-        assert aresta_coautoria.target_id == 2
+@pytest.fixture
+def example_graph() -> ParliamentaryGraph:
+    deputies = _build_deputies()
+    propositions = _build_propositions()
+    graph = ParliamentaryGraph(
+        deputies=deputies,
+        propositions=propositions,
+        coauthorships=propositions,
+        year=2025,
+    )
+    graph.build()
+    return graph
 
 
-class TestCamaraGraphMetricas:
-    """Testes de cálculo de métricas do grafo"""
+class TestParliamentaryGraphStructure:
+    def test_create_empty_graph(self):
+        graph = ParliamentaryGraph()
+        assert graph.graph.number_of_nodes() == 0
+        assert graph.graph.number_of_edges() == 0
 
-    def test_calcular_grau(self):
-        """Deve calcular grau dos nós corretamente"""
-        grafo = CamaraGraph()
-        # Adicionar nós e arestas
-        # grau = grafo.degree(1)
-        # assert grau == numero_esperado
-        pass
+    def test_build_graph_with_nodes_and_edges(self, example_graph):
+        assert example_graph.graph.number_of_nodes() == 4
+        assert example_graph.graph.number_of_edges() == 4
 
-    def test_calcular_degree_centrality(self):
-        """Deve calcular degree centrality"""
-        grafo = CamaraGraph()
-        # centralidade = grafo.calculate_degree_centrality()
-        # assert centralidade[1] > 0
-        pass
-
-    def test_calcular_betweenness_centrality(self):
-        """Deve calcular betweenness centrality"""
-        grafo = CamaraGraph()
-        # betweenness = grafo.calculate_betweenness_centrality()
-        # assert betweenness[1] >= 0
-        pass
-
-    def test_conectividade_do_grafo(self):
-        """Deve medir conectividade do grafo"""
-        grafo = CamaraGraph()
-        # Criar grafo com componentes
-        # componentes = grafo.number_connected_components()
-        # assert componentes >= 1
-        pass
+    def test_no_self_loops(self, example_graph):
+        for u, v in example_graph.graph.edges():
+            assert u != v
 
 
-class TestCamaraGraphConsistencia:
-    """Testes de consistência de dados"""
+class TestParliamentaryGraphWeights:
+    def test_weight_aggregation_by_pair(self, example_graph):
+        assert example_graph.graph[1][2]["weight"] == pytest.approx(10/2 + 5/1)
+        assert example_graph.graph[1][3]["weight"] == pytest.approx(10/2)
+        assert example_graph.graph[2][3]["weight"] == pytest.approx(10/2)
+        assert example_graph.graph[3][4]["weight"] == pytest.approx(1/1)
 
-    def test_grafo_nao_tem_duplicatas(self, deputado_silva):
-        """Não deve ter deputados duplicados"""
-        grafo = CamaraGraph()
-        # grafo.add_deputado(deputado_silva)
-        # grafo.add_deputado(deputado_silva)
-        # assert len(grafo.nodes()) == 1
-        pass
+    def test_normalization_by_author_count(self, example_graph):
+        # With 3 authors in P1: normalization factor = 1/(3-1) = 0.5
+        # With 2 authors in P2: normalization factor = 1/(2-1) = 1.0
+        # P1 (PL): 10 * 0.5 = 5 per edge
+        # P2 (PLP): 5 * 1.0 = 5 per edge
+        assert example_graph.graph[1][2]["weight"] == pytest.approx(5 + 5)
 
-    def test_arestas_bidirecionais(self, aresta_coautoria):
-        """Arestas podem ser bidirecionais ou direcionadas"""
-        # Verificar a intencionalidade do grafo
-        pass
+
+class TestParliamentaryGraphNodeAttributes:
+    def test_node_attributes_populated(self, example_graph):
+        node_data = example_graph.graph.nodes[1]
+        assert node_data["name"] == "A"
+        assert node_data["party_code"] == "PT"
+        assert node_data["state_code"] == "SP"
+
+    def test_degree_centrality_normalized(self, example_graph):
+        result = example_graph.compute_degree_centrality()
+        assert len(result) == 4
+        total = sum(dep.degree_centrality for dep in result)
+        assert total == pytest.approx(1.0)
+        top = max(result, key=lambda dep: dep.weighted_degree)
+        assert top.id == 1
+
+    def test_betweenness_centrality_computed(self, example_graph):
+        result = example_graph.compute_betweenness_centrality()
+        assert len(result) == 4
+        assert all(dep.betweenness_centrality >= 0 for dep in result)
