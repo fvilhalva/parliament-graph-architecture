@@ -31,6 +31,36 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 
 ---
 
+## 🧩 Software Engineering Overview
+
+This project is organized as a pipeline where each layer has a single responsibility and passes structured data to the next layer:
+
+1. **extraction/** returns raw tabular data from the Chamber API or local CSV files.
+2. **processing/** cleans that data and converts rows into lists of domain objects such as `Proposition` and `Deputy`.
+3. **core/** receives those plain objects, creates the coauthorship edges, and builds the parliamentary network. This is the brain of the system.
+4. **visualization/** consumes the processed data to generate plots and summaries.
+5. **repository/** exports data for third-party tools such as Gephi and for persistence in CSV or SQLite.
+6. **config/** centralizes application-wide settings.
+
+### Layer Criticality
+
+| Layer | Relative importance | Notes |
+|-------|---------------------|-------|
+| **models/** | 100% | Critical for data integrity |
+| **processing/** | 80%+ | Data cleaning and normalization |
+| **core/** | 80%+ | Main analytical logic |
+| **extraction/** | 60% | Depends on external data sources |
+| **visualization/** | 40% | Useful, but less critical to the pipeline core |
+
+### Data Persistence
+
+- `data/` stores persistent project outputs.
+- `data/gexf/` stores graph exports.
+- `data/metricas/` stores CSV metric outputs.
+- `data/parliament.db` stores the generated SQLite database.
+
+---
+
 ## 📁 Directory Structure
 
 ```
