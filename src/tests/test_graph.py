@@ -17,10 +17,11 @@ def _build_deputies() -> dict[int, Deputy]:
 
 
 def _build_propositions() -> list[Proposition]:
-    # Deterministic pattern for weight validation:
-    # P1 (PL): [1,2,3] -> (1,2),(1,3),(2,3) += 10
-    # P2 (PLP): [1,2]   -> (1,2) += 5
-    # P3 (PEC): [3,4]   -> (3,4) += 1
+    # Deterministic pattern for weight validation (uniform weights = 1 for all types):
+    # P1 (PL):  [1,2,3] -> (1,2),(1,3),(2,3) each += 1 * 1/(3-1) = 0.5
+    # P2 (PLP): [1,2]   -> (1,2) += 1 * 1/(2-1) = 1.0
+    # P3 (PEC): [3,4]   -> (3,4) += 1 * 1/(2-1) = 1.0
+    # Resulting edge weights: (1,2)=1.5, (1,3)=0.5, (2,3)=0.5, (3,4)=1.0
     return [
         Proposition(id=100, year=2025, author_ids=[1, 2, 3], proposition_type="PL"),
         Proposition(id=101, year=2025, author_ids=[1, 2], proposition_type="PLP"),
@@ -59,17 +60,17 @@ class TestParliamentaryGraphStructure:
 
 class TestParliamentaryGraphWeights:
     def test_weight_aggregation_by_pair(self, example_graph):
-        assert example_graph.graph[1][2]["weight"] == pytest.approx(10/2 + 5/1)
-        assert example_graph.graph[1][3]["weight"] == pytest.approx(10/2)
-        assert example_graph.graph[2][3]["weight"] == pytest.approx(10/2)
-        assert example_graph.graph[3][4]["weight"] == pytest.approx(1/1)
+        # All proposition types have uniform weight = 1; normalization = 1/(n_authors - 1)
+        assert example_graph.graph[1][2]["weight"] == pytest.approx(1/2 + 1/1)  # P1 + P2
+        assert example_graph.graph[1][3]["weight"] == pytest.approx(1/2)         # P1 only
+        assert example_graph.graph[2][3]["weight"] == pytest.approx(1/2)         # P1 only
+        assert example_graph.graph[3][4]["weight"] == pytest.approx(1/1)         # P3 only
 
     def test_normalization_by_author_count(self, example_graph):
-        # With 3 authors in P1: normalization factor = 1/(3-1) = 0.5
-        # With 2 authors in P2: normalization factor = 1/(2-1) = 1.0
-        # P1 (PL): 10 * 0.5 = 5 per edge
-        # P2 (PLP): 5 * 1.0 = 5 per edge
-        assert example_graph.graph[1][2]["weight"] == pytest.approx(5 + 5)
+        # P1 (PL, 3 authors):  1 * 1/(3-1) = 0.5
+        # P2 (PLP, 2 authors): 1 * 1/(2-1) = 1.0
+        # edge (1,2) = 0.5 + 1.0 = 1.5
+        assert example_graph.graph[1][2]["weight"] == pytest.approx(1.5)
 
 
 class TestParliamentaryGraphNodeAttributes:

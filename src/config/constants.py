@@ -41,20 +41,29 @@ COMMUNITY_DETECTION_METHOD = 'spectral'  # spectral, louvain, greedy
 # ---------------------------------------------------------------------------
 # Proposition type weights
 # ---------------------------------------------------------------------------
-# IMPORTANT (advisor feedback, Rubens Barbosa Filho): these weights are
-# *experimental parameters*, not theoretically justified constants. They
-# express the assumed relative legislative importance of each proposition
-# type and are intended to be analysed via sensitivity studies before being
-# locked in. Adjust here OR pass an override to ``ParliamentaryGraph`` via
-# the ``proposition_weights`` constructor argument.
+# All included proposition types receive a uniform weight of 1.
+#
+# Rationale (advisor feedback, Rubens Barbosa Filho): assigning different
+# numerical weights to proposition types (e.g. PL > PEC) is inherently
+# arbitrary — no established theoretical basis exists in the literature for
+# such a scale. The type *filter* (which types enter the graph at all) already
+# encodes the analytical decision of which propositions are politically
+# meaningful. Beyond that filter, treating every co-authorship equally is the
+# most parsimonious and reproducible choice.
+#
+# Consequently, edge weight reflects only the normalized count of co-authored
+# propositions: w(i,j) = Σ 1/(n_authors(p) − 1) for each shared proposal p.
+#
+# If a future study wishes to explore weighted variants, this dict can be
+# overridden via the ``proposition_weights`` constructor argument of
+# ``ParliamentaryGraph`` without changing any other code.
 PROPOSITION_TYPE_WEIGHTS: dict[str, float] = {
-    'PL': 10,    # Bill (Lei Ordinária)
-    'PLP': 5,    # Complementary Law Bill
+    'PL':  1,    # Bill (Lei Ordinária)
+    'PLP': 1,    # Complementary Law Bill
     'PEC': 1,    # Constitutional Amendment Proposal
-    'PLV': 8,    # Provisional-measure conversion bill
-    'PDL': 3,    # Legislative Decree
-    'REQ': 1,    # Request
-    'MOC': 1,    # Motion
+    'PLV': 1,    # Provisional-measure conversion bill
+    'PDL': 1,    # Legislative Decree
+    'EMC': 1,    # Committee amendment
 }
 
 # ---------------------------------------------------------------------------

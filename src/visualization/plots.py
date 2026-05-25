@@ -82,6 +82,22 @@ def _analyze_graph(year: int) -> tuple[nx.Graph | nx.DiGraph | None, dict[str, f
     return graph, statistics
 
 
+def _plot_top_deputies_betweenness(df: pd.DataFrame, output_dir: Path, n: int = 20) -> None:
+    """Plot top N deputies by betweenness centrality."""
+    top_df = df.nlargest(n, "betweenness_centrality").copy().iloc[::-1]
+    top_df["label"] = top_df["nome"] + " (" + top_df["sigla_partido"] + ")"
+
+    fig, ax = plt.subplots()
+    sns.barplot(data=top_df, x="betweenness_centrality", y="label", hue="sigla_partido", dodge=False, ax=ax)
+    ax.set_title(f"Top {n} Deputies by Betweenness Centrality")
+    ax.set_xlabel("Betweenness Centrality")
+    ax.set_ylabel("Deputy")
+    ax.legend(title="Party", loc="lower right", fontsize=8)
+    fig.tight_layout()
+    fig.savefig(output_dir / "top_deputies_betweenness.png", dpi=180)
+    plt.close(fig)
+
+
 def _plot_top_deputies(df: pd.DataFrame, output_dir: Path, n: int = 20) -> None:
     """Plot top N deputies by weighted degree.
     
@@ -246,6 +262,7 @@ def generate_analysis_plots(year: int = 2025) -> Path:
 
     df = _load_metrics(year)
     _plot_top_deputies(df, PLOTS_DIR)
+    _plot_top_deputies_betweenness(df, PLOTS_DIR)
     _plot_parties(df, PLOTS_DIR)
     _plot_metrics_correlation(df, PLOTS_DIR)
     _plot_degree_distribution(df, PLOTS_DIR)
@@ -258,16 +275,6 @@ def generate_analysis_plots(year: int = 2025) -> Path:
     return PLOTS_DIR
 
 
-def function_1(algo: int = 2025) -> Path:
-    """Compat: mantem API antiga e gera a analise completa."""
-    return gerar_analise_plots(ano=int(algo))
-
-
-def function_2(algo: int = 2025) -> Path:
-    """Compat: alias de function_1."""
-    return gerar_analise_plots(ano=int(algo))
-
-
 if __name__ == "__main__":
-    pasta_saida = gerar_analise_plots(ano=2025)
-    print(f"Analise finalizada. Arquivos salvos em: {pasta_saida}")
+    output = generate_analysis_plots(year=2025)
+    print(f"Plots saved to: {output}")

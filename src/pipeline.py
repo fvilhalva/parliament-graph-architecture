@@ -10,6 +10,7 @@ import pandas as pd  # type: ignore
 from config import setup_logger
 from core import ParliamentaryGraph
 from core.algorithms.community_detection import compare_community_methods, detect_communities
+from core.algorithms.validation import NullModelResult, assess_community_significance
 from extraction import ChamberExtractor
 from processing import ChamberProcessor
 from repository import CsvRepository, DB_Exporter, GraphExporter
@@ -73,8 +74,8 @@ def core_stage(deputies: dict, propositions: list, coauthorships: list, year: in
     return graph
 
 
-def algorithms_stage(graph: ParliamentaryGraph) -> dict:
-    """Stage 4: Run community detection and compare methods."""
+def algorithms_stage(graph: ParliamentaryGraph, n_permutations: int = 200) -> dict:
+    """Stage 4: Run community detection, statistical validation, and compare methods."""
     logger.info("Running community detection and modularity comparison...")
     communities_comparison = compare_community_methods(graph.graph)
     logger.info(f"Community comparison: {communities_comparison}")
@@ -84,6 +85,22 @@ def algorithms_stage(graph: ParliamentaryGraph) -> dict:
         for node_id, community_id in louvain_partition.items():
             if graph.graph.has_node(node_id):
                 graph.graph.nodes[node_id]["community_louvain"] = int(community_id)
+
+    # --- Statistical significance via null-model permutation test ---
+    logger.info(f"Running null-model permutation test ({n_permutations} permutations)...")
+    validation: NullModelResult = assess_community_significance(
+        graph.graph, n_permutations=n_permutations, seed=42
+    )
+    logger.info(str(validation))
+
+    communities_comparison["null_model"] = {
+        "q_observed": round(validation.q_observed, 4),
+        "q_null_mean": round(validation.q_null_mean, 4),
+        "q_null_std": round(validation.q_null_std, 4),
+        "p_value": round(validation.p_value, 4),
+        "significant": validation.significant,
+        "n_permutations": validation.n_permutations,
+    }
 
     return communities_comparison
 
