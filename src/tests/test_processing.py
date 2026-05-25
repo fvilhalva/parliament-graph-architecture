@@ -167,6 +167,95 @@ class TestProcessingFiltros:
         assert len(df) == 2
 
 
+class TestMaxAuthorsFilter:
+    """Tests for the mass-signature proposal filter in process_raw_data."""
+
+    def _make_authors_df(self, rows: list[dict]) -> pd.DataFrame:
+        return pd.DataFrame(rows)
+
+    def _make_props_df(self, prop_ids: list[int], sigla: str = "PL") -> pd.DataFrame:
+        return pd.DataFrame({"id": prop_ids, "siglatipo": [sigla] * len(prop_ids)})
+
+    def _base_row(self, prop_id: int, deputy_id: int) -> dict:
+        return {
+            "idproposicao": prop_id,
+            "codtipoautor": 10000,
+            "iddeputadoautor": float(deputy_id),
+            "nomeautor": f"Deputy {deputy_id}",
+            "siglapartidoautor": "PT",
+            "siglaufautor": "SP",
+        }
+
+    def test_large_proposal_excluded_from_coauthorships(self):
+        """A proposal with more authors than max_authors must not appear in coauthorships."""
+        rows = [self._base_row(prop_id=1, deputy_id=i) for i in range(1, 52)]  # 51 authors
+        rows += [self._base_row(prop_id=2, deputy_id=i) for i in range(1, 4)]  # 3 authors
+        df_authors = self._make_authors_df(rows)
+        df_props = self._make_props_df([1, 2])
+
+        processor = ChamberProcessor()
+        deputy_map, groups, coauthorships, _ = processor.process_raw_data(
+            df_authors, df_props, max_authors=30
+        )
+
+        assert 1 not in coauthorships.index, "Mass-signature proposal should be excluded"
+        assert 2 in coauthorships.index, "Small proposal should still be included"
+
+    def test_all_large_proposals_excluded(self):
+        """When every co-authored proposal exceeds max_authors, coauthorships is empty."""
+        rows = [self._base_row(prop_id=99, deputy_id=i) for i in range(1, 102)]  # 101 authors
+        df_authors = self._make_authors_df(rows)
+        df_props = self._make_props_df([99])
+
+        processor = ChamberProcessor()
+        _, _, coauthorships, _ = processor.process_raw_data(
+            df_authors, df_props, max_authors=30
+        )
+
+        assert len(coauthorships) == 0
+
+    def test_proposal_exactly_at_limit_is_kept(self):
+        """A proposal with exactly max_authors authors must be included (boundary)."""
+        rows = [self._base_row(prop_id=5, deputy_id=i) for i in range(1, 31)]  # exactly 30
+        df_authors = self._make_authors_df(rows)
+        df_props = self._make_props_df([5])
+
+        processor = ChamberProcessor()
+        _, _, coauthorships, _ = processor.process_raw_data(
+            df_authors, df_props, max_authors=30
+        )
+
+        assert 5 in coauthorships.index
+
+    def test_proposal_one_over_limit_is_excluded(self):
+        """A proposal with max_authors + 1 authors must be excluded (boundary)."""
+        rows = [self._base_row(prop_id=6, deputy_id=i) for i in range(1, 32)]  # 31 authors
+        df_authors = self._make_authors_df(rows)
+        df_props = self._make_props_df([6])
+
+        processor = ChamberProcessor()
+        _, _, coauthorships, _ = processor.process_raw_data(
+            df_authors, df_props, max_authors=30
+        )
+
+        assert 6 not in coauthorships.index
+
+    def test_groups_still_contains_large_proposals(self):
+        """groups (all deputado propositions) must include the large proposal even when
+        coauthorships excludes it — individual authorship data must not be lost."""
+        rows = [self._base_row(prop_id=7, deputy_id=i) for i in range(1, 52)]
+        df_authors = self._make_authors_df(rows)
+        df_props = self._make_props_df([7])
+
+        processor = ChamberProcessor()
+        _, groups, coauthorships, _ = processor.process_raw_data(
+            df_authors, df_props, max_authors=30
+        )
+
+        assert 7 in groups.index, "groups must retain all propositions regardless of filter"
+        assert 7 not in coauthorships.index, "coauthorships must exclude the large proposal"
+
+
 class TestProcessingErros:
     """Testes de tratamento de erros"""
 

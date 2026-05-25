@@ -22,4 +22,4 @@ def build_pipeline_dependencies() -> PipelineDependencies:
 
 if __name__ == "__main__":
     config, pipeline_dependecies = build_pipeline_dependencies()
-    run_pipeline(config.CURRENT_PILOTO, pipeline_dependecies)
+    run_pipeline(config.CURRENT_PILOTO, pipeline_dependecies, max_authors=config.MAX_AUTHORS_PER_PROPOSAL)

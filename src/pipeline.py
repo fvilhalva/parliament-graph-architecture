@@ -46,11 +46,14 @@ def processing_stage(
     raw_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     year: int,
+    max_authors: int = 30,
 ) -> tuple[dict, list, list]:
     """Stage 2: Clean raw data and convert it into domain objects."""
     logger.info("Processing data...")
 
-    deputy_map, groups, coauthorships, type_map = processor.process_raw_data(raw_df, metadata_df)
+    deputy_map, groups, coauthorships, type_map = processor.process_raw_data(
+        raw_df, metadata_df, max_authors=max_authors
+    )
     deputies_dict, propositions_list, coauthorships_list = processor.convert_to_domain_objects(
         deputy_map,
         groups,
@@ -96,11 +99,16 @@ def repository_stage(
     """Stage 5: Export graph and metrics to disk."""
     logger.info("Exporting data...")
 
-    gexf_file = graph_exporter.exportar_gexf(graph, ano=year)
+    gexf_file = graph_exporter.export_gexf(graph, year=year)
     logger.info(f"GEXF exported to: {gexf_file}")
 
-    output_file = csv_repository.exportar_metricas_deputados(deputies, year)
+    output_file = csv_repository.export_deputy_metrics(deputies, year)
     logger.info(f"CSV metrics exported to: {output_file}")
+
+    coauthorship_file = csv_repository.export_coauthorship_metrics(
+        list(graph.graph.edges(data="weight")), year
+    )
+    logger.info(f"CSV coauthorships exported to: {coauthorship_file}")
 
     db_path = db_repository.exportar_metricas_deputados(deputies, year)
     logger.info(f"SQLite exported to: {db_path}")
@@ -113,7 +121,7 @@ def visualization_stage(year: int, generate_plots: Callable[[int], Path]) -> Non
     logger.info(f"Plots exported to: {output_dir}")
 
 
-def run_pipeline(year: int, dependencies: PipelineDependencies) -> None:
+def run_pipeline(year: int, dependencies: PipelineDependencies, max_authors: int = 30) -> None:
     """Execute the complete parliamentary analysis pipeline."""
     logger.info("=== STARTING PARLIAMENTARY ANALYSIS PIPELINE ===")
 
@@ -125,14 +133,14 @@ def run_pipeline(year: int, dependencies: PipelineDependencies) -> None:
             raw_df,
             metadata_df,
             year,
+            max_authors=max_authors,
         )
         print(f"Deputies: {len(deputies)}")
         print(f"Propositions: {len(propositions)}")
         print(f"Co-authorships: {len(coauthorships)}")
 
         graph = core_stage(deputies, propositions, coauthorships, year)
-        deputy_centrality_list = graph.compute_degree_centrality()
-        graph.compute_betweenness_centrality()
+        deputy_centrality_list = graph.compute_all_centralities()
 
         communities_info = algorithms_stage(graph)
         logger.info(f"Community summary (year={year}): {communities_info}")

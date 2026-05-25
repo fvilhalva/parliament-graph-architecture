@@ -1,89 +1,71 @@
-"""Data extraction from Chamber of Deputies API and CSV files.
+"""Data extraction from the Chamber of Deputies CSV endpoints.
 
-This module handles extraction of parliamentary data including proposition
-authors (coauthorships) and proposition metadata from the Chamber's public API
-and CSV download endpoints.
+Handles downloading and on-disk caching of proposition and coauthorship
+datasets from the Chamber's open-data portal so that re-runs are
+reproducible without depending on the network.
 """
-import pandas as pd  # type: ignore
 from pathlib import Path
-from config import Config
+
+import pandas as pd  # type: ignore
+
+from config import Config, setup_logger
+
+logger = setup_logger(__name__)
 
 
 class ChamberExtractor:
-    """Extractor for parliamentary data from the Chamber of Deputies.
+    """Extractor for parliamentary data from the Chamber of Deputies."""
 
-    Handles downloading and caching of proposition and coauthorship data
-    from CSV files provided by the Chamber's open data portal.
-    """
-    
     def __init__(self, config: Config) -> None:
         """Initialize the extractor with configuration.
-        
+
         Args:
-            config: Configuration object with API URLs and cache paths
+            config: Configuration object with API URLs and cache paths.
         """
         self.config = config
         self.config.CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     def extract_raw_coauthorship_data(self, year: int) -> pd.DataFrame:
-        """Extract raw coauthorship data for a given year.
-        
-        Downloads proposition authors CSV from the Chamber's open data portal
-        or loads from local cache if available.
-        
-        Args:
-            year: Legislature year
-            
-        Returns:
-            DataFrame with coauthorship data from propositions
+        """Extract raw coauthorship data for ``year``.
+
+        Returns the cached CSV when available; otherwise downloads from the
+        Chamber's open-data portal and persists the response so subsequent
+        runs are deterministic.
         """
         cache_path = self.config.CACHE_DIR / f"proposicoesAutores-{year}.csv"
-        
-        if cache_path.exists():
-            return pd.read_csv(cache_path, sep=";")
-        
         url = self.config.get_coauthorship_csv_url(year)
-        data_frame = pd.read_csv(url, sep=";")
-        return data_frame
+        return self._read_or_download(cache_path, url, dataset="coauthorships", year=year)
 
     def extract_propositions_metadata(self, year: int) -> pd.DataFrame:
-        """Extract proposition metadata for a given year.
-        
-        Downloads propositions CSV from the Chamber's open data portal
-        or loads from local cache if available.
-        
-        Args:
-            year: Legislature year
-            
-        Returns:
-            DataFrame with proposition metadata
+        """Extract proposition metadata for ``year``.
+
+        Same cache-or-download semantics as
+        :meth:`extract_raw_coauthorship_data`.
         """
         cache_path = self.config.CACHE_DIR / f"proposicoes-{year}.csv"
-        
-        if cache_path.exists():
-            return pd.read_csv(cache_path, sep=";")
-        
         url = self.config.get_propositions_csv_url(year)
+        return self._read_or_download(cache_path, url, dataset="propositions", year=year)
+
+    def _read_or_download(
+        self,
+        cache_path: Path,
+        url: str,
+        *,
+        dataset: str,
+        year: int,
+    ) -> pd.DataFrame:
+        """Load ``cache_path`` if present, otherwise download from ``url`` and cache."""
+        if cache_path.exists():
+            logger.info("Loading %s for %s from cache (%s).", dataset, year, cache_path)
+            return pd.read_csv(cache_path, sep=";")
+
+        logger.info("Downloading %s for %s from %s.", dataset, year, url)
         data_frame = pd.read_csv(url, sep=";")
+        self._cache_data(cache_path, data_frame)
+        logger.info("Cached %s for %s at %s.", dataset, year, cache_path)
         return data_frame
 
-    def _make_request(self, url: str, params: dict) -> dict:
-        """Make HTTP request with retry and timeout handling.
-        
-        Args:
-            url: Request URL
-            params: Query parameters
-            
-        Returns:
-            JSON response as dictionary
-        """
-        pass
-
-    def _cache_data(self, key: str, data: pd.DataFrame) -> None:
-        """Cache DataFrame to CSV for later retrieval.
-        
-        Args:
-            key: Cache key identifier
-            data: DataFrame to cache
-        """
-        pass
+    def _cache_data(self, cache_path: Path, data: pd.DataFrame) -> None:
+        """Persist a DataFrame to ``cache_path`` as semicolon-separated CSV."""
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        data.to_csv(cache_path, sep=";", index=False)

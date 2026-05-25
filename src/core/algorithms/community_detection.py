@@ -1,24 +1,21 @@
-"""Detecção de comunidades e estruturas de influência em redes parlamentares."""
+"""Community detection algorithms for parliamentary networks."""
 
 from __future__ import annotations
 
 import networkx as nx
-from networkx.algorithms.community import louvain_communities, label_propagation_communities
+from networkx.algorithms.community import label_propagation_communities, louvain_communities
 from sklearn.cluster import SpectralClustering  # type: ignore
 
 
 class CommunityDetector:
-    """
-    Detector de comunidades em grafos parlamentares.
-    Identifica grupos de deputados com alta coautoria.
-    """
-    
-    def __init__(self):
-        """Inicializa o detector de comunidades."""
+    """Detects communities of deputies with strong co-authorship ties."""
+
+    def __init__(self) -> None:
+        """Initialize the community detector."""
 
     @staticmethod
     def _communities_to_partition(communities: list[set]) -> dict[int, int]:
-        """Converte comunidades em mapeamento node_id -> community_id."""
+        """Convert a list of node-sets into a ``{node_id: community_id}`` mapping."""
         partition: dict[int, int] = {}
         for community_id, nodes in enumerate(communities):
             for node in nodes:
@@ -27,7 +24,7 @@ class CommunityDetector:
 
     @staticmethod
     def _partition_to_communities(partition: dict[int, int]) -> list[set]:
-        """Converte mapeamento node_id -> community_id em lista de conjuntos."""
+        """Convert a ``{node_id: community_id}`` mapping into a list of node-sets."""
         grouped: dict[int, set] = {}
         for node, community_id in partition.items():
             grouped.setdefault(community_id, set()).add(node)
@@ -39,14 +36,15 @@ class CommunityDetector:
         resolution: float = 1.0,
         seed: int | None = 42,
     ) -> dict[int, int]:
-        """
-        Detecta comunidades usando o algoritmo Louvain (NetworkX).
-        
+        """Detect communities using the Louvain algorithm.
+
         Args:
-            graph: Grafo networkx
-            
+            graph: A NetworkX graph.
+            resolution: Louvain resolution parameter.
+            seed: Random seed for reproducibility.
+
         Returns:
-            Dicionario {node_id: community_id}
+            Mapping of ``{node_id: community_id}``.
         """
         if graph.number_of_nodes() == 0:
             return {}
@@ -60,11 +58,10 @@ class CommunityDetector:
         return self._communities_to_partition([set(c) for c in communities])
 
     def detect_label_propagation(self, graph: nx.Graph) -> dict[int, int]:
-        """
-        Detecta comunidades por propagacao de rotulos.
+        """Detect communities using label propagation.
 
         Returns:
-            Dicionario {node_id: community_id}
+            Mapping of ``{node_id: community_id}``.
         """
         if graph.number_of_nodes() == 0:
             return {}
@@ -73,15 +70,14 @@ class CommunityDetector:
         return self._communities_to_partition(communities)
 
     def detect_spectral(self, graph: nx.Graph, n_clusters: int = 5) -> dict[int, int]:
-        """
-        Detecta comunidades usando clustering espectral (scikit-learn).
-        
+        """Detect communities using spectral clustering (scikit-learn).
+
         Args:
-            graph: Grafo networkx
-            n_clusters: Número de comunidades esperadas
-            
+            graph: A NetworkX graph.
+            n_clusters: Expected number of communities.
+
         Returns:
-            Dicionario {node_id: community_id}
+            Mapping of ``{node_id: community_id}``.
         """
         if graph.number_of_nodes() == 0:
             return {}
@@ -101,11 +97,10 @@ class CommunityDetector:
         return {node: int(label) for node, label in zip(nodes, labels)}
 
     def calculate_modularity(self, graph: nx.Graph, partition: dict[int, int]) -> float:
-        """
-        Calcula modularidade de uma particao.
+        """Calculate the modularity ``Q`` of a partition.
 
         Returns:
-            Valor de modularidade Q.
+            Modularity score in ``[-0.5, 1]``.
         """
         if graph.number_of_edges() == 0 or not partition:
             return 0.0
@@ -114,34 +109,32 @@ class CommunityDetector:
 
 
 def detect_communities(graph: nx.Graph, method: str = "louvain", **kwargs) -> dict[int, int]:
-    """
-    Detecta comunidades no grafo usando o método especificado.
-    
+    """Detect communities using the specified method.
+
     Args:
-        graph: Grafo networkx
-        method: 'louvain', 'label_propagation' ou 'spectral'
-        **kwargs: Parâmetros específicos do método
-        
+        graph: A NetworkX graph.
+        method: One of ``'louvain'``, ``'label_propagation'``, ``'spectral'``.
+        **kwargs: Method-specific parameters.
+
     Returns:
-        Dicionário {node_id: community_id}
+        Mapping of ``{node_id: community_id}``.
     """
     detector = CommunityDetector()
-    
+
     if method == "louvain":
         return detector.detect_louvain(graph, **kwargs)
     if method == "label_propagation":
         return detector.detect_label_propagation(graph)
     if method == "spectral":
         return detector.detect_spectral(graph, **kwargs)
-    raise ValueError(f"Metodo desconhecido: {method}")
+    raise ValueError(f"Unknown community detection method: {method}")
 
 
 def compare_community_methods(graph: nx.Graph) -> dict[str, dict[str, float | int]]:
-    """
-    Executa metodos de comunidades e compara por modularidade.
+    """Run multiple community detection methods and compare them by modularity.
 
     Returns:
-        Dicionario com modularidade e numero de comunidades por metodo.
+        Mapping of method name to ``{'modularity': value, 'num_communities': count}``.
     """
     detector = CommunityDetector()
     methods = {

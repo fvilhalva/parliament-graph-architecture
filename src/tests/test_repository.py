@@ -69,6 +69,33 @@ class TestCSVRepository:
         dados_lidos = pd.read_csv(arquivo)
         assert list(dados_lidos["id_deputado"]) == [3, 1, 2]
 
+    def test_export_coauthorship_metrics_creates_file(self, tmp_path):
+        csv_repo = CsvRepository(tmp_path)
+        edges = [(1, 2, 3.5), (2, 3, 1.0), (1, 3, 2.0)]
+        output_file = csv_repo.export_coauthorship_metrics(edges, year=2025)
+
+        assert output_file.exists()
+        assert output_file.name == "coauthorships_2025.csv"
+        df = pd.read_csv(output_file)
+        assert set(df.columns) == {"source_id", "target_id", "weight"}
+        assert len(df) == 3
+        # Sorted descending by weight
+        assert list(df["weight"]) == [3.5, 2.0, 1.0]
+
+    def test_export_coauthorship_metrics_from_objects(self, tmp_path):
+        from models.coauthorship_edge import CoauthorshipEdge
+
+        csv_repo = CsvRepository(tmp_path)
+        edges = [
+            CoauthorshipEdge(source_id=1, target_id=2, raw_weight=4, normalized_strength=2.0),
+            CoauthorshipEdge(source_id=2, target_id=3, raw_weight=1, normalized_strength=0.5),
+        ]
+        output_file = csv_repo.export_coauthorship_metrics(edges, year=2024)
+
+        df = pd.read_csv(output_file)
+        assert len(df) == 2
+        assert list(df["weight"]) == [2.0, 0.5]
+
 
 class TestGraphExporter:
     """Testes para exportação/importação de grafos GEXF."""

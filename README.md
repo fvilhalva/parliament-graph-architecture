@@ -4,7 +4,7 @@
 
 TCC/Final Project that implements a modular architecture for analyzing parliamentary networks, identifying influence structures through centrality metrics and community detection algorithms.
 
-**Period**: 2015-2025 (11 years of historical data from the Brazilian National Congress)
+**Period**: 2022-2025 (4 years of historical data from the Brazilian National Congress)
 
 ---
 
@@ -27,7 +27,7 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 | **models/** | Domain entities (dataclasses) | ✅ Complete |
 | **repository/** | Persistence (CSV, GEXF, SQLite) | ✅ Complete |
 | **visualization/** | Plots and reports | ✅ Complete |
-| **tests/** | Automated test suite | ✅ Complete (73 tests, 58% coverage) |
+| **tests/** | Automated test suite | ✅ Complete (120 tests, 80% coverage) |
 
 ---
 
@@ -189,13 +189,15 @@ Location: `data/cache/` (checked first) or downloaded from:
 ```python
 @dataclass
 class Deputy:
-    id: int                           # Unique ID from Chamber API
-    name: str                         # Full name
-    party_code: str                   # Political party abbreviation
-    state_code: str                   # Brazilian state code
-    weighted_degree: float = 0.0      # Sum of edge weights
-    degree_centrality: float = 0.0    # Normalized degree centrality
-    betweenness_centrality: float = 0.0  # Betweenness centrality metric
+    id: int                              # Unique ID from Chamber API
+    name: str                            # Full name
+    party_code: str                      # Political party abbreviation
+    state_code: str                      # Brazilian state code
+    weighted_degree: float = 0.0         # Sum of edge weights
+    degree_centrality: float = 0.0       # Weighted degree normalized by total network strength
+    betweenness_centrality: float = 0.0  # Betweenness centrality
+    closeness_centrality: float = 0.0    # Closeness centrality
+    eigenvector_centrality: float = 0.0  # Eigenvector centrality
 ```
 
 ### Proposition
@@ -243,8 +245,9 @@ class ParliamentaryNetwork:
 - [x] SQLite persistence (metrics storage and upsert)
 - [x] Visualization (plots, network summaries)
 - [x] Docker + Docker Compose setup
-- [x] Comprehensive test suite (73 tests, 58% coverage)
+- [x] Comprehensive test suite (120 tests, 80% coverage; core ≥ 93%)
 - [x] All code and identifiers in English
+- [x] Configurable proposition-type weights and deputy ID aliases
 
 ---
 
@@ -278,18 +281,20 @@ class ParliamentaryNetwork:
 
 ## 🧪 Test Suite
 
-The test suite contains **73 tests** across 6 modules with **58% code coverage**:
+The test suite contains **120 tests** across 8 modules with **80% overall code coverage** (core ≥ 93%):
 
 ```
-test_aresta_coautoria.py    - CoauthorshipEdge creation, validation, equality
-test_deputado.py            - Deputy creation, validation, metrics update
-test_graph.py               - Graph structure, weights, node attributes
-test_proposicao.py          - Proposition creation, authorship, validation
-test_processing.py          - Data validation, cleaning, conversion
-test_repository.py          - CSV/GEXF/SQLite export and integrity
+test_aresta_coautoria.py      - CoauthorshipEdge creation, validation, equality
+test_deputado.py              - Deputy creation, validation, metrics update
+test_graph.py                 - Graph structure, weights, centrality, party filters, aliases
+test_metrics.py               - Centrality helpers (degree, betweenness, closeness, eigenvector)
+test_community_detection.py   - Louvain, Label Propagation, Spectral, modularity
+test_proposicao.py            - Proposition creation, authorship, validation
+test_processing.py            - Data validation, cleaning, conversion
+test_repository.py            - CSV/GEXF/SQLite export and integrity
 ```
 
-**Status**: ✅ All 73 tests passing
+**Status**: ✅ All 120 tests passing
 
 Run tests:
 ```bash
@@ -310,13 +315,14 @@ Configuration is loaded from environment variables in `.env` file:
 # Paths
 CACHE_DIR=data/cache
 GEXF_DIR=data/gexf
-METRICAS_DIR=data/metricas
+METRICS_DIR=data/metricas
 PLOTS_DIR=data/plots
 DB_PATH=data/parliament.db
 
 # Legislature
-LEGISLATURA_ATUAL=2026
-LEGISLATURA_INICIO=2006
+CURRENT_LEGISLATURE=2026
+PILOT_LEGISLATURE=2025
+LEGISLATURE_START=2006
 
 # API
 API_BASE_URL=https://dadosabertos.camara.leg.br/api/v2
@@ -324,10 +330,12 @@ API_TIMEOUT=30
 
 # Analysis
 LOG_LEVEL=INFO
-MIN_COAUTORIAS=3
-MIN_PESO_ARESTA=1
-NUM_COMUNIDADES=5
+MIN_COAUTHORSHIPS=3
+MIN_EDGE_WEIGHT=1
+NUM_COMMUNITIES=5
 ```
+
+The legacy Portuguese variable names (`LEGISLATURA_ATUAL`, `MIN_COAUTORIAS`, …) are still read with a `DeprecationWarning` for one release to avoid breaking local `.env` files during the transition.
 
 ---
 
@@ -355,8 +363,7 @@ NUM_COMUNIDADES=5
 - **visualization** → Generates plots, returns plot paths
 
 ### Dataclass Pattern
-All domain entities are immutable Python dataclasses defined in `src/models/`:
-- `Deputy`, `Proposition`, `CoauthorshipEdge`, `ParliamentaryNetwork`
+Domain entities live in `src/models/` as plain Python dataclasses. `Deputy` carries computed centrality fields (`weighted_degree`, `degree_centrality`, `betweenness_centrality`, `closeness_centrality`, `eigenvector_centrality`) that are mutated by `ParliamentaryGraph` after the network has been built — the dataclasses are not frozen.
 
 ### Factory Pattern
 Repository classes are instantiated with output directories:

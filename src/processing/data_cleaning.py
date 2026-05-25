@@ -26,7 +26,7 @@ class ChamberProcessor:
             logger.addHandler(handler)
         return logger
 
-    def process_raw_data(self, raw_df: pd.DataFrame, propositions_df: pd.DataFrame, proposition_filter=['PL', 'PEC', 'PLP']):
+    def process_raw_data(self, raw_df: pd.DataFrame, propositions_df: pd.DataFrame, proposition_filter=['PL', 'PEC', 'PLP', 'PDL', 'EMC'], max_authors: int = 30):
         # 1. Padronização
         df_authors = raw_df.copy()
         df_props = propositions_df.copy()
@@ -61,6 +61,11 @@ class ChamberProcessor:
         # 4. Agrupamento (Arestas)
         groups = df_deputies.groupby('idproposicao')['iddeputadoautor'].apply(list)
         coauthorships = groups[groups.apply(len) > 1]
+
+        # 5. Mass-signature filter: exclude proposals whose author count exceeds
+        # max_authors. A single PEC with 200+ signatories creates O(n²) pairs
+        # and drives edge density above 85%, making community detection invalid.
+        coauthorships = coauthorships[coauthorships.apply(len) <= max_authors]
 
         return deputy_map, groups, coauthorships, type_map
     

@@ -1,67 +1,81 @@
+"""GEXF graph export/import for downstream tools (e.g., Gephi)."""
 from pathlib import Path
 from typing import Any
+
 import networkx as nx
 
 
 class GraphExporter:
-    """Exporta e importa grafos no formato GEXF para uso no Gephi."""
+    """Exports and imports graphs in the GEXF format used by Gephi."""
 
-    def __init__(self, output_dir: Path | str):
+    def __init__(self, output_dir: Path | str) -> None:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def _obter_grafo_nx(self, grafo: Any) -> nx.Graph:
-        """Aceita nx.Graph ou objeto da aplicacao com atributo G."""
-        if isinstance(grafo, nx.Graph):
-            return grafo
+    def _get_nx_graph(self, graph: Any) -> nx.Graph:
+        """Return an ``nx.Graph`` from either a NetworkX graph or an application wrapper."""
+        if isinstance(graph, nx.Graph):
+            return graph
 
-        # Backwards-compatible: accept attribute names `G` (legacy) or `graph` (current dataclass)
-        if hasattr(grafo, "G") and isinstance(grafo.G, nx.Graph):
-            return grafo.G
+        # Backwards-compatible: accept attribute names `G` (legacy) or `graph` (current dataclass).
+        if hasattr(graph, "G") and isinstance(graph.G, nx.Graph):
+            return graph.G
 
-        if hasattr(grafo, "graph") and isinstance(grafo.graph, nx.Graph):
-            return grafo.graph
+        if hasattr(graph, "graph") and isinstance(graph.graph, nx.Graph):
+            return graph.graph
 
-        raise TypeError("'grafo' deve ser nx.Graph ou objeto com atributo 'G' do tipo nx.Graph")
+        raise TypeError("'graph' must be an nx.Graph or expose a `.graph`/`.G` nx.Graph attribute")
 
+    def export_gexf(
+        self,
+        graph: Any,
+        year: int | None = None,
+        file_name: str | None = None,
+    ) -> Path:
+        """Export the graph to GEXF.
+
+        Args:
+            graph: ``nx.Graph`` or object with a ``.graph``/``.G`` attribute.
+            year: Year used to compose the default file name.
+            file_name: Custom file name (with or without the ``.gexf`` suffix).
+
+        Returns:
+            Path to the generated GEXF file.
+        """
+        nx_graph = self._get_nx_graph(graph)
+
+        if file_name:
+            name = file_name if file_name.endswith(".gexf") else f"{file_name}.gexf"
+        elif year is not None:
+            name = f"chamber_graph_{year}.gexf"
+        else:
+            name = "chamber_graph.gexf"
+
+        output_file = self.output_dir / name
+        nx.write_gexf(nx_graph, output_file)
+        return output_file
+
+    def to_gexf(self, graph: Any, path: Path | str) -> Path:
+        """Export to an explicit destination path."""
+        nx_graph = self._get_nx_graph(graph)
+        output_file = Path(path)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        nx.write_gexf(nx_graph, output_file)
+        return output_file
+
+    def from_gexf(self, path: Path | str) -> nx.Graph:
+        """Read a graph from a GEXF file."""
+        gexf_path = Path(path)
+        if not gexf_path.exists():
+            raise FileNotFoundError(f"GEXF file not found: {gexf_path}")
+        return nx.read_gexf(gexf_path)
+
+    # --- Backwards-compatible alias (kept for one release) ---
     def exportar_gexf(
         self,
         grafo: Any,
         ano: int | None = None,
         nome_arquivo: str | None = None,
     ) -> Path:
-        """
-        Exporta o grafo para GEXF.
-
-        Args:
-            grafo: nx.Graph ou objeto com atributo .G
-            ano: ano para compor nome padrao do arquivo
-            nome_arquivo: nome customizado (com ou sem .gexf)
-        """
-        grafo_nx = self._obter_grafo_nx(grafo)
-
-        if nome_arquivo:
-            nome = nome_arquivo if nome_arquivo.endswith(".gexf") else f"{nome_arquivo}.gexf"
-        elif ano is not None:
-            nome = f"chamber_graph_{ano}.gexf"
-        else:
-            nome = "chamber_graph.gexf"
-
-        output_file = self.output_dir / nome
-        nx.write_gexf(grafo_nx, output_file)
-        return output_file
-
-    def to_gexf(self, grafo: Any, caminho: Path | str) -> Path:
-        """Alias util para exportar em um caminho explicito."""
-        grafo_nx = self._obter_grafo_nx(grafo)
-        output_file = Path(caminho)
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        nx.write_gexf(grafo_nx, output_file)
-        return output_file
-
-    def from_gexf(self, caminho: Path | str) -> nx.Graph:
-        """Importa um grafo a partir de arquivo GEXF."""
-        caminho_gexf = Path(caminho)
-        if not caminho_gexf.exists():
-            raise FileNotFoundError(f"Arquivo GEXF nao encontrado: {caminho_gexf}")
-        return nx.read_gexf(caminho_gexf)
+        """Deprecated alias for :meth:`export_gexf`."""
+        return self.export_gexf(grafo, year=ano, file_name=nome_arquivo)
