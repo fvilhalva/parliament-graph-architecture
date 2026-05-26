@@ -247,32 +247,34 @@ def _save_report(output_dir: Path, stats: dict[str, float | int | str], total_de
 
 def generate_analysis_plots(year: int = 2025) -> Path:
     """Generate analysis plots and report for a given legislature year.
-    
-    Creates visualizations of deputy metrics, party statistics, centrality
-    correlations, degree distribution, and graph components.
-    
+
+    All outputs are written to ``data/plots/<year>/`` so each year keeps its
+    own isolated set of figures and the analysis summary — multi-year runs
+    no longer overwrite each other.
+
     Args:
         year: Legislature year (default: 2025)
-        
+
     Returns:
-        Path to output directory containing generated plots
+        Path to the per-year output directory containing generated plots.
     """
-    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+    year_dir = PLOTS_DIR / str(year)
+    year_dir.mkdir(parents=True, exist_ok=True)
     _configure_style()
 
     df = _load_metrics(year)
-    _plot_top_deputies(df, PLOTS_DIR)
-    _plot_top_deputies_betweenness(df, PLOTS_DIR)
-    _plot_parties(df, PLOTS_DIR)
-    _plot_metrics_correlation(df, PLOTS_DIR)
-    _plot_degree_distribution(df, PLOTS_DIR)
+    _plot_top_deputies(df, year_dir)
+    _plot_top_deputies_betweenness(df, year_dir)
+    _plot_parties(df, year_dir)
+    _plot_metrics_correlation(df, year_dir)
+    _plot_degree_distribution(df, year_dir)
 
     graph, stats = _analyze_graph(year)
     if graph is not None:
-        _plot_graph_components(graph, PLOTS_DIR)
+        _plot_graph_components(graph, year_dir)
 
-    _save_report(PLOTS_DIR, stats, total_deputies=len(df), year=year)
-    return PLOTS_DIR
+    _save_report(year_dir, stats, total_deputies=len(df), year=year)
+    return year_dir
 
 
 if __name__ == "__main__":

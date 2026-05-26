@@ -16,8 +16,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import pandas as pd
-import seaborn as sns
+import pandas as pd # type: ignore
+import seaborn as sns # type: ignore
 
 # Make src/ importable without installing the package
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

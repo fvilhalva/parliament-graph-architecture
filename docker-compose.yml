@@ -16,6 +16,18 @@ services:
       - ./data:/app/data
       - ./src:/app/src
 
+  compare:
+    build: .
+    container_name: tcc_compare
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+    command: python scripts/compare_years.py
+
   tests:
     build: .
     container_name: tcc_tests
@@ -24,6 +36,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ./data:/app/data 
+      - ./data:/app/data
       - ./src:/app/src
     command: pytest src/tests/ -v --cov=src

@@ -1,63 +1,74 @@
-# Parliamentary Network Analysis Architecture
+<div align="center">
 
-## Analysis of Influence Structures Based on Graph Theory
+# 🏛️ Parliamentary Network Analysis
 
-TCC/Final Project that implements a modular architecture for analyzing parliamentary networks, identifying influence structures through centrality metrics and community detection algorithms.
+### Analysis of Influence Structures Based on Graph Theory
 
-**Period**: 2022-2025 (4 years of historical data from the Brazilian National Congress)
+*TCC — Universidade Estadual de Mato Grosso do Sul (UEMS)*
+
+<br/>
+
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/Tests-132%20passing-2ea44f?style=flat-square&logo=pytest&logoColor=white)](./src/tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-82%25-yellow?style=flat-square)](./src/tests/)
+[![Core Coverage](https://img.shields.io/badge/Core%20Coverage-≥93%25-2ea44f?style=flat-square)](./src/tests/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](./Dockerfile)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)](./LICENSE)
+
+<br/>
+
+*Modular, reproducible architecture for analyzing Brazilian parliamentary co-authorship networks using graph theory.*  
+*Transforms raw legislative data into measurable evidence of political alignment (2022–2025).*
+
+<br/>
+
+> **Central thesis:** Parliamentary co-authorship is not random — it reflects power structures, ideology, and political alignment.  
+> The co-authorship network is a **valid and measurable proxy** for political alignment.
+
+</div>
+
+---
+
+## 📊 Key Results (2025)
+
+| Metric | Value |
+|--------|-------|
+| Deputies in dataset | 571 |
+| Active nodes (co-authors) | 331 |
+| Unique co-authorship edges | 5,396 |
+| Graph density | 9.88% |
+| Connected components | 7 |
+| Largest component | 317 nodes (95.8%) |
+| Louvain modularity (Q) | **0.636** |
+| Communities detected | 17 |
+| Null-model p-value | **< 0.005** (200 permutations) |
+
+**Confirmed hypotheses:**
+- **H1** — Community structure is statistically significant (Q_obs = 0.636 ≫ Q_null = 0.117 ± 0.003)
+- **H2** — Center/mediation parties (MDB, PSB) produce top betweenness brokers, not the largest parties
+- **H3** — Ideologically cohesive parties (PSOL, NOVO) form echo chambers: high weighted degree, low betweenness
 
 ---
 
 ## 🏗️ Architecture
 
-The architecture follows a layered pattern with well-defined responsibilities:
+Pipeline with single-responsibility layers:
 
 ```
 extraction → processing → core (Graph + Algorithms) → repository → visualization
 ```
 
-### Layers
-
-| Layer | Responsibility | Status |
-|-------|-----------------|--------|
-| **extraction/** | Raw data collection from API/CSV | ✅ Complete |
-| **processing/** | Data cleaning, transformation, object conversion | ✅ Complete |
-| **core/graph.py** | Graph construction and operations | ✅ Complete |
-| **core/algorithms/** | Metrics and community detection | ✅ Complete |
-| **models/** | Domain entities (dataclasses) | ✅ Complete |
-| **repository/** | Persistence (CSV, GEXF, SQLite) | ✅ Complete |
-| **visualization/** | Plots and reports | ✅ Complete |
-| **tests/** | Automated test suite | ✅ Complete (120 tests, 80% coverage) |
-
----
-
-## 🧩 Software Engineering Overview
-
-This project is organized as a pipeline where each layer has a single responsibility and passes structured data to the next layer:
-
-1. **extraction/** returns raw tabular data from the Chamber API or local CSV files.
-2. **processing/** cleans that data and converts rows into lists of domain objects such as `Proposition` and `Deputy`.
-3. **core/** receives those plain objects, creates the coauthorship edges, and builds the parliamentary network. This is the brain of the system.
-4. **visualization/** consumes the processed data to generate plots and summaries.
-5. **repository/** exports data for third-party tools such as Gephi and for persistence in CSV or SQLite.
-6. **config/** centralizes application-wide settings.
-
-### Layer Criticality
-
-| Layer | Relative importance | Notes |
-|-------|---------------------|-------|
-| **models/** | 100% | Critical for data integrity |
-| **processing/** | 80%+ | Data cleaning and normalization |
-| **core/** | 80%+ | Main analytical logic |
-| **extraction/** | 60% | Depends on external data sources |
-| **visualization/** | 40% | Useful, but less critical to the pipeline core |
-
-### Data Persistence
-
-- `data/` stores persistent project outputs.
-- `data/gexf/` stores graph exports.
-- `data/metricas/` stores CSV metric outputs.
-- `data/parliament.db` stores the generated SQLite database.
+| Layer | Responsibility |
+|-------|----------------|
+| **extraction/** | Download and local cache of CSVs from the Chamber API |
+| **processing/** | Cleaning, filters (type + max_authors), conversion to domain objects |
+| **core/graph.py** | Bipartite projection → weighted co-authorship graph |
+| **core/algorithms/** | Centrality metrics, community detection, null-model validation |
+| **models/** | Domain entities (Deputy, Proposition, CoauthorshipEdge) |
+| **repository/** | Export to CSV, GEXF (Gephi), SQLite |
+| **visualization/** | Automated per-year plots |
+| **scripts/** | Cross-year comparative analysis |
+| **tests/** | 132 tests, 82% overall coverage (core ≥ 93%) |
 
 ---
 
@@ -66,60 +77,65 @@ This project is organized as a pipeline where each layer has a single responsibi
 ```
 parliament-graph-architecture/
 ├── src/
-│   ├── config/                          # Application configuration
-│   │   ├── __init__.py
+│   ├── config/
 │   │   ├── config.py                    # Config class (environment-loaded)
-│   │   ├── constants.py                 # Constants (political parties, states)
-│   │   └── logging_config.py            # Logger setup
-│   ├── core/                            # Graph analysis core
-│   │   ├── __init__.py
-│   │   ├── graph.py                     # ParliamentaryGraph class
+│   │   ├── constants.py                 # Proposition type weights, party lists
+│   │   └── logging_config.py
+│   ├── core/
+│   │   ├── graph.py                     # ParliamentaryGraph — bipartite projection
 │   │   └── algorithms/
-│   │       ├── __init__.py
-│   │       ├── metrics.py               # Centrality metrics (degree, betweenness, etc)
-│   │       └── community_detection.py   # Louvain, Label Propagation
-│   ├── extraction/                      # Data extraction layer
-│   │   ├── __init__.py
-│   │   └── chamber_extractor.py         # ChamberExtractor class (API/CSV download)
-│   ├── models/                          # Domain entities
-│   │   ├── __init__.py
-│   │   ├── deputy.py                    # Deputy dataclass
-│   │   ├── proposition.py               # Proposition dataclass
-│   │   ├── coauthorship_edge.py         # CoauthorshipEdge dataclass
-│   │   └── parliamentary_network.py     # ParliamentaryNetwork dataclass
-│   ├── processing/                      # Data processing layer
-│   │   ├── __init__.py
-│   │   ├── data_cleaning.py             # ChamberProcessor class (cleaning, conversion)
-│   │   └── processor.py                 # Alternative English processing methods
-│   ├── repository/                      # Persistence layer
-│   │   ├── __init__.py
-│   │   ├── csv_repository.py            # CSV export (CsvRepository)
-│   │   ├── db_repository.py             # SQLite persistence (DB_Exporter)
-│   │   └── graph_exporter.py            # GEXF export (GraphExporter)
-│   ├── visualization/                   # Visualization layer
-│   │   ├── __init__.py
-│   │   └── plots.py                     # Plots, reports, summaries
-│   ├── tests/                           # Test suite
-│   │   ├── __init__.py
-│   │   ├── conftest.py                  # Shared fixtures
-│   │   ├── test_aresta_coautoria.py     # CoauthorshipEdge tests
-│   │   ├── test_deputado.py             # Deputy tests
-│   │   ├── test_graph.py                # ParliamentaryGraph tests
-│   │   ├── test_proposicao.py           # Proposition tests
-│   │   ├── test_processing.py           # Processing/conversion tests
-│   │   └── test_repository.py           # Repository/export tests
-│   └── main.py                          # Pipeline entry point
-├── data/                                # Data directory
-│   ├── cache/                           # Cached CSVs
-│   ├── gexf/                            # Network graphs (chamber_graph_YYYY.gexf)
-│   ├── metricas/                        # Metrics CSV exports
-│   ├── plots/                           # Generated plots and visualizations
-│   └── parliament.db                    # SQLite database (generated)
-├── docker-compose.yml                   # Container orchestration
-├── Dockerfile                           # Docker image definition
-├── requirements.txt                     # Python dependencies
-├── LICENSE                              # MIT License
-└── README.md                            # This file
+│   │       ├── metrics.py               # Degree, betweenness, closeness, eigenvector
+│   │       ├── community_detection.py   # Louvain, Label Propagation
+│   │       └── validation.py            # Null-model permutation test
+│   ├── extraction/
+│   │   └── chamber_extractor.py         # ChamberExtractor (API/CSV download + cache)
+│   ├── models/
+│   │   ├── deputy.py
+│   │   ├── proposition.py
+│   │   ├── coauthorship_edge.py
+│   │   └── parliamentary_network.py
+│   ├── processing/
+│   │   └── data_cleaning.py             # ChamberProcessor + max_authors filter
+│   ├── repository/
+│   │   ├── csv_repository.py
+│   │   ├── db_repository.py
+│   │   └── graph_exporter.py
+│   ├── visualization/
+│   │   └── plots.py                     # Per-year plots → data/plots/{year}/
+│   ├── pipeline.py                      # Orchestrates all stages
+│   ├── tests/
+│   │   ├── conftest.py
+│   │   ├── test_aresta_coautoria.py
+│   │   ├── test_deputado.py
+│   │   ├── test_graph.py
+│   │   ├── test_proposicao.py
+│   │   ├── test_processing.py           # Includes max_authors filter tests
+│   │   └── test_repository.py
+│   └── main.py                          # Multi-year entry point (2022–2025)
+├── scripts/
+│   └── compare_years.py                 # Cross-year comparative analysis
+├── data/                                # gitignored — generated at runtime
+│   ├── cache/                           # Cached CSVs (downloaded once)
+│   ├── gexf/                            # chamber_graph_{year}.gexf
+│   ├── metricas/                        # deputados_metricas_{year}.csv
+│   ├── plots/
+│   │   ├── {year}/                      # Per-year plots (isolated per run)
+│   │   │   ├── top_deputies_weighted_degree.png
+│   │   │   ├── top_deputies_betweenness.png
+│   │   │   ├── parties_num_deputies.png
+│   │   │   ├── centrality_correlation.png
+│   │   │   ├── degree_distribution.png
+│   │   │   ├── graph_components.png
+│   │   │   └── analysis_summary.txt
+│   │   ├── compare_nodes_edges.png      # Generated by compare_years.py
+│   │   ├── compare_modularity.png
+│   │   └── compare_top_betweenness.png  # Heatmap across all years
+│   └── parliament.db
+├── apresentacao_tcc.tex                 # Beamer presentation (LaTeX)
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+└── README.md
 ```
 
 ---
@@ -128,188 +144,101 @@ parliament-graph-architecture/
 
 ### Prerequisites
 
-- Docker and Docker Compose (recommended)
-- Or: Python 3.11+ with `pip`
+- Docker + Docker Compose (recommended)
+- Or: Python 3.11+
 
-### With Docker (Recommended)
+### Docker (Recommended)
 
 ```bash
-# Build and run everything (pipeline + tests)
-docker compose up --build
+# Build image
+docker compose build
 
-# Or run in background
-docker compose up --build -d
+# Run full multi-year pipeline (2022–2025) — ~15-25 min
+docker compose up pipeline_chamber
 
-# Run only pipeline
-docker compose run --rm pipeline_chamber python src/main.py
+# Run cross-year comparison (after pipeline completes)
+docker compose run --rm compare
 
-# Run only tests
-docker compose run --rm tests pytest src/tests/ -v
-
-# Run tests with coverage
-docker compose run --rm tests pytest src/tests/ --cov=src --cov-report=term-missing
+# Run test suite (132 tests)
+docker compose run --rm tests
 ```
 
-### Without Docker
+### Local (without Docker)
 
 ```bash
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate        # Linux/Mac
-# or
-venv\Scripts\activate            # Windows
+source venv/bin/activate      # Linux/Mac
+venv\Scripts\activate          # Windows
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Run tests
-pytest src/tests/ -v
 
 # Run pipeline
 python src/main.py
+
+# Run cross-year comparison
+python scripts/compare_years.py
+
+# Run tests with coverage
+pytest src/tests/ -v --cov=src
 ```
-
-### Data Files
-
-The pipeline reads proposition author data (coauthorships) and proposition metadata from local CSV files or downloads them from the Chamber's open data portal.
-
-Expected CSV file names by year `YYYY`:
-- `proposicoesAutores-YYYY.csv` (coauthorship data)
-- `proposicoes-YYYY.csv` (proposition metadata)
-
-Location: `data/cache/` (checked first) or downloaded from:
-- `https://dadosabertos.camara.leg.br/arquivos/proposicoesAutores/csv/proposicoesAutores-YYYY.csv`
-- `https://dadosabertos.camara.leg.br/arquivos/proposicoes/csv/proposicoes-YYYY.csv`
-
----
-
-## 📊 Data Models
-
-### Deputy
-```python
-@dataclass
-class Deputy:
-    id: int                              # Unique ID from Chamber API
-    name: str                            # Full name
-    party_code: str                      # Political party abbreviation
-    state_code: str                      # Brazilian state code
-    weighted_degree: float = 0.0         # Sum of edge weights
-    degree_centrality: float = 0.0       # Weighted degree normalized by total network strength
-    betweenness_centrality: float = 0.0  # Betweenness centrality
-    closeness_centrality: float = 0.0    # Closeness centrality
-    eigenvector_centrality: float = 0.0  # Eigenvector centrality
-```
-
-### Proposition
-```python
-@dataclass
-class Proposition:
-    id: int                      # Proposition ID
-    year: int                    # Legislature year
-    author_ids: List[int]        # List of deputy IDs who authored it
-    proposition_type: str        # Type (PL, PEC, PLP, etc)
-```
-
-### CoauthorshipEdge
-```python
-@dataclass
-class CoauthorshipEdge:
-    source_id: int                      # Deputy ID 1
-    target_id: int                      # Deputy ID 2
-    raw_weight: int                     # Number of co-authored propositions
-    normalized_strength: float = 0.0    # Normalized weight (0-1)
-```
-
-### ParliamentaryNetwork
-```python
-@dataclass
-class ParliamentaryNetwork:
-    year: int                           # Analysis year
-    graph: nx.Graph                     # NetworkX graph instance
-    deputies: Dict[int, Deputy]         # Deputy nodes mapping
-```
-
----
-
-## ✅ Implemented Features
-
-- [x] Modular layered architecture
-- [x] Data models (Deputy, Proposition, CoauthorshipEdge, ParliamentaryNetwork)
-- [x] Complete `ChamberExtractor` (data collection)
-- [x] Complete `ChamberProcessor` (data cleaning and conversion)
-- [x] `ParliamentaryGraph` (graph construction and operations)
-- [x] Centrality algorithms (degree, betweenness, closeness, eigenvector)
-- [x] Community detection (Louvain, Label Propagation)
-- [x] CSV export (deputy metrics, coauthorship data)
-- [x] GEXF export (Gephi-compatible graph format)
-- [x] SQLite persistence (metrics storage and upsert)
-- [x] Visualization (plots, network summaries)
-- [x] Docker + Docker Compose setup
-- [x] Comprehensive test suite (120 tests, 80% coverage; core ≥ 93%)
-- [x] All code and identifiers in English
-- [x] Configurable proposition-type weights and deputy ID aliases
-
----
-
-## 📚 Main Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| **networkx** | 3.2.1 | Graph analysis and algorithms |
-| **pandas** | 2.2.0 | Data processing and manipulation |
-| **scikit-learn** | 1.4.1 | Community detection (clustering) |
-| **scipy** | 1.12.0 | Scientific computing operations |
-| **matplotlib** | 3.8.3 | Visualization and plotting |
-| **seaborn** | 0.13.2 | Statistical graphics |
-| **pytest** | 7.4.3 | Testing framework |
-| **pytest-cov** | 4.1.0 | Code coverage measurement |
-| **python-dotenv** | 1.0.1 | Environment variable management |
-| **requests** | 2.31.0 | HTTP requests (API/CSV download) | 
 
 ---
 
 ## 🔄 Pipeline Stages
 
-1. **Extraction**: Download/cache proposition data using `ChamberExtractor`
-2. **Processing**: Clean and convert raw data using `ChamberProcessor`
-3. **Core**: Build graph, calculate metrics using `ParliamentaryGraph`
-4. **Algorithms**: Run community detection (Louvain, Label Propagation)
-5. **Repository**: Export to CSV, GEXF, SQLite
-6. **Visualization**: Generate plots and reports
+1. **Extraction** — Download/cache CSVs from `dadosabertos.camara.leg.br`
+2. **Processing** — Clean data; filter to valid proposition types (PL, PEC, PLP, PDL, EMC); apply `max_authors=30` filter to exclude mass-signature proposals
+3. **Graph construction** — Bipartite projection B=(D∪P, E) → weighted co-authorship graph G=(D, E', w)
+4. **Metrics** — Degree, betweenness, closeness, eigenvector centrality for all deputies
+5. **Community detection** — Louvain algorithm; null-model permutation test (200 double-edge-swaps, seed=42)
+6. **Repository** — Export to CSV, GEXF, SQLite
+7. **Visualization** — Generate plots to `data/plots/{year}/`
+
+The pipeline runs each year independently (2022, 2023, 2024, 2025). A failure in one year does not stop the others.
+
+---
+
+## 🧮 Mathematical Model
+
+**Edge weight** — normalized by group size to penalize mass co-signatures:
+```
+w(i,j) = Σ  1 / (n_p - 1)    for each shared proposition p
+```
+
+**max_authors filter** — proposals with more than 30 deputy co-authors are excluded from edge construction. A PEC with 226 signatories generates ~25,400 pairs, pushing graph density to ~85% and making community detection invalid.
+
+**Proposition type weights** — all types receive uniform weight (= 1). No theoretically justified numeric scale exists in the literature for weighting PL vs. PEC; qualitative filtering (by type) already performs the relevant selection.
+
+**Null-model validation** — 200 random graphs generated via double-edge-swap (preserving degree sequence). p-value = fraction of null graphs with Q ≥ Q_observed.
 
 ---
 
 ## 🧪 Test Suite
 
-The test suite contains **120 tests** across 8 modules with **80% overall code coverage** (core ≥ 93%):
+**132 tests**, **82% overall coverage**, **core ≥ 93%**
 
-```
-test_aresta_coautoria.py      - CoauthorshipEdge creation, validation, equality
-test_deputado.py              - Deputy creation, validation, metrics update
-test_graph.py                 - Graph structure, weights, centrality, party filters, aliases
-test_metrics.py               - Centrality helpers (degree, betweenness, closeness, eigenvector)
-test_community_detection.py   - Louvain, Label Propagation, Spectral, modularity
-test_proposicao.py            - Proposition creation, authorship, validation
-test_processing.py            - Data validation, cleaning, conversion
-test_repository.py            - CSV/GEXF/SQLite export and integrity
-```
+| Module | Covers |
+|--------|--------|
+| `test_aresta_coautoria.py` | CoauthorshipEdge creation, equality, validation |
+| `test_deputado.py` | Deputy creation, centrality field updates |
+| `test_graph.py` | Graph construction, edge weights, centrality, party filters |
+| `test_metrics.py` | Centrality helpers |
+| `test_community_detection.py` | Louvain, Label Propagation, modularity |
+| `test_proposicao.py` | Proposition creation, authorship |
+| `test_processing.py` | Data cleaning, max_authors filter (boundary tests) |
+| `test_repository.py` | CSV/GEXF/SQLite export and integrity |
 
-**Status**: ✅ All 120 tests passing
-
-Run tests:
 ```bash
-# Docker (recommended)
-docker compose run --rm tests pytest -v
-
-# Or locally
-pytest src/tests/ -v
+docker compose run --rm tests
+# or
+pytest src/tests/ -v --cov=src --cov-report=term-missing
 ```
 
 ---
 
-## � Configuration
+## ⚙️ Configuration
 
-Configuration is loaded from environment variables in `.env` file:
+All settings are loaded from `.env` (or environment variables):
 
 ```env
 # Paths
@@ -322,7 +251,6 @@ DB_PATH=data/parliament.db
 # Legislature
 CURRENT_LEGISLATURE=2026
 PILOT_LEGISLATURE=2025
-LEGISLATURE_START=2006
 
 # API
 API_BASE_URL=https://dadosabertos.camara.leg.br/api/v2
@@ -333,64 +261,47 @@ LOG_LEVEL=INFO
 MIN_COAUTHORSHIPS=3
 MIN_EDGE_WEIGHT=1
 NUM_COMMUNITIES=5
+MAX_AUTHORS_PER_PROPOSAL=30
 ```
 
-The legacy Portuguese variable names (`LEGISLATURA_ATUAL`, `MIN_COAUTORIAS`, …) are still read with a `DeprecationWarning` for one release to avoid breaking local `.env` files during the transition.
+---
+
+## 📚 Main Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| **networkx** | Graph construction, centrality, community algorithms |
+| **pandas** | Data processing and manipulation |
+| **python-louvain** | Louvain community detection |
+| **matplotlib / seaborn** | Visualization and plotting |
+| **scipy** | Statistical operations |
+| **pytest / pytest-cov** | Test framework and coverage |
+| **python-dotenv** | Environment variable management |
+| **requests** | CSV download from Chamber API |
 
 ---
 
-## 📅 Project Timeline
+## 📅 Timeline
 
-| Date | Activity | Status |
-|------|----------|--------|
-| 2026-03-09 | Initial setup + architecture design | ✅ |
-| 2026-03-09 | Test suite implementation (73 tests) | ✅ |
-| 2026-03-10 | Graph and algorithm implementation | ✅ |
-| 2026-04-30 | English refactor, all naming standardized | ✅ |
-| 2026-04-30 | Full Docker integration and testing | ✅ |
-| **TBD** | Final analysis and reporting | ⏳ |
-
----
-
-## 📝 Architecture Patterns
-
-### Pipeline Contract
-- **extraction** → Returns DataFrame (raw data)
-- **processing** → Returns (deputies_dict, propositions_list, coauthorships_list)
-- **core** → Builds graph, computes centrality metrics
-- **algorithms** → Performs community detection, returns communities
-- **repository** → Exports to CSV/GEXF/SQLite, returns file paths
-- **visualization** → Generates plots, returns plot paths
-
-### Dataclass Pattern
-Domain entities live in `src/models/` as plain Python dataclasses. `Deputy` carries computed centrality fields (`weighted_degree`, `degree_centrality`, `betweenness_centrality`, `closeness_centrality`, `eigenvector_centrality`) that are mutated by `ParliamentaryGraph` after the network has been built — the dataclasses are not frozen.
-
-### Factory Pattern
-Repository classes are instantiated with output directories:
-- `CsvRepository(output_dir)`, `GraphExporter(output_dir)`, `DB_Exporter(db_path)`
-
----
-
-## 🤝 Contributing
-
-This is an academic project. Code follows PEP 8 standards and is fully type-hinted.
+| Date | Activity |
+|------|----------|
+| 2026-03-09 | Initial setup + architecture design |
+| 2026-03-09 | Test suite (73 tests) |
+| 2026-03-10 | Graph and algorithm implementation |
+| 2026-04-30 | English refactor, Docker integration |
+| 2026-05 | Uniform weights, max_authors filter, null-model in pipeline |
+| 2026-05 | Multi-year loop (2022–2025), per-year plot isolation |
+| 2026-05 | `scripts/compare_years.py`, betweenness plot, docker `compare` service |
+| **TBD** | Monograph writing (July) |
 
 ---
 
 ## 👤 Author
 
-Felipe Echeverria Vilhalva
+**Felipe Echeverria Vilhalva**  
+Orientador: Prof. Dr. Rubens Barbosa Filho  
+Universidade Estadual de Mato Grosso do Sul (UEMS)
 
 ## 📄 License
 
-MIT License - see `LICENSE` file for details.
-
----
-
-## ⚠️ Notes
-
-- Data files are cached in `data/cache/` after first download
-- Generated outputs (GEXF, CSV, plots) are stored in `data/gexf/`, `data/metricas/`, `data/plots/`
-- SQLite database is created automatically on first run
-- All timestamps are in local timezone
-- Graph is undirected and weighted (edge weight = count of co-authored propositions)
+MIT License — see `LICENSE` for details.
