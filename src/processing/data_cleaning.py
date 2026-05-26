@@ -110,13 +110,21 @@ class ChamberProcessor:
             Tuple of (deputies_dict, propositions_list, coauthorships_list)
         """
         # 1. Create Deputy objects (nodes)
+        # Sanitize NaN/empty party and state codes — the Chamber API returns
+        # blanks for deputies in transition between parties, on leave, or
+        # suspended. We replace these with explicit sentinels so the dataset
+        # remains coherent (no NaNs propagated to CSV/GEXF exports).
         deputies_dict = {}
         for deputy_id, info in deputy_map.items():
+            party = info.get('siglapartidoautor')
+            state = info.get('siglaufautor')
+            party_code = str(party).strip() if pd.notna(party) and str(party).strip() else "S/PARTIDO"
+            state_code = str(state).strip() if pd.notna(state) and str(state).strip() else "S/UF"
             deputies_dict[deputy_id] = Deputy(
                 id=deputy_id,
                 name=info['nomeautor'],
-                party_code=info['siglapartidoautor'],
-                state_code=info['siglaufautor']
+                party_code=party_code,
+                state_code=state_code,
             )
         
         # 2. Co-authorship propositions only (edges subset)

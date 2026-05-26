@@ -256,6 +256,77 @@ class TestMaxAuthorsFilter:
         assert 7 not in coauthorships.index, "coauthorships must exclude the large proposal"
 
 
+class TestPartyStateSanitization:
+    """Tests that NaN/empty party and state codes are replaced with sentinels.
+
+    The Chamber API returns blank ``siglapartidoautor`` for deputies in
+    transition between parties, on leave, or suspended. The processor must
+    replace these with explicit sentinels so downstream exports never carry
+    NaN values.
+    """
+
+    def test_nan_party_becomes_sentinel(self):
+        processor = ChamberProcessor()
+        deputy_map = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': float('nan'), 'siglaufautor': 'SP'},
+        }
+        groups = pd.Series({100: [1]})
+        coauthorships = pd.Series(dtype=object)
+        type_map = {100: 'PL'}
+
+        deputies, _, _ = processor.convert_to_domain_objects(
+            deputy_map=deputy_map, groups=groups, coauthorships=coauthorships,
+            type_map=type_map, year=2024,
+        )
+        assert deputies[1].party_code == "S/PARTIDO"
+
+    def test_empty_string_party_becomes_sentinel(self):
+        processor = ChamberProcessor()
+        deputy_map = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': '   ', 'siglaufautor': 'SP'},
+        }
+        groups = pd.Series({100: [1]})
+        coauthorships = pd.Series(dtype=object)
+        type_map = {100: 'PL'}
+
+        deputies, _, _ = processor.convert_to_domain_objects(
+            deputy_map=deputy_map, groups=groups, coauthorships=coauthorships,
+            type_map=type_map, year=2024,
+        )
+        assert deputies[1].party_code == "S/PARTIDO"
+
+    def test_nan_state_becomes_sentinel(self):
+        processor = ChamberProcessor()
+        deputy_map = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': 'PT', 'siglaufautor': None},
+        }
+        groups = pd.Series({100: [1]})
+        coauthorships = pd.Series(dtype=object)
+        type_map = {100: 'PL'}
+
+        deputies, _, _ = processor.convert_to_domain_objects(
+            deputy_map=deputy_map, groups=groups, coauthorships=coauthorships,
+            type_map=type_map, year=2024,
+        )
+        assert deputies[1].state_code == "S/UF"
+
+    def test_valid_party_is_preserved(self):
+        processor = ChamberProcessor()
+        deputy_map = {
+            1: {'nomeautor': 'Silva', 'siglapartidoautor': 'PT', 'siglaufautor': 'SP'},
+        }
+        groups = pd.Series({100: [1]})
+        coauthorships = pd.Series(dtype=object)
+        type_map = {100: 'PL'}
+
+        deputies, _, _ = processor.convert_to_domain_objects(
+            deputy_map=deputy_map, groups=groups, coauthorships=coauthorships,
+            type_map=type_map, year=2024,
+        )
+        assert deputies[1].party_code == "PT"
+        assert deputies[1].state_code == "SP"
+
+
 class TestProcessingErros:
     """Testes de tratamento de erros"""
 
