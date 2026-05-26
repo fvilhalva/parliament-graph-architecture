@@ -10,6 +10,7 @@ import pandas as pd  # type: ignore
 from config import setup_logger
 from core import ParliamentaryGraph
 from core.algorithms.community_detection import compare_community_methods, detect_communities
+from core.algorithms.validation import NullModelResult, assess_community_significance
 from extraction import ChamberExtractor
 from processing import ChamberProcessor
 from repository import CsvRepository, DB_Exporter, GraphExporter
@@ -46,11 +47,14 @@ def processing_stage(
     raw_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     year: int,
+    max_authors: int = 30,
 ) -> tuple[dict, list, list]:
     """Stage 2: Clean raw data and convert it into domain objects."""
     logger.info("Processing data...")
 
-    deputy_map, groups, coauthorships, type_map = processor.process_raw_data(raw_df, metadata_df)
+    deputy_map, groups, coauthorships, type_map = processor.process_raw_data(
+        raw_df, metadata_df, max_authors=max_authors
+    )
     deputies_dict, propositions_list, coauthorships_list = processor.convert_to_domain_objects(
         deputy_map,
         groups,
@@ -70,8 +74,8 @@ def core_stage(deputies: dict, propositions: list, coauthorships: list, year: in
     return graph
 
 
-def algorithms_stage(graph: ParliamentaryGraph) -> dict:
-    """Stage 4: Run community detection and compare methods."""
+def algorithms_stage(graph: ParliamentaryGraph, n_permutations: int = 200) -> dict:
+    """Stage 4: Run community detection, statistical validation, and compare methods."""
     logger.info("Running community detection and modularity comparison...")
     communities_comparison = compare_community_methods(graph.graph)
     logger.info(f"Community comparison: {communities_comparison}")
@@ -81,6 +85,22 @@ def algorithms_stage(graph: ParliamentaryGraph) -> dict:
         for node_id, community_id in louvain_partition.items():
             if graph.graph.has_node(node_id):
                 graph.graph.nodes[node_id]["community_louvain"] = int(community_id)
+
+    # --- Statistical significance via null-model permutation test ---
+    logger.info(f"Running null-model permutation test ({n_permutations} permutations)...")
+    validation: NullModelResult = assess_community_significance(
+        graph.graph, n_permutations=n_permutations, seed=42
+    )
+    logger.info(str(validation))
+
+    communities_comparison["null_model"] = {
+        "q_observed": round(validation.q_observed, 4),
+        "q_null_mean": round(validation.q_null_mean, 4),
+        "q_null_std": round(validation.q_null_std, 4),
+        "p_value": round(validation.p_value, 4),
+        "significant": validation.significant,
+        "n_permutations": validation.n_permutations,
+    }
 
     return communities_comparison
 
@@ -96,11 +116,16 @@ def repository_stage(
     """Stage 5: Export graph and metrics to disk."""
     logger.info("Exporting data...")
 
-    gexf_file = graph_exporter.exportar_gexf(graph, ano=year)
+    gexf_file = graph_exporter.export_gexf(graph, year=year)
     logger.info(f"GEXF exported to: {gexf_file}")
 
-    output_file = csv_repository.exportar_metricas_deputados(deputies, year)
+    output_file = csv_repository.export_deputy_metrics(deputies, year)
     logger.info(f"CSV metrics exported to: {output_file}")
+
+    coauthorship_file = csv_repository.export_coauthorship_metrics(
+        list(graph.graph.edges(data="weight")), year
+    )
+    logger.info(f"CSV coauthorships exported to: {coauthorship_file}")
 
     db_path = db_repository.exportar_metricas_deputados(deputies, year)
     logger.info(f"SQLite exported to: {db_path}")
@@ -113,7 +138,7 @@ def visualization_stage(year: int, generate_plots: Callable[[int], Path]) -> Non
     logger.info(f"Plots exported to: {output_dir}")
 
 
-def run_pipeline(year: int, dependencies: PipelineDependencies) -> None:
+def run_pipeline(year: int, dependencies: PipelineDependencies, max_authors: int = 30) -> None:
     """Execute the complete parliamentary analysis pipeline."""
     logger.info("=== STARTING PARLIAMENTARY ANALYSIS PIPELINE ===")
 
@@ -125,14 +150,14 @@ def run_pipeline(year: int, dependencies: PipelineDependencies) -> None:
             raw_df,
             metadata_df,
             year,
+            max_authors=max_authors,
         )
         print(f"Deputies: {len(deputies)}")
         print(f"Propositions: {len(propositions)}")
         print(f"Co-authorships: {len(coauthorships)}")
 
         graph = core_stage(deputies, propositions, coauthorships, year)
-        deputy_centrality_list = graph.compute_degree_centrality()
-        graph.compute_betweenness_centrality()
+        deputy_centrality_list = graph.compute_all_centralities()
 
         communities_info = algorithms_stage(graph)
         logger.info(f"Community summary (year={year}): {communities_info}")

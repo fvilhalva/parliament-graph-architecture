@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório TCC — Parliament Graph Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    color: #1a1a2e;
+    background: #fff;
+    padding: 40px;
+    max-width: 920px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  .cover {
+    text-align: center;
+    padding: 60px 20px 50px;
+    border-bottom: 3px solid #1a1a2e;
+    margin-bottom: 40px;
+  }
+  .cover .uni { font-size: 10pt; letter-spacing: 2px; text-transform: uppercase; color: #555; margin-bottom: 8px; }
+  .cover h1 { font-size: 22pt; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; line-height: 1.3; }
+  .cover .subtitle { font-size: 13pt; color: #444; margin-bottom: 24px; }
+  .cover .meta { font-size: 10pt; color: #666; line-height: 2.2; }
+  .cover .meta strong { color: #1a1a2e; }
+
+  h2 {
+    font-size: 14pt; font-weight: 700; color: #1a1a2e;
+    border-left: 4px solid #1a1a2e;
+    padding-left: 12px;
+    margin: 36px 0 16px;
+  }
+  h3 { font-size: 11.5pt; font-weight: 600; color: #1a1a2e; margin: 20px 0 10px; }
+
+  .badge {
+    display: inline-block; font-size: 8.5pt; font-weight: 700;
+    padding: 2px 8px; border-radius: 3px; letter-spacing: 0.5px;
+    vertical-align: middle; margin-left: 6px;
+  }
+  .done   { background: #d4edda; color: #155724; }
+  .todo   { background: #fff3cd; color: #856404; }
+
+  ul.checklist { list-style: none; padding-left: 0; }
+  ul.checklist li {
+    padding: 6px 0 6px 28px; position: relative;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  ul.checklist li:last-child { border-bottom: none; }
+  ul.checklist li::before { position: absolute; left: 0; top: 6px; font-size: 13pt; }
+  ul.checklist li.done-item::before { content: '✅'; }
+  ul.checklist li.todo-item::before { content: '🔲'; }
+  ul.checklist li.warn-item::before { content: '⚠️'; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 12px 0 20px; }
+  th { background: #1a1a2e; color: #fff; text-align: left; padding: 8px 12px; font-weight: 600; }
+  td { padding: 7px 12px; border-bottom: 1px solid #e8e8e8; }
+  tr:nth-child(even) td { background: #f8f9fa; }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0 24px; }
+  .metric-card { border: 1px solid #dde; border-radius: 6px; padding: 14px 12px; text-align: center; }
+  .metric-card .value { font-size: 18pt; font-weight: 700; color: #1a1a2e; }
+  .metric-card .label { font-size: 8.5pt; color: #666; margin-top: 2px; line-height: 1.3; }
+
+  .result-box {
+    background: #f4f4f8; border: 1px solid #dde; border-radius: 6px;
+    padding: 16px 20px; font-family: 'Consolas', monospace; font-size: 10pt;
+    margin: 12px 0 20px; line-height: 1.8;
+  }
+  .result-box .sig { color: #155724; font-weight: 700; }
+
+  .callout { border-left: 4px solid; padding: 10px 16px; border-radius: 0 4px 4px 0; margin: 14px 0; font-size: 10pt; }
+  .callout.info   { border-color: #1a1a2e; background: #eef0fb; }
+  .callout.warn   { border-color: #e6a817; background: #fffbf0; }
+  .callout.green  { border-color: #28a745; background: #f0fdf4; }
+
+  .progress-row { margin: 8px 0; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 10pt; margin-bottom: 3px; }
+  .progress-bar { height: 10px; background: #e8e8e8; border-radius: 5px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 5px; background: #1a1a2e; }
+
+  .tese {
+    background: #1a1a2e; color: #fff; border-radius: 8px;
+    padding: 20px 24px; margin: 20px 0; font-size: 12pt;
+    line-height: 1.7; font-style: italic;
+  }
+
+  .finding {
+    border: 1px solid #dde; border-radius: 6px; padding: 14px 16px;
+    margin: 10px 0; display: flex; gap: 14px; align-items: flex-start;
+  }
+  .finding .icon { font-size: 20pt; flex-shrink: 0; }
+  .finding .text strong { display: block; margin-bottom: 4px; font-size: 10.5pt; }
+  .finding .text { font-size: 10pt; line-height: 1.6; }
+
+  .footer { margin-top: 50px; padding-top: 16px; border-top: 1px solid #ccc; font-size: 9pt; color: #888; text-align: center; }
+
+  @media print {
+    body { padding: 0; }
+    .metric-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- CAPA -->
+<div class="cover">
+  <div class="uni">Universidade Estadual de Mato Grosso do Sul — UEMS</div>
+  <h1>Parliament Graph Architecture</h1>
+  <div class="subtitle">Análise de Redes Parlamentares via Teoria dos Grafos</div>
+  <div class="meta">
+    <strong>Autor:</strong> Felipe Echeverria Vilhalva<br>
+    <strong>Orientador:</strong> Prof. Rubens Barbosa Filho<br>
+    <strong>Período analisado:</strong> 2022–2025 · Câmara dos Deputados — Brasil<br>
+    <strong>Data do relatório:</strong> 25 de maio de 2026
+  </div>
+</div>
+
+
+<!-- 1. TESE CENTRAL -->
+<h2>1. Tese Central do Trabalho</h2>
+
+<div class="tese">
+  "A co-autoria parlamentar não é aleatória — ela reflete estruturas de poder, ideologia e alinhamento político na Câmara dos Deputados. A rede de co-autoria legislativa é um proxy válido e mensurável de alinhamento político."
+</div>
+
+<p>
+  O trabalho modela a Câmara dos Deputados como um grafo ponderado de co-autoria G = (V, E, w),
+  onde cada nó é um deputado e cada aresta representa proposições legislativas co-autorizadas em conjunto.
+  Através de métricas de centralidade e detecção de comunidades, identifica estruturas de influência
+  e agrupamentos que emergem naturalmente dos dados — sem qualquer premissa ideológica prévia.
+</p>
+
+
+<!-- 2. RESULTADOS REAIS (2025) -->
+<h2>2. Resultados — Ano 2025</h2>
+
+<div class="metric-grid">
+  <div class="metric-card"><div class="value">571</div><div class="label">Deputados identificados no dataset</div></div>
+  <div class="metric-card"><div class="value">331</div><div class="label">Nós na rede (co-autores ativos)</div></div>
+  <div class="metric-card"><div class="value">5.396</div><div class="label">Arestas (co-autorias únicas)</div></div>
+  <div class="metric-card"><div class="value">9,88%</div><div class="label">Densidade da rede</div></div>
+  <div class="metric-card"><div class="value">0,636</div><div class="label">Modularidade Louvain (Q)</div></div>
+  <div class="metric-card"><div class="value">17</div><div class="label">Comunidades detectadas</div></div>
+  <div class="metric-card"><div class="value">95,8%</div><div class="label">Nós na componente principal (317/331)</div></div>
+  <div class="metric-card"><div class="value">p &lt; 0,005</div><div class="label">Significância estatística (null-model)</div></div>
+</div>
+
+<h3>Validação estatística — Teste de Permutação (Null-Model)</h3>
+<div class="result-box">
+Community structure: <span class="sig">SIGNIFICANT</span> (p=0.0000, alpha=0.05)<br>
+  Q_observed = 0.6364  &nbsp;← modularity real da rede<br>
+  Q_null     = 0.1168 ± 0.0028  &nbsp;← distribuição de 200 grafos aleatórios<br>
+  n_permutations = 200  &nbsp;· &nbsp;método: double-edge-swap (preserva sequência de graus)
+</div>
+
+<div class="callout green">
+  <strong>Interpretação:</strong> Q observado é <strong>5,4× maior</strong> que a média nula
+  (0,636 vs 0,117), com desvio padrão de apenas 0,003. Nenhum dos 200 grafos aleatórios
+  atingiu Q ≥ 0,636. A estrutura de comunidades é <strong>estatisticamente significativa</strong>
+  — não emerge por acaso.
+</div>
+
+
+<!-- 3. O QUE OS RESULTADOS PROVAM -->
+<h2>3. O Que os Resultados Provam</h2>
+
+<div class="finding">
+  <div class="icon">🔬</div>
+  <div class="text">
+    <strong>Q = 0,636 com p &lt; 0,005 — A rede não é aleatória (H1 confirmada)</strong>
+    A modularidade observada está 185 desvios padrão acima da média nula. Deputados não escolhem
+    co-autores aleatoriamente — há uma estrutura de agrupamentos real e estatisticamente
+    significativa na colaboração legislativa.
+  </div>
+</div>
+
+<div class="finding">
+  <div class="icon">🌉</div>
+  <div class="text">
+    <strong>MDB, PSB e PCdoB dominam o betweenness — partidos menores como brokers (H2 confirmada)</strong>
+    Pezenti (MDB), Lídice da Mata (PSB) e Alice Portugal (PCdoB) lideram a centralidade de
+    intermediação, não os maiores partidos. Alto betweenness significa controle sobre o fluxo
+    de colaboração entre comunidades distintas — esses deputados são as "pontes" da rede.
+    Partidos de centro historicamente cumprem esse papel de mediação.
+  </div>
+</div>
+
+<div class="finding">
+  <div class="icon">🫧</div>
+  <div class="text">
+    <strong>PSOL e NOVO dominam o weighted degree — câmaras de eco ideológicas (H3 suportada)</strong>
+    Célia Xakriabá (PSOL), Adriana Ventura (NOVO) e Marcel van Hattem (NOVO) co-autorizam
+    intensamente — mas <em>dentro</em> dos seus próprios blocos. PSOL (esquerda) e NOVO (direita)
+    apresentam o mesmo padrão de coesão interna por razões ideológicas opostas. Alto weighted
+    degree + baixo betweenness = comunidade fechada.
+  </div>
+</div>
+
+<div class="finding">
+  <div class="icon">🕸️</div>
+  <div class="text">
+    <strong>95,8% dos nós na componente principal — rede conectada, não fragmentada</strong>
+    A Câmara não é um conjunto de ilhas isoladas: 317 de 331 deputados ativos formam um único
+    componente conexo. Os 14 fora da componente principal co-autorizaram exclusivamente entre si,
+    sem pontes para o restante da rede. Isso indica que a colaboração legislativa existe em
+    escala, mesmo entre blocos opostos.
+  </div>
+</div>
+
+<div class="finding">
+  <div class="icon">📉</div>
+  <div class="text">
+    <strong>Distribuição de grau com cauda longa — desigualdade na colaboração</strong>
+    A maioria dos deputados tem poucas co-autorias; um pequeno grupo acumula a grande maioria
+    das colaborações. Padrão típico de redes sociais reais (power-law-like), indicando que
+    a co-autoria parlamentar segue o mesmo princípio de hubs que redes de citação científica
+    e redes de colaboração profissional.
+  </div>
+</div>
+
+<h3>Narrativa para a defesa</h3>
+<div class="callout info">
+  <em>"Partidos ideologicamente coesos (PSOL, NOVO) formam comunidades fechadas de alta
+  colaboração interna mas baixa intermediação entre blocos. Partidos de centro (MDB, PSB, PCdoB)
+  produzem os deputados com maior poder de intermediação — os brokers da rede legislativa.
+  Essa estrutura não é aleatória (p &lt; 0,005, n=200 permutações) e demonstra que a co-autoria
+  legislativa é um proxy válido e mensurável de alinhamento político."</em>
+</div>
+
+
+<!-- 4. DEPUTADOS DE DESTAQUE -->
+<h2>4. Deputados de Destaque — 2025</h2>
+
+<table>
+  <tr><th>Deputado</th><th>Partido</th><th>Métrica</th><th>Interpretação</th></tr>
+  <tr><td>Pezenti</td><td>MDB</td><td>Betweenness: 0,104</td><td>Maior broker da rede — ponte entre blocos</td></tr>
+  <tr><td>Lídice da Mata</td><td>PSB</td><td>Betweenness: 0,079</td><td>2ª maior intermediadora</td></tr>
+  <tr><td>Bibo Nunes</td><td>PL</td><td>Betweenness: 0,077</td><td>Broker dentro do bloco governista</td></tr>
+  <tr><td>Célia Xakriabá</td><td>PSOL</td><td>Weighted degree: ~100</td><td>Maior co-autora — coesão interna do PSOL</td></tr>
+  <tr><td>Adriana Ventura</td><td>NOVO</td><td>Weighted degree: ~48</td><td>Hub do NOVO — co-autoria ideologicamente concentrada</td></tr>
+</table>
+
+
+<!-- 5. ARQUITETURA DO CÓDIGO -->
+<h2>5. Arquitetura do Sistema</h2>
+
+<p>Pipeline modular em camadas com responsabilidades bem definidas:</p>
+
+<table>
+  <tr><th>Camada</th><th>Responsabilidade</th><th>Status</th></tr>
+  <tr><td><code>extraction/</code></td><td>Download e cache de CSVs da API da Câmara</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>processing/</code></td><td>Limpeza, filtros, conversão para objetos de domínio</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>core/graph.py</code></td><td>Construção do grafo ponderado</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>core/algorithms/</code></td><td>Centralidade (degree, betweenness, closeness, eigenvector)</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>core/algorithms/validation.py</code></td><td>Teste de permutação null-model (p-value)</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>models/</code></td><td>Entidades de domínio: Deputy, Proposition, CoauthorshipEdge</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>repository/</code></td><td>Exportação CSV, GEXF (Gephi), SQLite</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>visualization/</code></td><td>6 gráficos automáticos por ano</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>scripts/compare_years.py</code></td><td>Análise comparativa multi-ano</td><td><span class="badge done">Completo</span></td></tr>
+  <tr><td><code>tests/</code></td><td>132 testes, 82% cobertura total, core ≥ 93%</td><td><span class="badge done">Completo</span></td></tr>
+</table>
+
+<h3>Decisões metodológicas relevantes</h3>
+
+<table>
+  <tr><th>Decisão</th><th>Escolha</th><th>Justificativa</th></tr>
+  <tr><td>Pesos por tipo de proposição</td><td>Uniformes (todos = 1)</td><td>Não existe escala teórica na literatura; o filtro de tipos já faz a seleção qualitativa</td></tr>
+  <tr><td>Filtro de tipos</td><td>PL, PEC, PLP, PDL, EMC</td><td>Exclui requerimentos e ofícios — apenas proposições de conteúdo legislativo real</td></tr>
+  <tr><td>Filtro max_authors</td><td>≤ 30 autores por proposta</td><td>Propostas com 200+ signatários geram O(n²) arestas, densidade de 85% — grafos inválidos</td></tr>
+  <tr><td>Normalização de arestas</td><td>w(i,j) = Σ 1/(n-1) por proposta</td><td>Penaliza co-autorias em massa; valoriza colaborações bilaterais ou em grupos pequenos</td></tr>
+  <tr><td>Validação estatística</td><td>Null-model, 200 permutações, α=0,05</td><td>Testa se a estrutura de comunidades é significativa vs. grafos aleatórios com mesma sequência de graus</td></tr>
+</table>
+
+
+<!-- 6. TESTES E COBERTURA -->
+<h2>6. Testes e Cobertura</h2>
+
+<div class="progress-row">
+  <div class="progress-label"><span>Total do projeto</span><span>82%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:82%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>core/graph.py</span><span>99%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:99%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>core/algorithms/community_detection.py</span><span>100%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>core/algorithms/validation.py</span><span>96%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:96%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>core/algorithms/metrics.py</span><span>93%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:93%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>repository/csv_repository.py</span><span>95%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:95%"></div></div>
+</div>
+
+<table style="margin-top:16px">
+  <tr><th>Módulo de teste</th><th>Testes</th><th>O que cobre</th></tr>
+  <tr><td>test_graph.py</td><td>26</td><td>Estrutura, pesos, centralidade, filtros de partido, aliases</td></tr>
+  <tr><td>test_community_detection.py</td><td>11</td><td>Louvain, Label Propagation, Spectral, modularidade</td></tr>
+  <tr><td>test_processing.py</td><td>18</td><td>Limpeza, conversão, filtro max_authors (boundary tests)</td></tr>
+  <tr><td>test_validation.py</td><td>7</td><td>Null-model: tipo, p-value, Q observado, significância</td></tr>
+  <tr><td>test_metrics.py</td><td>9</td><td>Degree, betweenness, closeness, eigenvector centrality</td></tr>
+  <tr><td>test_repository.py</td><td>14</td><td>CSV, GEXF, SQLite: exportação e integridade</td></tr>
+  <tr><td>Demais módulos</td><td>47</td><td>Deputy, Proposition, CoauthorshipEdge, extração</td></tr>
+  <tr><td><strong>TOTAL</strong></td><td><strong>132</strong></td><td><strong>Todos passando ✅</strong></td></tr>
+</table>
+
+
+<!-- 7. O QUE FALTA -->
+<h2>7. O Que Ainda Falta</h2>
+
+<h3>Código (~2–3h)</h3>
+<ul class="checklist">
+  <li class="todo-item">
+    <strong>Loop multi-ano 2022–2025</strong> — ~5 linhas em <code>main.py</code>.
+    Gera snapshots comparáveis por ano (GEXF, CSV, SQLite, p-value).
+    Necessário para rodar o <code>scripts/compare_years.py</code> e para o capítulo de Resultados da monografia.
+  </li>
+</ul>
+
+<h3>Monografia (trabalho principal)</h3>
+<ul class="checklist">
+  <li class="todo-item"><strong>Hipóteses H1/H2/H3 explícitas</strong> na Introdução (já identificadas neste relatório)</li>
+  <li class="todo-item"><strong>Seção de Modelagem</strong> — definição formal do grafo bipartido B=(D∪P, E) e sua projeção unimodal em G=(D, E', w)</li>
+  <li class="todo-item"><strong>Justificativa dos pesos uniformes</strong> — decisão metodológica baseada na ausência de escala teórica na literatura (feedback do orientador)</li>
+  <li class="todo-item"><strong>Metodologia do null-model</strong> — double-edge-swap, Configuration Model, cálculo do p-value</li>
+  <li class="todo-item"><strong>Capítulo de Resultados</strong> — interpretar os dados reais: Q=0,636, 17 comunidades, brokers, câmaras de eco; comparação temporal 2022–2025</li>
+  <li class="todo-item"><strong>Conclusão</strong> — responder H1/H2/H3, discutir limitações (filtro max_authors, proxy de co-autoria), sugerir trabalhos futuros</li>
+  <li class="todo-item"><strong>Lista de símbolos</strong> — notação consistente: G, V, E, w, Q, k_i, b_i, c_i, e_i</li>
+</ul>
+
+
+<!-- 8. PROGRESSO GERAL -->
+<h2>8. Progresso Geral</h2>
+
+<div class="progress-row">
+  <div class="progress-label"><span>Código / Implementação</span><span>~98%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:98%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>Testes automatizados</span><span>100%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>Resultados obtidos (2025)</span><span>100%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>Análise temporal 2022–2025</span><span>0% (loop pendente)</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+</div>
+<div class="progress-row">
+  <div class="progress-label"><span>Monografia (estimado)</span><span>~40%</span></div>
+  <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+</div>
+
+<div class="callout green" style="margin-top:20px">
+  <strong>Resumo:</strong> a parte técnica está completa e os resultados são sólidos e defensáveis.
+  O código implementa corretamente todas as exigências metodológicas do orientador.
+  Faltam ~2h de código (loop multi-ano) e o foco de julho: escrever a monografia.
+  Os dados e gráficos necessários já estão gerados.
+</div>
+
+
+<div class="footer">
+  Parliament Graph Architecture · Felipe Echeverria Vilhalva · UEMS · 2026 · Gerado em 25/05/2026
+</div>
+
+</body>
+</html>
