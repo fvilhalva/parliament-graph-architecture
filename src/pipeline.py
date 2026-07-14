@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import Callable
 
@@ -10,7 +11,19 @@ import pandas as pd  # type: ignore
 from config import setup_logger
 from core import ParliamentaryGraph
 from core.algorithms.community_detection import compare_community_methods, detect_communities
-from core.algorithms.validation import NullModelResult, assess_community_significance
+from core.algorithms.validation import (
+    NullModelResult,
+    PermutationResult,
+    assess_community_significance,
+    assess_label_association,
+    h2_benchsize_betweenness_statistic,
+    h3_degree_betweenness_statistic,
+)
+from core.algorithms.concentration import ConcentrationResult, assess_graph_concentration
+from core.algorithms.community_composition import (
+    CommunityCompositionResult,
+    assess_graph_community_composition,
+)
 from extraction import ChamberExtractor
 from processing import ChamberProcessor
 from repository import CsvRepository, DB_Exporter, GraphExporter
@@ -74,7 +87,11 @@ def core_stage(deputies: dict, propositions: list, coauthorships: list, year: in
     return graph
 
 
-def algorithms_stage(graph: ParliamentaryGraph, n_permutations: int = 200) -> dict:
+def algorithms_stage(
+    graph: ParliamentaryGraph,
+    n_permutations: int = 200,
+    min_party_size: int = 3,
+) -> dict:
     """Stage 4: Run community detection, statistical validation, and compare methods."""
     logger.info("Running community detection and modularity comparison...")
     communities_comparison = compare_community_methods(graph.graph)
@@ -102,7 +119,86 @@ def algorithms_stage(graph: ParliamentaryGraph, n_permutations: int = 200) -> di
         "n_permutations": validation.n_permutations,
     }
 
+    # --- Structural hypotheses H2 & H3 via label-permutation tests ---
+    # These keep the graph fixed and shuffle party_code labels; topology and
+    # per-deputy centralities are never modified (see assess_label_association).
+    logger.info("Running label-permutation tests for H2 and H3...")
+
+    # H2: bench size vs. mean betweenness. Expected negative -> one-sided.
+    h2: PermutationResult = assess_label_association(
+        graph,
+        partial(h2_benchsize_betweenness_statistic, min_party_size=min_party_size),
+        n_permutations=n_permutations,
+        seed=42,
+        two_sided=False,
+    )
+    logger.info("H2 %s", h2)
+
+    # H3: mean weighted degree vs. mean betweenness. Two-sided by default.
+    h3: PermutationResult = assess_label_association(
+        graph,
+        partial(h3_degree_betweenness_statistic, min_party_size=min_party_size),
+        n_permutations=n_permutations,
+        seed=42,
+        two_sided=True,
+    )
+    logger.info("H3 %s", h3)
+
+    communities_comparison["h2_benchsize_betweenness"] = _permutation_summary(h2)
+    communities_comparison["h3_degree_betweenness"] = _permutation_summary(h3)
+
+    # --- PP1: structural concentration of influence (few vs. many) ---
+    logger.info("Assessing concentration of influence (PP1)...")
+    concentration = {
+        metric: assess_graph_concentration(graph, metric=metric)
+        for metric in ("weighted_degree", "betweenness_centrality")
+    }
+    for result in concentration.values():
+        logger.info(str(result))
+    communities_comparison["concentration"] = {
+        metric: {
+            "gini": round(result.gini, 4),
+            "top_share": {str(frac): round(share, 4) for frac, share in result.top_share.items()},
+            "n": result.n,
+        }
+        for metric, result in concentration.items()
+    }
+
+    # --- PP2: are communities parties or coalitions? ---
+    logger.info("Assessing community party composition (PP2)...")
+    composition: CommunityCompositionResult = assess_graph_community_composition(
+        graph, louvain_partition, min_size=min_party_size
+    )
+    logger.info(str(composition))
+    communities_comparison["community_composition"] = {
+        "verdict": composition.verdict,
+        "mean_purity": round(composition.mean_purity, 4),
+        "multiparty_fraction": round(composition.multiparty_fraction, 4),
+        "coalition_fraction": round(composition.coalition_fraction, 4),
+        "num_communities": composition.num_communities,
+    }
+
     return communities_comparison
+
+
+def _permutation_summary(result: PermutationResult) -> dict:
+    """Serialise a :class:`PermutationResult` for persistence alongside H1."""
+    return {
+        "statistic_observed": round(result.statistic_observed, 4)
+        if result.valid
+        else None,
+        "statistic_null_mean": round(result.statistic_null_mean, 4)
+        if result.valid
+        else None,
+        "statistic_null_std": round(result.statistic_null_std, 4)
+        if result.valid
+        else None,
+        "p_value": round(result.p_value, 4),
+        "significant": result.significant,
+        "two_sided": result.two_sided,
+        "n_permutations": result.n_permutations,
+        "valid": result.valid,
+    }
 
 
 def repository_stage(

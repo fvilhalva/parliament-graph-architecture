@@ -10,13 +10,18 @@ chance.
 """
 from __future__ import annotations
 
+import math
 import random
 from dataclasses import dataclass
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import networkx as nx
+from scipy.stats import spearmanr
 
 from core.algorithms.community_detection import CommunityDetector
+
+if TYPE_CHECKING:  # pragma: no cover - import only for type hints
+    from core.graph import ParliamentaryGraph
 
 
 @dataclass
@@ -131,4 +136,211 @@ def assess_community_significance(
         n_permutations=n_permutations,
         significant=p_value < alpha,
         alpha=alpha,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Label-permutation tests for structural hypotheses H2 and H3.
+#
+# Unlike the community test above, these do NOT rewire the graph. The network
+# topology (and therefore every per-deputy centrality) is held fixed; only the
+# ``party_code`` labels are shuffled across deputies. This isolates the
+# question "is the observed party-level association stronger than what random
+# label assignment would produce?" from any structural artefact of the graph.
+# ---------------------------------------------------------------------------
+
+# Minimum number of parties required for a Spearman correlation to be meaningful.
+_MIN_PARTIES_FOR_CORRELATION = 3
+
+
+@dataclass
+class PermutationResult:
+    """Result of a label-permutation test for a party-level association.
+
+    Mirrors :class:`NullModelResult` so both validations read the same way.
+
+    Attributes:
+        statistic_observed: Correlation statistic on the real labels.
+        statistic_null_mean: Mean statistic across label permutations.
+        statistic_null_std: Standard deviation of the null distribution.
+        p_value: Fraction of permutations as or more extreme than observed.
+        n_permutations: Number of label permutations actually evaluated.
+        significant: True when ``p_value < alpha`` and the result is valid.
+        two_sided: Whether the p-value was computed two-sided.
+        alpha: Significance threshold used.
+        valid: False when the sample was too small to compute a reliable
+            statistic (fewer than three parties). When False, ``significant``
+            is forced to False and the numeric fields are neutral placeholders.
+    """
+
+    statistic_observed: float
+    statistic_null_mean: float
+    statistic_null_std: float
+    p_value: float
+    n_permutations: int
+    significant: bool
+    two_sided: bool = True
+    alpha: float = 0.05
+    valid: bool = True
+
+    def __str__(self) -> str:
+        if not self.valid:
+            return (
+                "Label association: INCONCLUSIVE (too few parties for a "
+                "reliable correlation)"
+            )
+        sig = "SIGNIFICANT" if self.significant else "NOT significant"
+        tail = "two-sided" if self.two_sided else "one-sided"
+        return (
+            f"Label association: {sig} (p={self.p_value:.4f}, alpha={self.alpha}, {tail})\n"
+            f"  statistic_observed = {self.statistic_observed:.4f}\n"
+            f"  statistic_null     = {self.statistic_null_mean:.4f} ± {self.statistic_null_std:.4f}"
+        )
+
+
+def _spearman_or_nan(x, y) -> float:
+    """Return Spearman rho, or NaN when it is undefined (constant input)."""
+    if len(x) < _MIN_PARTIES_FOR_CORRELATION:
+        return float("nan")
+    rho, _ = spearmanr(x, y)
+    # spearmanr yields NaN when one input is constant; propagate it explicitly.
+    return float(rho) if rho == rho else float("nan")
+
+
+def h2_benchsize_betweenness_statistic(
+    parliamentary_graph: "ParliamentaryGraph",
+    min_party_size: int = 1,
+) -> float:
+    """H2 statistic: Spearman rho between bench size and mean betweenness.
+
+    Hypothesis: brokers (high betweenness) are *not* concentrated in the
+    largest parties, i.e. a negative correlation between ``num_deputies`` and
+    ``avg_betweenness``.
+    """
+    frame = parliamentary_graph.filter_parties_by_betweenness(min_party_size=min_party_size)
+    return _spearman_or_nan(frame["num_deputies"], frame["avg_betweenness"])
+
+
+def h3_degree_betweenness_statistic(
+    parliamentary_graph: "ParliamentaryGraph",
+    min_party_size: int = 1,
+) -> float:
+    """H3 statistic: Spearman rho between mean weighted degree and betweenness.
+
+    Joins the per-party degree and betweenness rankings on ``party_code`` and
+    correlates ``avg_weighted_degree`` against ``avg_betweenness``.
+    """
+    bet = parliamentary_graph.filter_parties_by_betweenness(min_party_size=min_party_size)
+    deg = parliamentary_graph.filter_parties_by_degree(min_party_size=min_party_size)
+    merged = bet.merge(deg[["party_code", "avg_weighted_degree"]], on="party_code")
+    return _spearman_or_nan(merged["avg_weighted_degree"], merged["avg_betweenness"])
+
+
+def assess_label_association(
+    parliamentary_graph: "ParliamentaryGraph",
+    statistic_fn: Callable[["ParliamentaryGraph"], float],
+    n_permutations: int = 1000,
+    alpha: float = 0.05,
+    seed: int | None = 42,
+    two_sided: bool = True,
+) -> PermutationResult:
+    """Test a party-level association via ``party_code`` label permutation.
+
+    The graph topology is never modified. Deputy ``party_code`` labels are
+    shuffled across the deputies present in the network, the statistic is
+    recomputed, and the observed value is compared against this null
+    distribution. Original labels are always restored, even if ``statistic_fn``
+    raises.
+
+    Args:
+        parliamentary_graph: The built :class:`ParliamentaryGraph`.
+        statistic_fn: Callable ``f(parliamentary_graph) -> float`` returning the
+            association statistic (e.g. a Spearman correlation). Should return
+            ``NaN`` when it cannot be computed reliably.
+        n_permutations: Number of label permutations to evaluate.
+        alpha: Significance level.
+        seed: Random seed for reproducibility.
+        two_sided: When True, extremeness is measured on ``|statistic|``. When
+            False, a one-sided test is run in the direction of the *observed*
+            statistic's sign (e.g. negative for H2).
+
+    Returns:
+        :class:`PermutationResult`. If the observed statistic is undefined
+        (too few parties), returns a neutral result flagged ``valid=False``.
+    """
+    rng = random.Random(seed)
+
+    observed = statistic_fn(parliamentary_graph)
+    if observed is None or math.isnan(observed):
+        return PermutationResult(
+            statistic_observed=float("nan"),
+            statistic_null_mean=float("nan"),
+            statistic_null_std=float("nan"),
+            p_value=1.0,
+            n_permutations=0,
+            significant=False,
+            two_sided=two_sided,
+            alpha=alpha,
+            valid=False,
+        )
+
+    # Only deputies that are actually nodes in the graph contribute to the
+    # party aggregation, so we permute labels within exactly that population.
+    node_deputies = [
+        parliamentary_graph.deputies.get(node_id)
+        for node_id in parliamentary_graph.graph.nodes()
+    ]
+    node_deputies = [dep for dep in node_deputies if dep is not None]
+    original_labels = [dep.party_code for dep in node_deputies]
+
+    null_stats: list[float] = []
+    try:
+        for _ in range(n_permutations):
+            shuffled = original_labels[:]
+            rng.shuffle(shuffled)
+            for dep, label in zip(node_deputies, shuffled):
+                dep.party_code = label
+
+            stat = statistic_fn(parliamentary_graph)
+            if stat is not None and not math.isnan(stat):
+                null_stats.append(stat)
+    finally:
+        # Restore the live state unconditionally.
+        for dep, label in zip(node_deputies, original_labels):
+            dep.party_code = label
+
+    n = len(null_stats)
+    if n == 0:
+        return PermutationResult(
+            statistic_observed=observed,
+            statistic_null_mean=float("nan"),
+            statistic_null_std=float("nan"),
+            p_value=1.0,
+            n_permutations=0,
+            significant=False,
+            two_sided=two_sided,
+            alpha=alpha,
+            valid=False,
+        )
+
+    null_mean = sum(null_stats) / n
+    null_std = (sum((s - null_mean) ** 2 for s in null_stats) / n) ** 0.5 if n > 1 else 0.0
+
+    if two_sided:
+        p_value = sum(1 for s in null_stats if abs(s) >= abs(observed)) / n
+    elif observed < 0:
+        p_value = sum(1 for s in null_stats if s <= observed) / n
+    else:
+        p_value = sum(1 for s in null_stats if s >= observed) / n
+
+    return PermutationResult(
+        statistic_observed=observed,
+        statistic_null_mean=null_mean,
+        statistic_null_std=null_std,
+        p_value=p_value,
+        n_permutations=n,
+        significant=p_value < alpha,
+        two_sided=two_sided,
+        alpha=alpha,
+        valid=True,
     )
