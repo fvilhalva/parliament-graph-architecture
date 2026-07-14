@@ -68,33 +68,6 @@ class CommunityDetector:
         communities = [set(c) for c in label_propagation_communities(graph)]
         return self._communities_to_partition(communities)
 
-    def detect_spectral(self, graph: nx.Graph, n_clusters: int = 5) -> dict[int, int]:
-        """Detect communities using spectral clustering (scikit-learn).
-
-        Args:
-            graph: A NetworkX graph.
-            n_clusters: Expected number of communities.
-
-        Returns:
-            Mapping of ``{node_id: community_id}``.
-        """
-        if graph.number_of_nodes() == 0:
-            return {}
-
-        nodes = list(graph.nodes())
-        n_clusters = max(2, min(n_clusters, len(nodes)))
-        adj_matrix = nx.adjacency_matrix(graph, nodelist=nodes)
-
-        clustering = SpectralClustering(
-            n_clusters=n_clusters,
-            affinity="precomputed",
-            assign_labels="kmeans",
-            random_state=42,
-        )
-        labels = clustering.fit_predict(adj_matrix.toarray())
-
-        return {node: int(label) for node, label in zip(nodes, labels)}
-
     def calculate_modularity(self, graph: nx.Graph, partition: dict[int, int]) -> float:
         """Calculate the modularity ``Q`` of a partition.
 
