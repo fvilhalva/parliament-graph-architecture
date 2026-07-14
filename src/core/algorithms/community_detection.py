@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import networkx as nx
 from networkx.algorithms.community import label_propagation_communities, louvain_communities
-from sklearn.cluster import SpectralClustering  # type: ignore
 
 
 class CommunityDetector:
@@ -125,8 +124,6 @@ def detect_communities(graph: nx.Graph, method: str = "louvain", **kwargs) -> di
         return detector.detect_louvain(graph, **kwargs)
     if method == "label_propagation":
         return detector.detect_label_propagation(graph)
-    if method == "spectral":
-        return detector.detect_spectral(graph, **kwargs)
     raise ValueError(f"Unknown community detection method: {method}")
 
 

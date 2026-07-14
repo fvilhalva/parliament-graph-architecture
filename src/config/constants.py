@@ -36,7 +36,7 @@ MAX_AUTHORS_PER_PROPOSAL = 30
 
 # Community detection parameters
 NUM_COMMUNITIES = 5
-COMMUNITY_DETECTION_METHOD = 'spectral'  # spectral, louvain, greedy
+COMMUNITY_DETECTION_METHOD = 'louvain'  # louvain
 
 # ---------------------------------------------------------------------------
 # Proposition type weights
