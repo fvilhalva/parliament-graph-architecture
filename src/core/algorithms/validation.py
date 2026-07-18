@@ -16,9 +16,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 import networkx as nx
-from scipy.stats import spearmanr
 
 from core.algorithms.community_detection import CommunityDetector
+from core.algorithms.stats import spearman_or_nan
 
 if TYPE_CHECKING:  # pragma: no cover - import only for type hints
     from core.graph import ParliamentaryGraph
@@ -140,17 +140,20 @@ def assess_community_significance(
 
 
 # ---------------------------------------------------------------------------
-# Label-permutation tests for structural hypotheses H2 and H3.
+# Label-permutation tests for party-level structural associations.
 #
-# Unlike the community test above, these do NOT rewire the graph. The network
+# Historical note: these functions were originally introduced as tests for
+# hypotheses H2 (broker parties) and H3 (echo chambers). Those hypothesis
+# labels have since been reformulated in strictly topological terms (see the
+# monograph); these party-level tests were retained as complementary evidence
+# and renamed to describe what they actually measure.
+#
+# Unlike the null-model test above, these do NOT rewire the graph. The network
 # topology (and therefore every per-deputy centrality) is held fixed; only the
 # ``party_code`` labels are shuffled across deputies. This isolates the
 # question "is the observed party-level association stronger than what random
 # label assignment would produce?" from any structural artefact of the graph.
 # ---------------------------------------------------------------------------
-
-# Minimum number of parties required for a Spearman correlation to be meaningful.
-_MIN_PARTIES_FOR_CORRELATION = 3
 
 
 @dataclass
@@ -198,42 +201,38 @@ class PermutationResult:
         )
 
 
-def _spearman_or_nan(x, y) -> float:
-    """Return Spearman rho, or NaN when it is undefined (constant input)."""
-    if len(x) < _MIN_PARTIES_FOR_CORRELATION:
-        return float("nan")
-    rho, _ = spearmanr(x, y)
-    # spearmanr yields NaN when one input is constant; propagate it explicitly.
-    return float(rho) if rho == rho else float("nan")
-
-
-def h2_benchsize_betweenness_statistic(
+def party_size_vs_mean_betweenness_statistic(
     parliamentary_graph: "ParliamentaryGraph",
     min_party_size: int = 1,
 ) -> float:
-    """H2 statistic: Spearman rho between bench size and mean betweenness.
+    """Spearman rho between bench size and mean betweenness across parties.
 
-    Hypothesis: brokers (high betweenness) are *not* concentrated in the
-    largest parties, i.e. a negative correlation between ``num_deputies`` and
-    ``avg_betweenness``.
+    Historical note: this was originally named ``h2_benchsize_betweenness``
+    when the trabalho tested the (now reformulated) "broker parties" hypothesis
+    (H2). It is kept as a complementary party-level test.
+
+    A negative rho would mean brokers (high betweenness) are concentrated in
+    the *smaller* parties.
     """
     frame = parliamentary_graph.filter_parties_by_betweenness(min_party_size=min_party_size)
-    return _spearman_or_nan(frame["num_deputies"], frame["avg_betweenness"])
+    return spearman_or_nan(frame["num_deputies"], frame["avg_betweenness"])
 
 
-def h3_degree_betweenness_statistic(
+def party_degree_vs_betweenness_statistic(
     parliamentary_graph: "ParliamentaryGraph",
     min_party_size: int = 1,
 ) -> float:
-    """H3 statistic: Spearman rho between mean weighted degree and betweenness.
+    """Spearman rho between party mean weighted degree and mean betweenness.
 
-    Joins the per-party degree and betweenness rankings on ``party_code`` and
-    correlates ``avg_weighted_degree`` against ``avg_betweenness``.
+    Historical note: this was originally named ``h3_degree_betweenness``
+    when the trabalho tested the (now reformulated) "echo chambers" hypothesis
+    (H3). Joins the per-party degree and betweenness rankings on ``party_code``
+    and correlates ``avg_weighted_degree`` against ``avg_betweenness``.
     """
     bet = parliamentary_graph.filter_parties_by_betweenness(min_party_size=min_party_size)
     deg = parliamentary_graph.filter_parties_by_degree(min_party_size=min_party_size)
     merged = bet.merge(deg[["party_code", "avg_weighted_degree"]], on="party_code")
-    return _spearman_or_nan(merged["avg_weighted_degree"], merged["avg_betweenness"])
+    return spearman_or_nan(merged["avg_weighted_degree"], merged["avg_betweenness"])
 
 
 def assess_label_association(

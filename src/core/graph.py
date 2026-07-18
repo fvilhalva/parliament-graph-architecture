@@ -271,6 +271,66 @@ class ParliamentaryGraph:
         self.compute_eigenvector_centrality()
         return ordered
 
+    # ---------------------------------------------- community + PP3 enrichment
+    def assign_communities(self, partition: Dict[int, int]) -> None:
+        """Propagate a Louvain community partition down to ``Deputy`` objects.
+
+        Attaches ``community_louvain`` both to the NetworkX node attribute
+        (already the case, but repeated here for symmetry) and to the matching
+        :class:`Deputy`, so downstream exports (CSV, SQLite, JSON) can carry the
+        assignment without having to touch the graph object.
+
+        Nodes that are not present in ``partition`` and deputies that are not
+        in the graph are left untouched.
+        """
+        if not partition:
+            return
+        for node_id, community_id in partition.items():
+            if self.graph.has_node(node_id):
+                self.graph.nodes[node_id]["community_louvain"] = int(community_id)
+            deputy = self._resolve_deputy(node_id)
+            if deputy is not None:
+                deputy.community_louvain = int(community_id)
+
+    def assign_relatorship_counts(self, propositions: List) -> None:
+        """Aggregate relatorship counts from ``propositions`` onto each Deputy.
+
+        For every proposition with a non-null ``relator_id``, increments the
+        ``relatorship_count`` of the corresponding :class:`Deputy`. Relators
+        that are not deputies in ``self.deputies`` (e.g. senators or committees
+        occasionally appearing in the raw data) are counted separately and
+        returned for downstream reporting (see PP3).
+
+        The counter is reset to zero on every call so repeated invocations
+        yield the same result — important for reproducibility.
+        """
+        # Reset first: idempotent under repeated calls.
+        for deputy in self.deputies.values():
+            deputy.relatorship_count = 0
+
+        off_graph_relators: set[int] = set()
+        for proposition in propositions:
+            relator_id = getattr(proposition, "relator_id", None)
+            if relator_id is None:
+                continue
+            deputy = self._resolve_deputy(relator_id)
+            if deputy is None:
+                off_graph_relators.add(int(relator_id))
+                continue
+            deputy.relatorship_count += 1
+
+        self._off_graph_relators = off_graph_relators  # type: ignore[attr-defined]
+
+    @property
+    def off_graph_relator_count(self) -> int:
+        """How many distinct relator ids were not present in the graph.
+
+        Populated by :meth:`assign_relatorship_counts`. See PP3 in the
+        monograph — this is itself a finding: institutional influence that is
+        invisible to the co-authorship network.
+        """
+        return len(getattr(self, "_off_graph_relators", set()))
+
     # ------------------------------------------------------- structural views
     def advanced_structural_analysis(self) -> None:
         """Log a high-level structural summary (articulation points, density,

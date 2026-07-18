@@ -10,8 +10,8 @@ from core.algorithms.validation import (
     PermutationResult,
     assess_community_significance,
     assess_label_association,
-    h2_benchsize_betweenness_statistic,
-    h3_degree_betweenness_statistic,
+    party_degree_vs_betweenness_statistic,
+    party_size_vs_mean_betweenness_statistic,
 )
 from core.graph import ParliamentaryGraph
 from models.deputy import Deputy
@@ -70,7 +70,9 @@ class TestCommunitySignificance:
 
 
 # ---------------------------------------------------------------------------
-# Label-permutation tests for structural hypotheses H2 and H3.
+# Party-level label-permutation tests.
+# Historical names: H2 (bench size × betweenness) and H3 (degree × betweenness).
+# Kept as complementary evidence after the hypothesis reformulation.
 # ---------------------------------------------------------------------------
 
 
@@ -107,7 +109,7 @@ def _make_graph(specs: dict[str, list[tuple[float, float]]]) -> ParliamentaryGra
 
 
 @pytest.fixture
-def h3_associated_graph() -> ParliamentaryGraph:
+def party_degree_association_graph() -> ParliamentaryGraph:
     """Five parties whose mean degree and mean betweenness rank identically.
 
     The association lives *at the party level*: party k has a higher mean
@@ -131,7 +133,7 @@ def h3_associated_graph() -> ParliamentaryGraph:
 
 
 @pytest.fixture
-def h2_associated_graph() -> ParliamentaryGraph:
+def party_size_association_graph() -> ParliamentaryGraph:
     """Bench size correlates negatively with mean betweenness.
 
     Larger benches (more deputies) have lower betweenness — brokers sit in the
@@ -146,22 +148,22 @@ def h2_associated_graph() -> ParliamentaryGraph:
 
 
 class TestPermutationResult:
-    def test_returns_correct_type(self, h3_associated_graph):
+    def test_returns_correct_type(self, party_degree_association_graph):
         result = assess_label_association(
-            h3_associated_graph, h3_degree_betweenness_statistic, n_permutations=100
+            party_degree_association_graph, party_degree_vs_betweenness_statistic, n_permutations=100
         )
         assert isinstance(result, PermutationResult)
 
-    def test_str_reports_significance(self, h3_associated_graph):
+    def test_str_reports_significance(self, party_degree_association_graph):
         result = assess_label_association(
-            h3_associated_graph, h3_degree_betweenness_statistic, n_permutations=100
+            party_degree_association_graph, party_degree_vs_betweenness_statistic, n_permutations=100
         )
         assert "Label association" in str(result)
 
-    def test_two_sided_flag_recorded(self, h3_associated_graph):
+    def test_two_sided_flag_recorded(self, party_degree_association_graph):
         result = assess_label_association(
-            h3_associated_graph,
-            h3_degree_betweenness_statistic,
+            party_degree_association_graph,
+            party_degree_vs_betweenness_statistic,
             n_permutations=50,
             two_sided=False,
         )
@@ -169,16 +171,16 @@ class TestPermutationResult:
 
 
 class TestLabelsAreRestored:
-    def test_party_codes_unchanged_after_test(self, h3_associated_graph):
-        before = {i: d.party_code for i, d in h3_associated_graph.deputies.items()}
+    def test_party_codes_unchanged_after_test(self, party_degree_association_graph):
+        before = {i: d.party_code for i, d in party_degree_association_graph.deputies.items()}
         assess_label_association(
-            h3_associated_graph, h3_degree_betweenness_statistic, n_permutations=100
+            party_degree_association_graph, party_degree_vs_betweenness_statistic, n_permutations=100
         )
-        after = {i: d.party_code for i, d in h3_associated_graph.deputies.items()}
+        after = {i: d.party_code for i, d in party_degree_association_graph.deputies.items()}
         assert before == after
 
-    def test_labels_restored_even_when_statistic_raises(self, h3_associated_graph):
-        before = {i: d.party_code for i, d in h3_associated_graph.deputies.items()}
+    def test_labels_restored_even_when_statistic_raises(self, party_degree_association_graph):
+        before = {i: d.party_code for i, d in party_degree_association_graph.deputies.items()}
 
         def boom(_pg):
             raise ValueError("statistic exploded")
@@ -186,17 +188,18 @@ class TestLabelsAreRestored:
         # The observed call happens first and will raise, but any partial
         # mutation must still be rolled back.
         with pytest.raises(ValueError):
-            assess_label_association(h3_associated_graph, boom, n_permutations=10)
+            assess_label_association(party_degree_association_graph, boom, n_permutations=10)
 
-        after = {i: d.party_code for i, d in h3_associated_graph.deputies.items()}
+        after = {i: d.party_code for i, d in party_degree_association_graph.deputies.items()}
         assert before == after
 
 
-class TestH3DegreeBetweenness:
-    def test_deliberate_association_is_significant(self, h3_associated_graph):
+class TestPartyDegreeVsBetweenness:
+    # Historical name: H3 (echo chambers). Kept as complementary evidence.
+    def test_deliberate_association_is_significant(self, party_degree_association_graph):
         result = assess_label_association(
-            h3_associated_graph,
-            h3_degree_betweenness_statistic,
+            party_degree_association_graph,
+            party_degree_vs_betweenness_statistic,
             n_permutations=500,
             two_sided=True,
         )
@@ -205,7 +208,7 @@ class TestH3DegreeBetweenness:
         assert result.significant
         assert result.p_value < 0.05
 
-    def test_random_labels_not_significant(self, h3_associated_graph):
+    def test_random_labels_not_significant(self, party_degree_association_graph):
         # Reshuffle the real labels once with a fixed seed to obtain a graph
         # whose labels are independent of centrality: a typical draw from the
         # null, which should not be flagged significant.
@@ -213,8 +216,8 @@ class TestH3DegreeBetweenness:
 
         rng = random.Random(7)
         deps = [
-            h3_associated_graph.deputies[n]
-            for n in h3_associated_graph.graph.nodes()
+            party_degree_association_graph.deputies[n]
+            for n in party_degree_association_graph.graph.nodes()
         ]
         labels = [d.party_code for d in deps]
         rng.shuffle(labels)
@@ -222,8 +225,8 @@ class TestH3DegreeBetweenness:
             dep.party_code = label
 
         result = assess_label_association(
-            h3_associated_graph,
-            h3_degree_betweenness_statistic,
+            party_degree_association_graph,
+            party_degree_vs_betweenness_statistic,
             n_permutations=500,
             two_sided=True,
         )
@@ -231,11 +234,12 @@ class TestH3DegreeBetweenness:
         assert not result.significant
 
 
-class TestH2BenchSizeBetweenness:
-    def test_negative_association_one_sided_significant(self, h2_associated_graph):
+class TestPartySizeVsBetweenness:
+    # Historical name: H2 (broker parties). Kept as complementary evidence.
+    def test_negative_association_one_sided_significant(self, party_size_association_graph):
         result = assess_label_association(
-            h2_associated_graph,
-            partial(h2_benchsize_betweenness_statistic, min_party_size=1),
+            party_size_association_graph,
+            partial(party_size_vs_mean_betweenness_statistic, min_party_size=1),
             n_permutations=500,
             two_sided=False,
         )
@@ -252,7 +256,7 @@ class TestSmallSampleGuard:
         }
         pg = _make_graph(specs)
         result = assess_label_association(
-            pg, h3_degree_betweenness_statistic, n_permutations=100
+            pg, party_degree_vs_betweenness_statistic, n_permutations=100
         )
         assert result.valid is False
         assert result.significant is False

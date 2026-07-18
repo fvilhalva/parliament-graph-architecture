@@ -1,10 +1,37 @@
 """Data processing and cleaning for parliamentary network construction."""
-import pandas as pd # type: ignore
 import logging
-from typing import List, Tuple
+import re
+from typing import List, Optional
+
+import pandas as pd  # type: ignore
+
+from models.coauthorship_edge import CoauthorshipEdge
 from models.deputy import Deputy
 from models.proposition import Proposition
-from models.coauthorship_edge import CoauthorshipEdge
+
+# Chamber ``ultimoStatus_uriRelator`` URIs look like
+# ``https://dadosabertos.camara.leg.br/api/v2/deputados/74161`` — the trailing
+# integer is the deputy id used everywhere else in the pipeline.
+_RELATOR_ID_PATTERN = re.compile(r"/deputados/(\d+)/?$")
+
+
+def _parse_relator_id(uri: object) -> Optional[int]:
+    """Return the deputy id embedded in a ``uriRelator``, or ``None``.
+
+    Safe against ``NaN``, empty strings and unexpected URI shapes.
+    """
+    if uri is None or (isinstance(uri, float) and pd.isna(uri)):
+        return None
+    text = str(uri).strip()
+    if not text:
+        return None
+    match = _RELATOR_ID_PATTERN.search(text)
+    if match is None:
+        return None
+    try:
+        return int(match.group(1))
+    except (TypeError, ValueError):
+        return None
 
 class ChamberProcessor:
     """Processes raw parliamentary data into domain objects."""
@@ -38,16 +65,36 @@ class ChamberProcessor:
         # Selecionamos apenas Projetos de Lei, Emendas à Constituição e Leis Complementares
         df_props_filtered = df_props[df_props['siglatipo'].isin(proposition_filter)]
 
+        # Columns preserved through the merge. ``ultimostatus_urirelator`` is
+        # optional in old dumps; only include it if present so we don't crash
+        # on legacy caches.
+        proposition_cols = ['id', 'siglatipo']
+        has_relator_column = 'ultimostatus_urirelator' in df_props_filtered.columns
+        if has_relator_column:
+            proposition_cols.append('ultimostatus_urirelator')
+
         # 3. Cruzamento (Merge): O "filtro atômico"
         # O inner join remove instantaneamente os 90 mil registros de requerimentos e ofícios
         df_merged = df_authors.merge(
-            df_props_filtered[['id', 'siglatipo']], 
-            left_on='idproposicao', 
-            right_on='id', 
-            how='inner'
+            df_props_filtered[proposition_cols],
+            left_on='idproposicao',
+            right_on='id',
+            how='inner',
         )
 
         type_map = df_merged.drop_duplicates('idproposicao').set_index('idproposicao')['siglatipo'].to_dict()
+
+        # Relatorship map: {proposition_id: relator_deputy_id or None}. Built
+        # over the *filtered* propositions only, which matches the scope of the
+        # network (PL/PEC/PLP/PDL/EMC). Changing the scope is a sensitive
+        # methodological decision — see PP3 in the monograph.
+        if has_relator_column:
+            relator_frame = df_merged.drop_duplicates('idproposicao').set_index('idproposicao')['ultimostatus_urirelator']
+            relator_map = {
+                prop_id: _parse_relator_id(uri) for prop_id, uri in relator_frame.items()
+            }
+        else:
+            relator_map = {prop_id: None for prop_id in type_map.keys()}
 
         # 2. Filtros de Domínio (Só Deputados Federais)
         df_deputies = df_merged[df_merged['codtipoautor'] == 10000].copy()
@@ -67,7 +114,7 @@ class ChamberProcessor:
         # and drives edge density above 85%, making community detection invalid.
         coauthorships = coauthorships[coauthorships.apply(len) <= max_authors]
 
-        return deputy_map, groups, coauthorships, type_map
+        return deputy_map, groups, coauthorships, type_map, relator_map
     
     def process_raw_data_unfiltered(self, raw_df: pd.DataFrame):
         """Process raw data without filtering proposition types.
@@ -95,20 +142,26 @@ class ChamberProcessor:
         groups: pd.Series,
         coauthorships: pd.Series,
         type_map: dict,
-        year: int
+        year: int,
+        relator_map: Optional[dict] = None,
     ) -> tuple:
         """Convert raw data maps to domain objects.
-        
+
         Args:
-            deputy_map: Mapping of deputy_id -> metadata
-            groups: Grouping of deputies by proposition ID
-            coauthorships: Filtered groups with 2+ authors
-            type_map: Mapping of proposition_id -> proposition_type
-            year: Analysis year
-            
+            deputy_map: Mapping of deputy_id -> metadata.
+            groups: Grouping of deputies by proposition ID.
+            coauthorships: Filtered groups with 2+ authors.
+            type_map: Mapping of proposition_id -> proposition_type.
+            year: Analysis year.
+            relator_map: Optional mapping ``{proposition_id -> relator_deputy_id
+                or None}``. When omitted, every proposition is created with
+                ``relator_id=None`` (backwards-compatible with legacy callers).
+
         Returns:
-            Tuple of (deputies_dict, propositions_list, coauthorships_list)
+            Tuple of (deputies_dict, propositions_list, coauthorships_list).
         """
+        relator_map = relator_map or {}
+
         # 1. Create Deputy objects (nodes)
         # Sanitize NaN/empty party and state codes — the Chamber API returns
         # blanks for deputies in transition between parties, on leave, or
@@ -126,7 +179,7 @@ class ChamberProcessor:
                 party_code=party_code,
                 state_code=state_code,
             )
-        
+
         # 2. Co-authorship propositions only (edges subset)
         coauthorships_list = []
         for prop_id, author_ids in coauthorships.items():
@@ -134,9 +187,10 @@ class ChamberProcessor:
                 id=prop_id,
                 year=year,
                 author_ids=author_ids,
-                proposition_type=type_map.get(prop_id, "N/A")
+                proposition_type=type_map.get(prop_id, "N/A"),
+                relator_id=relator_map.get(prop_id),
             ))
-        
+
         # 3. All propositions (individual + collective)
         propositions_list = []
         for prop_id, author_ids in groups.items():
@@ -144,7 +198,8 @@ class ChamberProcessor:
                 id=prop_id,
                 year=year,
                 author_ids=author_ids,
-                proposition_type=type_map.get(prop_id, "N/A")
+                proposition_type=type_map.get(prop_id, "N/A"),
+                relator_id=relator_map.get(prop_id),
             ))
-        
+
         return deputies_dict, propositions_list, coauthorships_list

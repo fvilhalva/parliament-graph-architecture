@@ -2,31 +2,40 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
 from typing import Callable
 
+import networkx as nx  # type: ignore
 import pandas as pd  # type: ignore
 
 from config import setup_logger
 from core import ParliamentaryGraph
-from core.algorithms.community_detection import compare_community_methods, detect_communities
+from core.algorithms.analysis_result import (
+    AnalysisResult,
+    MethodSummary,
+    PartitionAgreement,
+    compute_adjusted_rand_index,
+)
+from core.algorithms.community_composition import (
+    CommunityCompositionResult,
+    assess_graph_community_composition,
+)
+from core.algorithms.community_detection import CommunityDetector
+from core.algorithms.concentration import ConcentrationResult, assess_graph_concentration
+from core.algorithms.relatorship import RelatorshipResult, assess_graph_relatorship
 from core.algorithms.validation import (
     NullModelResult,
     PermutationResult,
     assess_community_significance,
     assess_label_association,
-    h2_benchsize_betweenness_statistic,
-    h3_degree_betweenness_statistic,
-)
-from core.algorithms.concentration import ConcentrationResult, assess_graph_concentration
-from core.algorithms.community_composition import (
-    CommunityCompositionResult,
-    assess_graph_community_composition,
+    party_degree_vs_betweenness_statistic,
+    party_size_vs_mean_betweenness_statistic,
 )
 from extraction import ChamberExtractor
 from processing import ChamberProcessor
-from repository import CsvRepository, DB_Exporter, GraphExporter
+from repository import AnalysisRepository, CsvRepository, DB_Exporter, GraphExporter
 from visualization import generate_analysis_plots
 
 logger = setup_logger(__name__)
@@ -41,6 +50,7 @@ class PipelineDependencies:
     graph_exporter: GraphExporter
     csv_repository: CsvRepository
     db_repository: DB_Exporter
+    analysis_repository: AnalysisRepository
     generate_plots: Callable[[int], Path] = generate_analysis_plots
 
 
@@ -65,7 +75,7 @@ def processing_stage(
     """Stage 2: Clean raw data and convert it into domain objects."""
     logger.info("Processing data...")
 
-    deputy_map, groups, coauthorships, type_map = processor.process_raw_data(
+    deputy_map, groups, coauthorships, type_map, relator_map = processor.process_raw_data(
         raw_df, metadata_df, max_authors=max_authors
     )
     deputies_dict, propositions_list, coauthorships_list = processor.convert_to_domain_objects(
@@ -74,6 +84,7 @@ def processing_stage(
         coauthorships,
         type_map,
         year,
+        relator_map=relator_map,
     )
 
     return deputies_dict, propositions_list, coauthorships_list
@@ -89,80 +100,87 @@ def core_stage(deputies: dict, propositions: list, coauthorships: list, year: in
 
 def algorithms_stage(
     graph: ParliamentaryGraph,
+    propositions: list,
+    year: int,
+    max_authors: int,
     n_permutations: int = 200,
     min_party_size: int = 3,
-) -> dict:
-    """Stage 4: Run community detection, statistical validation, and compare methods."""
-    logger.info("Running community detection and modularity comparison...")
-    communities_comparison = compare_community_methods(graph.graph)
-    logger.info(f"Community comparison: {communities_comparison}")
+) -> AnalysisResult:
+    """Stage 4: Community detection, statistical validation, PP1/PP2/PP3.
 
-    louvain_partition = detect_communities(graph.graph, method="louvain")
-    if louvain_partition:
-        for node_id, community_id in louvain_partition.items():
-            if graph.graph.has_node(node_id):
-                graph.graph.nodes[node_id]["community_louvain"] = int(community_id)
+    Returns the canonical :class:`AnalysisResult` for the year, ready to be
+    persisted by :class:`AnalysisRepository`.
+    """
+    detector = CommunityDetector()
 
-    # --- Statistical significance via null-model permutation test ---
+    # --- Community detection (both methods for comparison + ARI) ---
+    logger.info("Running community detection...")
+    louvain_partition = detector.detect_louvain(graph.graph, seed=42)
+    label_prop_partition = detector.detect_label_propagation(graph.graph)
+
+    louvain_summary = MethodSummary(
+        modularity=detector.calculate_modularity(graph.graph, louvain_partition),
+        num_communities=len(set(louvain_partition.values())) if louvain_partition else 0,
+    )
+    label_prop_summary = MethodSummary(
+        modularity=detector.calculate_modularity(graph.graph, label_prop_partition),
+        num_communities=len(set(label_prop_partition.values())) if label_prop_partition else 0,
+    )
+    logger.info(
+        "Louvain Q=%.4f (%d communities); Label Propagation Q=%.4f (%d communities)",
+        louvain_summary.modularity,
+        louvain_summary.num_communities,
+        label_prop_summary.modularity,
+        label_prop_summary.num_communities,
+    )
+
+    # Propagate Louvain community down to Deputy (for CSV/SQLite export) and to
+    # the NetworkX node attributes (for GEXF / Gephi).
+    graph.assign_communities(louvain_partition)
+
+    # Adjusted Rand Index between the two partitions — robustness of Louvain.
+    ari = compute_adjusted_rand_index(louvain_partition, label_prop_partition)
+    partition_agreement = PartitionAgreement(
+        adjusted_rand_index=ari,
+        louvain_num_communities=louvain_summary.num_communities,
+        label_propagation_num_communities=label_prop_summary.num_communities,
+    )
+    logger.info("Partition agreement (Louvain vs. LP): ARI=%.3f", ari)
+
+    # --- H1: statistical significance of community structure (null model) ---
     logger.info(f"Running null-model permutation test ({n_permutations} permutations)...")
-    validation: NullModelResult = assess_community_significance(
+    null_model: NullModelResult = assess_community_significance(
         graph.graph, n_permutations=n_permutations, seed=42
     )
-    logger.info(str(validation))
+    logger.info(str(null_model))
 
-    communities_comparison["null_model"] = {
-        "q_observed": round(validation.q_observed, 4),
-        "q_null_mean": round(validation.q_null_mean, 4),
-        "q_null_std": round(validation.q_null_std, 4),
-        "p_value": round(validation.p_value, 4),
-        "significant": validation.significant,
-        "n_permutations": validation.n_permutations,
-    }
-
-    # --- Structural hypotheses H2 & H3 via label-permutation tests ---
-    # These keep the graph fixed and shuffle party_code labels; topology and
-    # per-deputy centralities are never modified (see assess_label_association).
-    logger.info("Running label-permutation tests for H2 and H3...")
-
-    # H2: bench size vs. mean betweenness. Expected negative -> one-sided.
-    h2: PermutationResult = assess_label_association(
+    # --- Party-level label-permutation tests (historical H2, H3) ---
+    logger.info("Running party-level label-permutation tests...")
+    party_size_test: PermutationResult = assess_label_association(
         graph,
-        partial(h2_benchsize_betweenness_statistic, min_party_size=min_party_size),
+        partial(party_size_vs_mean_betweenness_statistic, min_party_size=min_party_size),
         n_permutations=n_permutations,
         seed=42,
         two_sided=False,
     )
-    logger.info("H2 %s", h2)
+    logger.info("party_size_vs_mean_betweenness %s", party_size_test)
 
-    # H3: mean weighted degree vs. mean betweenness. Two-sided by default.
-    h3: PermutationResult = assess_label_association(
+    party_degree_test: PermutationResult = assess_label_association(
         graph,
-        partial(h3_degree_betweenness_statistic, min_party_size=min_party_size),
+        partial(party_degree_vs_betweenness_statistic, min_party_size=min_party_size),
         n_permutations=n_permutations,
         seed=42,
         two_sided=True,
     )
-    logger.info("H3 %s", h3)
+    logger.info("party_degree_vs_betweenness %s", party_degree_test)
 
-    communities_comparison["h2_benchsize_betweenness"] = _permutation_summary(h2)
-    communities_comparison["h3_degree_betweenness"] = _permutation_summary(h3)
-
-    # --- PP1: structural concentration of influence (few vs. many) ---
+    # --- PP1: structural concentration of influence ---
     logger.info("Assessing concentration of influence (PP1)...")
-    concentration = {
-        metric: assess_graph_concentration(graph, metric=metric)
-        for metric in ("weighted_degree", "betweenness_centrality")
-    }
-    for result in concentration.values():
+    concentration: dict[str, ConcentrationResult] = {}
+    for metric in ("weighted_degree", "betweenness_centrality"):
+        result = assess_graph_concentration(graph, metric=metric)
+        concentration[metric] = result
         logger.info(str(result))
-    communities_comparison["concentration"] = {
-        metric: {
-            "gini": round(result.gini, 4),
-            "top_share": {str(frac): round(share, 4) for frac, share in result.top_share.items()},
-            "n": result.n,
-        }
-        for metric, result in concentration.items()
-    }
 
     # --- PP2: are communities parties or coalitions? ---
     logger.info("Assessing community party composition (PP2)...")
@@ -170,46 +188,44 @@ def algorithms_stage(
         graph, louvain_partition, min_size=min_party_size
     )
     logger.info(str(composition))
-    communities_comparison["community_composition"] = {
-        "verdict": composition.verdict,
-        "mean_purity": round(composition.mean_purity, 4),
-        "multiparty_fraction": round(composition.multiparty_fraction, 4),
-        "coalition_fraction": round(composition.coalition_fraction, 4),
-        "num_communities": composition.num_communities,
-    }
 
-    return communities_comparison
+    # --- PP3: centrality vs. relatorship count ---
+    logger.info("Assessing centrality vs. relatorship count (PP3)...")
+    graph.assign_relatorship_counts(propositions)
+    pp3: RelatorshipResult = assess_graph_relatorship(graph)
+    logger.info(str(pp3))
 
-
-def _permutation_summary(result: PermutationResult) -> dict:
-    """Serialise a :class:`PermutationResult` for persistence alongside H1."""
-    return {
-        "statistic_observed": round(result.statistic_observed, 4)
-        if result.valid
-        else None,
-        "statistic_null_mean": round(result.statistic_null_mean, 4)
-        if result.valid
-        else None,
-        "statistic_null_std": round(result.statistic_null_std, 4)
-        if result.valid
-        else None,
-        "p_value": round(result.p_value, 4),
-        "significant": result.significant,
-        "two_sided": result.two_sided,
-        "n_permutations": result.n_permutations,
-        "valid": result.valid,
-    }
+    return AnalysisResult(
+        year=year,
+        n_nodes=graph.graph.number_of_nodes(),
+        n_edges=graph.graph.number_of_edges(),
+        density=float(nx.density(graph.graph)) if graph.graph.number_of_nodes() > 1 else 0.0,
+        max_authors=max_authors,
+        n_permutations=n_permutations,
+        timestamp=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        louvain=louvain_summary,
+        label_propagation=label_prop_summary,
+        partition_agreement=partition_agreement,
+        null_model=null_model,
+        concentration=concentration,
+        community_composition=composition,
+        party_size_vs_mean_betweenness=party_size_test,
+        party_degree_vs_betweenness=party_degree_test,
+        pp3_relatorship=pp3,
+    )
 
 
 def repository_stage(
     graph: ParliamentaryGraph,
     deputies: list,
     year: int,
+    analysis: AnalysisResult,
     graph_exporter: GraphExporter,
     csv_repository: CsvRepository,
     db_repository: DB_Exporter,
+    analysis_repository: AnalysisRepository,
 ) -> None:
-    """Stage 5: Export graph and metrics to disk."""
+    """Stage 5: Export graph, metrics and analysis result to disk."""
     logger.info("Exporting data...")
 
     gexf_file = graph_exporter.export_gexf(graph, year=year)
@@ -225,6 +241,9 @@ def repository_stage(
 
     db_path = db_repository.exportar_metricas_deputados(deputies, year)
     logger.info(f"SQLite exported to: {db_path}")
+
+    analysis_file = analysis_repository.save(analysis)
+    logger.info(f"Analysis result exported to: {analysis_file}")
 
 
 def visualization_stage(year: int, generate_plots: Callable[[int], Path]) -> None:
@@ -255,16 +274,22 @@ def run_pipeline(year: int, dependencies: PipelineDependencies, max_authors: int
         graph = core_stage(deputies, propositions, coauthorships, year)
         deputy_centrality_list = graph.compute_all_centralities()
 
-        communities_info = algorithms_stage(graph)
-        logger.info(f"Community summary (year={year}): {communities_info}")
+        analysis = algorithms_stage(
+            graph,
+            propositions=propositions,
+            year=year,
+            max_authors=max_authors,
+        )
 
         repository_stage(
             graph,
             deputy_centrality_list,
             year,
+            analysis,
             dependencies.graph_exporter,
             dependencies.csv_repository,
             dependencies.db_repository,
+            dependencies.analysis_repository,
         )
         visualization_stage(year, dependencies.generate_plots)
 

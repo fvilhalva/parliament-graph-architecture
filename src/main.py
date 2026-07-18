@@ -2,13 +2,13 @@
 
 Runs the full pipeline for every year in the configured analysis window
 (default: 2022-2025). Each year produces an independent snapshot with its
-own GEXF, CSV exports, SQLite row and null-model p-value.
+own GEXF, CSV exports, SQLite row, null-model p-value and analysis JSON.
 """
 
 from config import Config, setup_logger
 from extraction import ChamberExtractor
 from processing import ChamberProcessor
-from repository import CsvRepository, DB_Exporter, GraphExporter
+from repository import AnalysisRepository, CsvRepository, DB_Exporter, GraphExporter
 from pipeline import PipelineDependencies, run_pipeline
 from visualization import generate_analysis_plots
 
@@ -27,6 +27,7 @@ def build_pipeline_dependencies() -> tuple[Config, PipelineDependencies]:
         graph_exporter=GraphExporter(Config.GEXF_DIR),
         csv_repository=CsvRepository(Config.METRICS_DIR),
         db_repository=DB_Exporter(Config.DB_PATH),
+        analysis_repository=AnalysisRepository(Config.ANALYSIS_DIR),
         generate_plots=generate_analysis_plots,
     )
     return config, deps

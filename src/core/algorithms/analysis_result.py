@@ -1,0 +1,143 @@
+"""Aggregate analytical result for a single legislative year.
+
+This dataclass composes every per-year output of the analytical stage into one
+typed object. It is the canonical shape returned by ``algorithms_stage`` and
+persisted by ``AnalysisRepository`` — no ``round()`` or ``str`` conversion
+happens inside the ``core/`` layer; those are presentation concerns and live
+in ``repository/``.
+
+Downstream (monograph tables, ``compare_years.py``, notebooks) code loads
+``AnalysisResult`` instances back from disk instead of recomputing anything.
+"""
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass, field
+from typing import Mapping, Optional
+
+from core.algorithms.community_composition import CommunityCompositionResult
+from core.algorithms.concentration import ConcentrationResult
+from core.algorithms.relatorship import RelatorshipResult
+from core.algorithms.validation import NullModelResult, PermutationResult
+
+
+@dataclass(frozen=True)
+class MethodSummary:
+    """Aggregate metrics for a single community detection method."""
+
+    modularity: float
+    num_communities: int
+
+
+@dataclass(frozen=True)
+class PartitionAgreement:
+    """Similarity between two community partitions on the same graph.
+
+    ``adjusted_rand_index`` follows the standard definition: values in
+    ``[-1, 1]``; 0 is chance-level agreement, 1 is identical partitions.
+    """
+
+    adjusted_rand_index: float
+    louvain_num_communities: int
+    label_propagation_num_communities: int
+
+
+@dataclass(frozen=True)
+class AnalysisResult:
+    """Canonical typed result of the analytical stage for one year.
+
+    Attributes:
+        year: Legislative year analysed.
+        n_nodes: Nodes in the built graph (deputies that co-authored).
+        n_edges: Edges in the built graph (unique co-authorship pairs).
+        density: Graph density in ``[0, 1]``.
+        max_authors: Value of the ``max_authors`` filter used to build the
+            graph. Declared in the metodologia; must be persisted so results
+            are reproducible.
+        n_permutations: Number of permutations used in the label-permutation
+            and null-model tests.
+        timestamp: ISO-8601 timestamp of the analysis run.
+        louvain: Aggregate metrics for the Louvain partition.
+        label_propagation: Aggregate metrics for the Label Propagation
+            partition.
+        partition_agreement: Similarity between the two partitions.
+        null_model: Result of the null-model permutation test (H1).
+        concentration: Per-metric structural concentration results (PP1/H2).
+        community_composition: Party composition of the Louvain partition
+            (PP2/H3).
+        party_size_vs_mean_betweenness: Party-level permutation test that was
+            originally introduced as H2 (broker parties). Kept as
+            complementary evidence.
+        party_degree_vs_betweenness: Party-level permutation test that was
+            originally introduced as H3 (echo chambers). Kept as complementary
+            evidence.
+        pp3_relatorship: Correlation between centrality and relatorship count
+            (PP3). ``None`` when the year has no relatorship data at all.
+    """
+
+    year: int
+    n_nodes: int
+    n_edges: int
+    density: float
+    max_authors: int
+    n_permutations: int
+    timestamp: str
+
+    louvain: MethodSummary
+    label_propagation: MethodSummary
+    partition_agreement: PartitionAgreement
+
+    null_model: NullModelResult
+    concentration: Mapping[str, ConcentrationResult] = field(default_factory=dict)
+    community_composition: Optional[CommunityCompositionResult] = None
+
+    party_size_vs_mean_betweenness: Optional[PermutationResult] = None
+    party_degree_vs_betweenness: Optional[PermutationResult] = None
+
+    pp3_relatorship: Optional[RelatorshipResult] = None
+
+
+def compute_adjusted_rand_index(
+    partition_a: Mapping[int, int],
+    partition_b: Mapping[int, int],
+) -> float:
+    """Adjusted Rand Index between two partitions of the same node set.
+
+    Implemented directly (no scikit-learn dependency) using the standard
+    contingency-table formulation. Only nodes present in both partitions are
+    considered — if their intersection is empty the score is ``0.0``.
+    """
+    shared_nodes = set(partition_a) & set(partition_b)
+    if not shared_nodes:
+        return 0.0
+
+    from collections import Counter
+
+    pairs = [(partition_a[n], partition_b[n]) for n in shared_nodes]
+    n = len(pairs)
+    if n < 2:
+        return 0.0
+
+    contingency: Counter[tuple[int, int]] = Counter(pairs)
+    row_totals: Counter[int] = Counter()
+    col_totals: Counter[int] = Counter()
+    for (a, b), count in contingency.items():
+        row_totals[a] += count
+        col_totals[b] += count
+
+    def comb2(x: int) -> int:
+        return x * (x - 1) // 2
+
+    sum_comb_ij = sum(comb2(c) for c in contingency.values())
+    sum_comb_row = sum(comb2(c) for c in row_totals.values())
+    sum_comb_col = sum(comb2(c) for c in col_totals.values())
+    total_pairs = comb2(n)
+
+    expected = (sum_comb_row * sum_comb_col) / total_pairs if total_pairs else 0.0
+    max_index = 0.5 * (sum_comb_row + sum_comb_col)
+    denominator = max_index - expected
+    if math.isclose(denominator, 0.0):
+        # Both partitions collapse into a single group (or agree perfectly on
+        # the trivial partition) — ARI is defined as 1.0 in that case.
+        return 1.0
+    return (sum_comb_ij - expected) / denominator
