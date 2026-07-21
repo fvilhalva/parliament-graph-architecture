@@ -1,11 +1,10 @@
 """Data processing and cleaning for parliamentary network construction."""
 import logging
 import re
-from typing import List, Optional
+from typing import Optional
 
 import pandas as pd  # type: ignore
 
-from models.coauthorship_edge import CoauthorshipEdge
 from models.deputy import Deputy
 from models.proposition import Proposition
 
@@ -38,11 +37,6 @@ class ChamberProcessor:
 
     def __init__(self, debug: bool = True) -> None:
         self.logger = self._setup_logger()
-        self.raw_dataframe = None
-        self.clean_dataframe = None
-        self.deputies: List[Deputy] = []
-        self.propositions: List[Proposition] = []
-        self.edges: List[CoauthorshipEdge] = []
 
     def _setup_logger(self) -> logging.Logger:
         """Configure logging for data processing and return logger."""
@@ -117,9 +111,20 @@ class ChamberProcessor:
         return deputy_map, groups, coauthorships, type_map, relator_map
     
     def process_raw_data_unfiltered(self, raw_df: pd.DataFrame):
-        """Process raw data without filtering proposition types.
+        """Process raw data without filtering proposition types or mass signatures.
 
-        Returns deputy_map, groups, coauthorships
+        Intended as a no-filter baseline for the sensitivity analysis discussed
+        in the methodology (demonstrating why the type and ``max_authors`` filters
+        matter — e.g. density climbing towards ~85%).
+
+        NOTE: this method is intentionally out of sync with :meth:`process_raw_data`
+        — it returns only ``(deputy_map, groups, coauthorships)`` (no ``type_map``
+        nor ``relator_map``) and does not apply the ``max_authors`` filter. Before
+        feeding its output to :meth:`convert_to_domain_objects`, it must be updated
+        to also produce ``type_map``.
+
+        Returns:
+            Tuple of (deputy_map, groups, coauthorships).
         """
         df = raw_df.copy()
         df.columns = [c.strip().lower() for c in df.columns]
