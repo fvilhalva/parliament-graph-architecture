@@ -5,7 +5,6 @@ from itertools import combinations
 from typing import Dict, List, Optional
 
 import networkx as nx  # type: ignore
-import pandas as pd  # type: ignore
 
 from config import setup_logger
 from config.constants import DEPUTY_ID_ALIASES, PROPOSITION_TYPE_WEIGHTS
@@ -271,7 +270,7 @@ class ParliamentaryGraph:
         self.compute_eigenvector_centrality()
         return ordered
 
-    # ---------------------------------------------- community + PP3 enrichment
+    # ------------------------------------------------------- community assignment
     def assign_communities(self, partition: Dict[int, int]) -> None:
         """Propagate a Louvain community partition down to ``Deputy`` objects.
 
@@ -291,45 +290,6 @@ class ParliamentaryGraph:
             deputy = self._resolve_deputy(node_id)
             if deputy is not None:
                 deputy.community_louvain = int(community_id)
-
-    def assign_relatorship_counts(self, propositions: List) -> None:
-        """Aggregate relatorship counts from ``propositions`` onto each Deputy.
-
-        For every proposition with a non-null ``relator_id``, increments the
-        ``relatorship_count`` of the corresponding :class:`Deputy`. Relators
-        that are not deputies in ``self.deputies`` (e.g. senators or committees
-        occasionally appearing in the raw data) are counted separately and
-        returned for downstream reporting (see PP3).
-
-        The counter is reset to zero on every call so repeated invocations
-        yield the same result — important for reproducibility.
-        """
-        # Reset first: idempotent under repeated calls.
-        for deputy in self.deputies.values():
-            deputy.relatorship_count = 0
-
-        off_graph_relators: set[int] = set()
-        for proposition in propositions:
-            relator_id = getattr(proposition, "relator_id", None)
-            if relator_id is None:
-                continue
-            deputy = self._resolve_deputy(relator_id)
-            if deputy is None:
-                off_graph_relators.add(int(relator_id))
-                continue
-            deputy.relatorship_count += 1
-
-        self._off_graph_relators = off_graph_relators  # type: ignore[attr-defined]
-
-    @property
-    def off_graph_relator_count(self) -> int:
-        """How many distinct relator ids were not present in the graph.
-
-        Populated by :meth:`assign_relatorship_counts`. See PP3 in the
-        monograph — this is itself a finding: institutional influence that is
-        invisible to the co-authorship network.
-        """
-        return len(getattr(self, "_off_graph_relators", set()))
 
     # ------------------------------------------------------- structural views
     def advanced_structural_analysis(self) -> None:
@@ -391,61 +351,3 @@ class ParliamentaryGraph:
                 "Removing %s does not isolate any groups (resilient network).",
                 target_name,
             )
-
-    # -------------------------------------------------------- party analytics
-    def filter_parties_by_degree(self, min_party_size: int = 1) -> pd.DataFrame:
-        """Rank parties by mean weighted degree.
-
-        Args:
-            min_party_size: Drop parties whose number of deputies in the
-                network is strictly below this threshold.
-
-        Returns:
-            DataFrame with columns ``party_code``, ``avg_weighted_degree``,
-            ``num_deputies``, sorted by mean weighted degree (descending).
-        """
-        return self._aggregate_party_metric("weighted_degree", min_party_size, "avg_weighted_degree")
-
-    def filter_parties_by_betweenness(self, min_party_size: int = 1) -> pd.DataFrame:
-        """Rank parties by mean betweenness centrality.
-
-        Args:
-            min_party_size: Drop parties whose number of deputies in the
-                network is strictly below this threshold.
-
-        Returns:
-            DataFrame with columns ``party_code``, ``avg_betweenness``,
-            ``num_deputies``, sorted by mean betweenness (descending).
-        """
-        return self._aggregate_party_metric("betweenness_centrality", min_party_size, "avg_betweenness")
-
-    def _aggregate_party_metric(
-        self,
-        metric_attr: str,
-        min_party_size: int,
-        output_column: str,
-    ) -> pd.DataFrame:
-        """Aggregate a per-deputy centrality field into a per-party ranking."""
-        rows = []
-        for deputy_id in self.graph.nodes():
-            deputy = self.deputies.get(deputy_id)
-            if deputy is None:
-                continue
-            rows.append(
-                {
-                    "party_code": deputy.party_code,
-                    "value": getattr(deputy, metric_attr, 0.0),
-                }
-            )
-
-        if not rows:
-            return pd.DataFrame(columns=["party_code", output_column, "num_deputies"])
-
-        frame = pd.DataFrame(rows)
-        grouped = (
-            frame.groupby("party_code")
-            .agg(**{output_column: ("value", "mean"), "num_deputies": ("value", "count")})
-            .reset_index()
-        )
-        grouped = grouped[grouped["num_deputies"] >= min_party_size]
-        return grouped.sort_values(by=output_column, ascending=False).reset_index(drop=True)

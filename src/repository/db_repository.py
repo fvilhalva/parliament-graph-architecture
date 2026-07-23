@@ -14,7 +14,6 @@ _METRIC_COLUMNS: tuple[tuple[str, str], ...] = (
     ("closeness_centrality", "REAL NOT NULL DEFAULT 0"),
     ("eigenvector_centrality", "REAL NOT NULL DEFAULT 0"),
     ("community_louvain", "INTEGER"),
-    ("relatorship_count", "INTEGER NOT NULL DEFAULT 0"),
 )
 
 
@@ -80,7 +79,6 @@ class DB_Exporter:
                     dep.get("closeness_centrality", 0.0),
                     dep.get("eigenvector_centrality", 0.0),
                     dep.get("community_louvain"),
-                    dep.get("relatorship_count", 0),
                 )
             )
 
@@ -99,9 +97,8 @@ class DB_Exporter:
                     betweenness_centrality,
                     closeness_centrality,
                     eigenvector_centrality,
-                    community_louvain,
-                    relatorship_count
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    community_louvain
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 registros,
             )

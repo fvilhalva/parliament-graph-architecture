@@ -39,7 +39,6 @@ class CsvRepository:
                     "closeness_centrality": deputy_dict.get("closeness_centrality", 0.0),
                     "eigenvector_centrality": deputy_dict.get("eigenvector_centrality", 0.0),
                     "community_louvain": deputy_dict.get("community_louvain"),
-                    "relatorship_count": deputy_dict.get("relatorship_count", 0),
                 }
             )
 

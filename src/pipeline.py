@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from functools import partial
 from pathlib import Path
 from typing import Callable
 
@@ -18,21 +17,8 @@ from core.algorithms.analysis_result import (
     PartitionAgreement,
     compute_adjusted_rand_index,
 )
-from core.algorithms.community_composition import (
-    CommunityCompositionResult,
-    assess_graph_community_composition,
-)
 from core.algorithms.community_detection import CommunityDetector
-from core.algorithms.concentration import ConcentrationResult, assess_graph_concentration
-from core.algorithms.relatorship import RelatorshipResult, assess_graph_relatorship
-from core.algorithms.validation import (
-    NullModelResult,
-    PermutationResult,
-    assess_community_significance,
-    assess_label_association,
-    party_degree_vs_betweenness_statistic,
-    party_size_vs_mean_betweenness_statistic,
-)
+from core.algorithms.validation import NullModelResult, assess_community_significance
 from extraction import ChamberExtractor
 from processing import ChamberProcessor
 from repository import AnalysisRepository, CsvRepository, DB_Exporter, GraphExporter
@@ -75,7 +61,7 @@ def processing_stage(
     """Stage 2: Clean raw data and convert it into domain objects."""
     logger.info("Processing data...")
 
-    deputy_map, groups, coauthorships, type_map, relator_map = processor.process_raw_data(
+    deputy_map, groups, coauthorships, type_map = processor.process_raw_data(
         raw_df, metadata_df, max_authors=max_authors
     )
     deputies_dict, propositions_list, coauthorships_list = processor.convert_to_domain_objects(
@@ -84,7 +70,6 @@ def processing_stage(
         coauthorships,
         type_map,
         year,
-        relator_map=relator_map,
     )
 
     return deputies_dict, propositions_list, coauthorships_list
@@ -100,20 +85,18 @@ def core_stage(deputies: dict, propositions: list, coauthorships: list, year: in
 
 def algorithms_stage(
     graph: ParliamentaryGraph,
-    propositions: list,
     year: int,
     max_authors: int,
     n_permutations: int = 200,
-    min_party_size: int = 3,
 ) -> AnalysisResult:
-    """Stage 4: Community detection, statistical validation, PP1/PP2/PP3.
+    """Stage 4: Community detection and null-model validation (H1).
 
     Returns the canonical :class:`AnalysisResult` for the year, ready to be
     persisted by :class:`AnalysisRepository`.
     """
     detector = CommunityDetector()
 
-    # --- Community detection (both methods for comparison + ARI) ---
+    # --- Community detection (both methods for comparison + ARI robustness) ---
     logger.info("Running community detection...")
     louvain_partition = detector.detect_louvain(graph.graph, seed=42)
     label_prop_partition = detector.detect_label_propagation(graph.graph)
@@ -138,7 +121,7 @@ def algorithms_stage(
     # the NetworkX node attributes (for GEXF / Gephi).
     graph.assign_communities(louvain_partition)
 
-    # Adjusted Rand Index between the two partitions — robustness of Louvain.
+    # Adjusted Rand Index between the two partitions — robustness of Louvain (H1).
     ari = compute_adjusted_rand_index(louvain_partition, label_prop_partition)
     partition_agreement = PartitionAgreement(
         adjusted_rand_index=ari,
@@ -154,47 +137,6 @@ def algorithms_stage(
     )
     logger.info(str(null_model))
 
-    # --- Party-level label-permutation tests (historical H2, H3) ---
-    logger.info("Running party-level label-permutation tests...")
-    party_size_test: PermutationResult = assess_label_association(
-        graph,
-        partial(party_size_vs_mean_betweenness_statistic, min_party_size=min_party_size),
-        n_permutations=n_permutations,
-        seed=42,
-        two_sided=False,
-    )
-    logger.info("party_size_vs_mean_betweenness %s", party_size_test)
-
-    party_degree_test: PermutationResult = assess_label_association(
-        graph,
-        partial(party_degree_vs_betweenness_statistic, min_party_size=min_party_size),
-        n_permutations=n_permutations,
-        seed=42,
-        two_sided=True,
-    )
-    logger.info("party_degree_vs_betweenness %s", party_degree_test)
-
-    # --- PP1: structural concentration of influence ---
-    logger.info("Assessing concentration of influence (PP1)...")
-    concentration: dict[str, ConcentrationResult] = {}
-    for metric in ("weighted_degree", "betweenness_centrality"):
-        result = assess_graph_concentration(graph, metric=metric)
-        concentration[metric] = result
-        logger.info(str(result))
-
-    # --- PP2: are communities parties or coalitions? ---
-    logger.info("Assessing community party composition (PP2)...")
-    composition: CommunityCompositionResult = assess_graph_community_composition(
-        graph, louvain_partition, min_size=min_party_size
-    )
-    logger.info(str(composition))
-
-    # --- PP3: centrality vs. relatorship count ---
-    logger.info("Assessing centrality vs. relatorship count (PP3)...")
-    graph.assign_relatorship_counts(propositions)
-    pp3: RelatorshipResult = assess_graph_relatorship(graph)
-    logger.info(str(pp3))
-
     return AnalysisResult(
         year=year,
         n_nodes=graph.graph.number_of_nodes(),
@@ -207,11 +149,6 @@ def algorithms_stage(
         label_propagation=label_prop_summary,
         partition_agreement=partition_agreement,
         null_model=null_model,
-        concentration=concentration,
-        community_composition=composition,
-        party_size_vs_mean_betweenness=party_size_test,
-        party_degree_vs_betweenness=party_degree_test,
-        pp3_relatorship=pp3,
     )
 
 
@@ -276,7 +213,6 @@ def run_pipeline(year: int, dependencies: PipelineDependencies, max_authors: int
 
         analysis = algorithms_stage(
             graph,
-            propositions=propositions,
             year=year,
             max_authors=max_authors,
         )

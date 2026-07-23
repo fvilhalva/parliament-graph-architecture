@@ -177,37 +177,17 @@ def main() -> None:
     print("\n=== Multi-year Summary ===")
     print(summary.to_string(index=False))
 
-    # ── PP-level highlights (from persisted analysis results) ──
-    print("\n=== Concentration (Gini) per year ===")
+    # ── Null-model significance (H1) + partition agreement per year ──
+    print("\n=== H1 null-model + partition agreement (ARI) per year ===")
     for r in rows:
         result = r["result"]
-        for metric, conc in result.concentration.items():
-            print(
-                f"  {r['year']} {metric}: Gini={conc.gini:.3f} "
-                f"(top 5% = {conc.top_share.get(0.05, 0.0):.1%})"
-            )
-
-    print("\n=== Community composition per year ===")
-    for r in rows:
-        result = r["result"]
-        composition = result.community_composition
-        if composition is None:
-            continue
+        nm = result.null_model
+        ari = result.partition_agreement.adjusted_rand_index
+        sig = "SIGNIFICANT" if nm.significant else "NOT significant"
         print(
-            f"  {r['year']}: verdict={composition.verdict}, "
-            f"pureza={composition.mean_purity:.2f}, "
-            f"multipartidárias={composition.multiparty_fraction:.0%}, "
-            f"coalizões={composition.coalition_fraction:.0%}"
+            f"  {r['year']}: Q_obs={nm.q_observed:.3f} vs Q_null={nm.q_null_mean:.3f} "
+            f"(p={nm.p_value:.4f}, {sig}); ARI(Louvain vs LP)={ari:.3f}"
         )
-
-    print("\n=== PP3 (centrality × relatorship) per year ===")
-    for r in rows:
-        result = r["result"]
-        pp3 = result.pp3_relatorship
-        if pp3 is None:
-            print(f"  {r['year']}: no PP3 result")
-            continue
-        print(f"  {r['year']}: {pp3}")
 
     # ── Top deputies per year ──
     print("\n=== Top 5 by Betweenness Centrality per Year ===")

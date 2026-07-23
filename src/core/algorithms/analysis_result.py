@@ -1,10 +1,10 @@
 """Aggregate analytical result for a single legislative year.
 
-This dataclass composes every per-year output of the analytical stage into one
-typed object. It is the canonical shape returned by ``algorithms_stage`` and
-persisted by ``AnalysisRepository`` — no ``round()`` or ``str`` conversion
-happens inside the ``core/`` layer; those are presentation concerns and live
-in ``repository/``.
+This dataclass composes the per-year outputs of the analytical stage into one
+typed object: the community-detection summaries, the partition-agreement
+robustness measure (ARI), and the null-model significance test that validates
+the central hypothesis (H1). No ``round()`` or ``str`` conversion happens inside
+the ``core/`` layer; those are presentation concerns handled in ``repository/``.
 
 Downstream (monograph tables, ``compare_years.py``, notebooks) code loads
 ``AnalysisResult`` instances back from disk instead of recomputing anything.
@@ -12,13 +12,9 @@ Downstream (monograph tables, ``compare_years.py``, notebooks) code loads
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-from typing import Mapping, Optional
+from dataclasses import dataclass
 
-from core.algorithms.community_composition import CommunityCompositionResult
-from core.algorithms.concentration import ConcentrationResult
-from core.algorithms.relatorship import RelatorshipResult
-from core.algorithms.validation import NullModelResult, PermutationResult
+from core.algorithms.validation import NullModelResult
 
 
 @dataclass(frozen=True)
@@ -54,25 +50,14 @@ class AnalysisResult:
         max_authors: Value of the ``max_authors`` filter used to build the
             graph. Declared in the metodologia; must be persisted so results
             are reproducible.
-        n_permutations: Number of permutations used in the label-permutation
-            and null-model tests.
+        n_permutations: Number of permutations used in the null-model test.
         timestamp: ISO-8601 timestamp of the analysis run.
         louvain: Aggregate metrics for the Louvain partition.
         label_propagation: Aggregate metrics for the Label Propagation
-            partition.
-        partition_agreement: Similarity between the two partitions.
-        null_model: Result of the null-model permutation test (H1).
-        concentration: Per-metric structural concentration results (PP1/H2).
-        community_composition: Party composition of the Louvain partition
-            (PP2/H3).
-        party_size_vs_mean_betweenness: Party-level permutation test that was
-            originally introduced as H2 (broker parties). Kept as
-            complementary evidence.
-        party_degree_vs_betweenness: Party-level permutation test that was
-            originally introduced as H3 (echo chambers). Kept as complementary
-            evidence.
-        pp3_relatorship: Correlation between centrality and relatorship count
-            (PP3). ``None`` when the year has no relatorship data at all.
+            partition (robustness contraprova).
+        partition_agreement: Similarity between the two partitions (ARI).
+        null_model: Result of the null-model permutation test — the central
+            hypothesis (H1).
     """
 
     year: int
@@ -88,18 +73,11 @@ class AnalysisResult:
     partition_agreement: PartitionAgreement
 
     null_model: NullModelResult
-    concentration: Mapping[str, ConcentrationResult] = field(default_factory=dict)
-    community_composition: Optional[CommunityCompositionResult] = None
-
-    party_size_vs_mean_betweenness: Optional[PermutationResult] = None
-    party_degree_vs_betweenness: Optional[PermutationResult] = None
-
-    pp3_relatorship: Optional[RelatorshipResult] = None
 
 
 def compute_adjusted_rand_index(
-    partition_a: Mapping[int, int],
-    partition_b: Mapping[int, int],
+    partition_a: dict[int, int],
+    partition_b: dict[int, int],
 ) -> float:
     """Adjusted Rand Index between two partitions of the same node set.
 
