@@ -1,9 +1,12 @@
-"""Tests for the null-model community significance validation."""
+"""Tests for the null-model community significance validation (H1)."""
 
 import networkx as nx
 import pytest
 
-from core.algorithms.validation import NullModelResult, assess_community_significance
+from core.algorithms.validation import (
+    NullModelResult,
+    assess_community_significance,
+)
 
 
 @pytest.fixture
@@ -56,3 +59,9 @@ class TestCommunitySignificance:
             two_clusters, n_permutations=50, alpha=0.10, seed=42
         )
         assert result.alpha == 0.10
+
+    def test_reproducible_with_same_seed(self, two_clusters):
+        a = assess_community_significance(two_clusters, n_permutations=50, seed=42)
+        b = assess_community_significance(two_clusters, n_permutations=50, seed=42)
+        assert a.q_observed == pytest.approx(b.q_observed)
+        assert a.q_null_mean == pytest.approx(b.q_null_mean)

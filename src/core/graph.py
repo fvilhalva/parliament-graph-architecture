@@ -5,7 +5,6 @@ from itertools import combinations
 from typing import Dict, List, Optional
 
 import networkx as nx  # type: ignore
-import pandas as pd  # type: ignore
 
 from config import setup_logger
 from config.constants import DEPUTY_ID_ALIASES, PROPOSITION_TYPE_WEIGHTS
@@ -271,6 +270,27 @@ class ParliamentaryGraph:
         self.compute_eigenvector_centrality()
         return ordered
 
+    # ------------------------------------------------------- community assignment
+    def assign_communities(self, partition: Dict[int, int]) -> None:
+        """Propagate a Louvain community partition down to ``Deputy`` objects.
+
+        Attaches ``community_louvain`` both to the NetworkX node attribute
+        (already the case, but repeated here for symmetry) and to the matching
+        :class:`Deputy`, so downstream exports (CSV, SQLite, JSON) can carry the
+        assignment without having to touch the graph object.
+
+        Nodes that are not present in ``partition`` and deputies that are not
+        in the graph are left untouched.
+        """
+        if not partition:
+            return
+        for node_id, community_id in partition.items():
+            if self.graph.has_node(node_id):
+                self.graph.nodes[node_id]["community_louvain"] = int(community_id)
+            deputy = self._resolve_deputy(node_id)
+            if deputy is not None:
+                deputy.community_louvain = int(community_id)
+
     # ------------------------------------------------------- structural views
     def advanced_structural_analysis(self) -> None:
         """Log a high-level structural summary (articulation points, density,
@@ -331,61 +351,3 @@ class ParliamentaryGraph:
                 "Removing %s does not isolate any groups (resilient network).",
                 target_name,
             )
-
-    # -------------------------------------------------------- party analytics
-    def filter_parties_by_degree(self, min_party_size: int = 1) -> pd.DataFrame:
-        """Rank parties by mean weighted degree.
-
-        Args:
-            min_party_size: Drop parties whose number of deputies in the
-                network is strictly below this threshold.
-
-        Returns:
-            DataFrame with columns ``party_code``, ``avg_weighted_degree``,
-            ``num_deputies``, sorted by mean weighted degree (descending).
-        """
-        return self._aggregate_party_metric("weighted_degree", min_party_size, "avg_weighted_degree")
-
-    def filter_parties_by_betweenness(self, min_party_size: int = 1) -> pd.DataFrame:
-        """Rank parties by mean betweenness centrality.
-
-        Args:
-            min_party_size: Drop parties whose number of deputies in the
-                network is strictly below this threshold.
-
-        Returns:
-            DataFrame with columns ``party_code``, ``avg_betweenness``,
-            ``num_deputies``, sorted by mean betweenness (descending).
-        """
-        return self._aggregate_party_metric("betweenness_centrality", min_party_size, "avg_betweenness")
-
-    def _aggregate_party_metric(
-        self,
-        metric_attr: str,
-        min_party_size: int,
-        output_column: str,
-    ) -> pd.DataFrame:
-        """Aggregate a per-deputy centrality field into a per-party ranking."""
-        rows = []
-        for deputy_id in self.graph.nodes():
-            deputy = self.deputies.get(deputy_id)
-            if deputy is None:
-                continue
-            rows.append(
-                {
-                    "party_code": deputy.party_code,
-                    "value": getattr(deputy, metric_attr, 0.0),
-                }
-            )
-
-        if not rows:
-            return pd.DataFrame(columns=["party_code", output_column, "num_deputies"])
-
-        frame = pd.DataFrame(rows)
-        grouped = (
-            frame.groupby("party_code")
-            .agg(**{output_column: ("value", "mean"), "num_deputies": ("value", "count")})
-            .reset_index()
-        )
-        grouped = grouped[grouped["num_deputies"] >= min_party_size]
-        return grouped.sort_values(by=output_column, ascending=False).reset_index(drop=True)
