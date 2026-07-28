@@ -1,21 +1,17 @@
 """Data processing and cleaning for parliamentary network construction."""
-import pandas as pd # type: ignore
 import logging
-from typing import List, Tuple
+
+import pandas as pd  # type: ignore
+
 from models.deputy import Deputy
 from models.proposition import Proposition
-from models.coauthorship_edge import CoauthorshipEdge
+
 
 class ChamberProcessor:
     """Processes raw parliamentary data into domain objects."""
 
     def __init__(self, debug: bool = True) -> None:
         self.logger = self._setup_logger()
-        self.raw_dataframe = None
-        self.clean_dataframe = None
-        self.deputies: List[Deputy] = []
-        self.propositions: List[Proposition] = []
-        self.edges: List[CoauthorshipEdge] = []
 
     def _setup_logger(self) -> logging.Logger:
         """Configure logging for data processing and return logger."""
@@ -41,10 +37,10 @@ class ChamberProcessor:
         # 3. Cruzamento (Merge): O "filtro atômico"
         # O inner join remove instantaneamente os 90 mil registros de requerimentos e ofícios
         df_merged = df_authors.merge(
-            df_props_filtered[['id', 'siglatipo']], 
-            left_on='idproposicao', 
-            right_on='id', 
-            how='inner'
+            df_props_filtered[['id', 'siglatipo']],
+            left_on='idproposicao',
+            right_on='id',
+            how='inner',
         )
 
         type_map = df_merged.drop_duplicates('idproposicao').set_index('idproposicao')['siglatipo'].to_dict()
@@ -68,11 +64,22 @@ class ChamberProcessor:
         coauthorships = coauthorships[coauthorships.apply(len) <= max_authors]
 
         return deputy_map, groups, coauthorships, type_map
-    
-    def process_raw_data_unfiltered(self, raw_df: pd.DataFrame):
-        """Process raw data without filtering proposition types.
 
-        Returns deputy_map, groups, coauthorships
+    def process_raw_data_unfiltered(self, raw_df: pd.DataFrame):
+        """Process raw data without filtering proposition types or mass signatures.
+
+        Intended as a no-filter baseline for the sensitivity analysis discussed
+        in the methodology (demonstrating why the type and ``max_authors`` filters
+        matter — e.g. density climbing towards ~85%).
+
+        NOTE: this method is intentionally out of sync with :meth:`process_raw_data`
+        — it returns only ``(deputy_map, groups, coauthorships)`` (no ``type_map``)
+        and does not apply the ``max_authors`` filter. Before feeding its output to
+        :meth:`convert_to_domain_objects`, it must be updated to also produce
+        ``type_map``.
+
+        Returns:
+            Tuple of (deputy_map, groups, coauthorships).
         """
         df = raw_df.copy()
         df.columns = [c.strip().lower() for c in df.columns]
@@ -88,26 +95,26 @@ class ChamberProcessor:
         coauthorships = groups[groups.apply(len) > 1]
 
         return deputy_map, groups, coauthorships
-    
+
     def convert_to_domain_objects(
         self,
         deputy_map: dict,
         groups: pd.Series,
         coauthorships: pd.Series,
         type_map: dict,
-        year: int
+        year: int,
     ) -> tuple:
         """Convert raw data maps to domain objects.
-        
+
         Args:
-            deputy_map: Mapping of deputy_id -> metadata
-            groups: Grouping of deputies by proposition ID
-            coauthorships: Filtered groups with 2+ authors
-            type_map: Mapping of proposition_id -> proposition_type
-            year: Analysis year
-            
+            deputy_map: Mapping of deputy_id -> metadata.
+            groups: Grouping of deputies by proposition ID.
+            coauthorships: Filtered groups with 2+ authors.
+            type_map: Mapping of proposition_id -> proposition_type.
+            year: Analysis year.
+
         Returns:
-            Tuple of (deputies_dict, propositions_list, coauthorships_list)
+            Tuple of (deputies_dict, propositions_list, coauthorships_list).
         """
         # 1. Create Deputy objects (nodes)
         # Sanitize NaN/empty party and state codes — the Chamber API returns
@@ -126,7 +133,7 @@ class ChamberProcessor:
                 party_code=party_code,
                 state_code=state_code,
             )
-        
+
         # 2. Co-authorship propositions only (edges subset)
         coauthorships_list = []
         for prop_id, author_ids in coauthorships.items():
@@ -134,9 +141,9 @@ class ChamberProcessor:
                 id=prop_id,
                 year=year,
                 author_ids=author_ids,
-                proposition_type=type_map.get(prop_id, "N/A")
+                proposition_type=type_map.get(prop_id, "N/A"),
             ))
-        
+
         # 3. All propositions (individual + collective)
         propositions_list = []
         for prop_id, author_ids in groups.items():
@@ -144,7 +151,7 @@ class ChamberProcessor:
                 id=prop_id,
                 year=year,
                 author_ids=author_ids,
-                proposition_type=type_map.get(prop_id, "N/A")
+                proposition_type=type_map.get(prop_id, "N/A"),
             ))
-        
+
         return deputies_dict, propositions_list, coauthorships_list

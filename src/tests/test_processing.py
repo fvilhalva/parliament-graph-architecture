@@ -194,7 +194,7 @@ class TestMaxAuthorsFilter:
         df_props = self._make_props_df([1, 2])
 
         processor = ChamberProcessor()
-        deputy_map, groups, coauthorships, _ = processor.process_raw_data(
+        deputy_map, groups, coauthorships, *_ = processor.process_raw_data(
             df_authors, df_props, max_authors=30
         )
 
@@ -208,7 +208,7 @@ class TestMaxAuthorsFilter:
         df_props = self._make_props_df([99])
 
         processor = ChamberProcessor()
-        _, _, coauthorships, _ = processor.process_raw_data(
+        _, _, coauthorships, *_ = processor.process_raw_data(
             df_authors, df_props, max_authors=30
         )
 
@@ -221,7 +221,7 @@ class TestMaxAuthorsFilter:
         df_props = self._make_props_df([5])
 
         processor = ChamberProcessor()
-        _, _, coauthorships, _ = processor.process_raw_data(
+        _, _, coauthorships, *_ = processor.process_raw_data(
             df_authors, df_props, max_authors=30
         )
 
@@ -234,7 +234,7 @@ class TestMaxAuthorsFilter:
         df_props = self._make_props_df([6])
 
         processor = ChamberProcessor()
-        _, _, coauthorships, _ = processor.process_raw_data(
+        _, _, coauthorships, *_ = processor.process_raw_data(
             df_authors, df_props, max_authors=30
         )
 
@@ -248,7 +248,7 @@ class TestMaxAuthorsFilter:
         df_props = self._make_props_df([7])
 
         processor = ChamberProcessor()
-        _, groups, coauthorships, _ = processor.process_raw_data(
+        _, groups, coauthorships, *_ = processor.process_raw_data(
             df_authors, df_props, max_authors=30
         )
 

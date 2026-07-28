@@ -6,7 +6,7 @@ sequence of the original network (Configuration Model).
 
 If the observed modularity is significantly higher than the null distribution
 (p < 0.05), the detected community structure is unlikely to have arisen by
-chance.
+chance. This is the sole statistical test behind the central hypothesis (H1).
 """
 from __future__ import annotations
 

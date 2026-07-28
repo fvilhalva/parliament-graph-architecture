@@ -51,6 +51,7 @@ class Config:
     GEXF_DIR = Path(_env("GEXF_DIR", default=str(DATA_DIR / "gexf")))
     METRICS_DIR = Path(_env("METRICS_DIR", legacy_name="METRICAS_DIR", default=str(DATA_DIR / "metricas")))
     PLOTS_DIR = Path(_env("PLOTS_DIR", default=str(DATA_DIR / "plots")))
+    ANALYSIS_DIR = Path(_env("ANALYSIS_DIR", default=str(DATA_DIR / "analysis")))
 
     # --- DATABASE ---
     DB_PATH = _env("DB_PATH", default=str(DATA_DIR / "parliament.db"))

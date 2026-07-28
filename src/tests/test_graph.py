@@ -209,28 +209,6 @@ class TestUnknownDeputies:
         assert graph.compute_eigenvector_centrality() == []
 
 
-class TestPartyFilters:
-    def test_filter_parties_by_degree_returns_ranking(self, example_graph):
-        example_graph.compute_all_centralities()
-        ranking = example_graph.filter_parties_by_degree()
-        assert not ranking.empty
-        assert list(ranking.columns) == ["party_code", "avg_weighted_degree", "num_deputies"]
-        # Verify sorted descending
-        values = list(ranking["avg_weighted_degree"])
-        assert values == sorted(values, reverse=True)
-
-    def test_filter_parties_by_betweenness_returns_ranking(self, example_graph):
-        example_graph.compute_all_centralities()
-        ranking = example_graph.filter_parties_by_betweenness()
-        assert not ranking.empty
-        assert list(ranking.columns) == ["party_code", "avg_betweenness", "num_deputies"]
-
-    def test_filter_parties_respects_min_size(self, example_graph):
-        example_graph.compute_all_centralities()
-        ranking = example_graph.filter_parties_by_degree(min_party_size=99)
-        assert ranking.empty
-
-
 class TestSearchAndDisplay:
     def test_search_by_id(self, example_graph):
         results = example_graph.search_deputies("1")

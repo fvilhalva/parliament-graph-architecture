@@ -36,7 +36,6 @@ MAX_AUTHORS_PER_PROPOSAL = 30
 
 # Community detection parameters
 NUM_COMMUNITIES = 5
-COMMUNITY_DETECTION_METHOD = 'spectral'  # spectral, louvain, greedy
 
 # ---------------------------------------------------------------------------
 # Proposition type weights
@@ -61,7 +60,6 @@ PROPOSITION_TYPE_WEIGHTS: dict[str, float] = {
     'PL':  1,    # Bill (Lei Ordinária)
     'PLP': 1,    # Complementary Law Bill
     'PEC': 1,    # Constitutional Amendment Proposal
-    'PLV': 1,    # Provisional-measure conversion bill
     'PDL': 1,    # Legislative Decree
     'EMC': 1,    # Committee amendment
 }

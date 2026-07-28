@@ -6,12 +6,13 @@ from typing import List
 @dataclass
 class Proposition:
     """Represents a legislative proposition (bill, amendment, etc.).
-    
+
     Attributes:
-        id: Unique identifier from Câmara API
-        year: Year of proposition submission
-        author_ids: List of deputy IDs who authored this proposition
-        proposition_type: Type code ('PL' for Bill, 'PLP' for Complementary Law, 'PEC' for Amendment)
+        id: Unique identifier from Câmara API.
+        year: Year of proposition submission.
+        author_ids: List of deputy IDs who authored this proposition.
+        proposition_type: Type code ('PL' for Bill, 'PLP' for Complementary
+            Law, 'PEC' for Amendment, etc.).
     """
     id: int
     year: int
