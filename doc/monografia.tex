@@ -178,13 +178,9 @@ Aos meus amigos, que entenderam as ausências e celebraram cada conquista deste 
 \begin{epigrafe}
     \vspace*{\fill}
     \begin{flushright}
-        \textit{``Devemos o baixo custo da eletricidade hoje à rede elétrica, o sistema que surgiu
-         por meio dessas conexões entre pares, unindo todos os produtores e consumidores
-         em uma única rede. Ela permite que a energia produzida a baixo custo seja instantaneamente
-         transportada para qualquer lugar. Assim, a eletricidade oferece um exemplo maravilhoso do
-         enorme impacto positivo que as redes exercem sobre as nossas vidas.''}\\
+        \textit{``Este é um lugar para estar. Isto é tudo o que você tem, mas ainda é alguma coisa. Ruas e luzes de sódio. O céu, o mundo. Você ainda está vivo.''}\\
         \vspace*{0.3cm}
-        --- Albert-László Barabási, \textit{Network Science}
+        --- Volição, \textit{Disco Elysium}
     \end{flushright}
 \end{epigrafe}
 
@@ -316,7 +312,7 @@ A pergunta de pesquisa central que orienta este trabalho é formulada em termos 
 A essa pergunta associa-se uma hipótese falsificável, enunciada abaixo como predição sobre a estrutura da rede. O procedimento que a operacionaliza e a testa é descrito no Capítulo~\ref{cap:metodologia}, e o veredito correspondente --- corroboração ou refutação --- é apresentado no Capítulo~\ref{cap:resultados}.
 
 \begin{itemize}
-    \item \textbf{H1 - Unica Hipótese (Estrutura não-aleatória)}: a rede de coautoria parlamentar apresenta estrutura de comunidades não-aleatória, com modularidade $Q$ substancialmente superior à esperada em redes com a mesma sequência de graus e ligações redistribuídas ao acaso.
+    \item \textbf{H1 - Única Hipótese (Estrutura não-aleatória)}: a rede de coautoria parlamentar apresenta estrutura de comunidades não-aleatória, com modularidade $Q$ substancialmente superior à esperada em redes com a mesma sequência de graus e ligações redistribuídas ao acaso.
 \end{itemize}
 
 Além do teste dessa hipótese, o trabalho produz, como resultados descritivos complementares, o cálculo das quatro métricas de centralidade para cada deputado e a comparação entre dois algoritmos independentes de detecção de comunidades --- elementos que compõem a caracterização das estruturas de influência da rede e reforçam a robustez do achado central.
@@ -586,7 +582,7 @@ A natureza desta pesquisa é caracterizada como aplicada, com abordagem quantita
 
 O paradigma metodológico adotado neste trabalho é o \textit{Design Science Research} (DSR), conforme formalizado por Hevner et al. \cite{hevner2004} e Wieringa \cite{wieringa2014}. Diferentemente das ciências naturais, que explicam fenômenos existentes, e das ciências sociais empíricas, que descrevem comportamentos observáveis, o DSR é orientado à \textbf{produção de artefatos} (constructos, modelos, métodos ou instanciações de software) projetados para solucionar problemas práticos identificados em um contexto real \cite{hevner2004, wieringa2014}.
 
-Como ilustrado no framework clássico de Hevner et al. \cite{hevner2004} (~\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia rigorosa entre três domínios fundamentais:
+Como ilustrado no framework clássico de Hevner et al. \cite{hevner2004} (Figura~\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia rigorosa entre três domínios fundamentais:
 \begin{itemize}
     \item O \textbf{Ambiente} prático da Câmara dos Deputados, que define as necessidades analíticas e fornece os dados brutos de proposições e coautorias;
     \item A \textbf{Base de Conhecimento} científico, que fornece as fundações teóricas (ciência de redes e teoria dos grafos) e as metodologias de desenvolvimento (princípios arquiteturais de software e testes);
@@ -685,14 +681,14 @@ O ecossistema legislativo da Câmara dos Deputados forma naturalmente um \textbf
     com $n_p$ indicando o número de coautores de cada matéria.}
     \label{fig:bipartid_coautoria}
     \includegraphics[width=0.55\textwidth]{imagens/bipartid_coautorias_1.png}
-    \fonte{Gerado por Felipe no Graphviz Online (2026).}
+    \fonte{Elaborado pelo autor usando Graphviz Online (2026).}
 \end{figure}
 
 Esse grafo bipartido é transformado, por meio de uma \textbf{projeção unimodal} (ou de modo único) sobre o conjunto de deputados $D$, em uma rede de coautoria unimodal $G = (D, E', w)$ \cite{newman2010, barabasi2016}. Nessa projeção, dois deputados $i, j \in D$ são conectados por uma aresta em $E'$ se e somente se ambos assinarem pelo menos uma proposição em comum ($p \in P$), e o peso da aresta $w(i,j)$ codifica a intensidade dessa colaboração legislativa com base na relevância das matérias compartilhadas.
 
 \begin{figure}[H]
     \centering
-    \caption{Projeção unimodal do grafo bipartido da~\ref{fig:bipartid_coautoria}
+    \caption{Projeção unimodal do grafo bipartido da Figura~\ref{fig:bipartid_coautoria}
      sobre o conjunto $D$, com os pesos calculados pela
      Equação~\ref{eq:peso_coautoria}.}
     \label{fig:bipartid_projecao_unimodal}
@@ -700,8 +696,8 @@ Esse grafo bipartido é transformado, por meio de uma \textbf{projeção unimoda
     \fonte{Elaborado pelo autor usando Graphviz Online (2026).}
 \end{figure}
 
-A~\ref{fig:bipartid_projecao_unimodal} materializa essa operação sobre o
-exemplo da~\ref{fig:bipartid_coautoria}. Como os deputados A e B assinam
+A Figura~\ref{fig:bipartid_projecao_unimodal} materializa essa operação sobre o
+exemplo da Figura~\ref{fig:bipartid_coautoria}. Como os deputados A e B assinam
 em conjunto tanto o PL 2 ($n_p = 2$) quanto a PEC 1 ($n_p = 3$), a aresta que os
 conecta acumula as duas contribuições. Já os pares A--C e B--C compartilham
 apenas a PEC 1, recebendo uma única contribuição atenuada pelo número de
@@ -894,7 +890,7 @@ A camada \texttt{processing/} contém a classe \texttt{ChamberProcessor}, respon
     \fonte{Elaborado pelo autor usando Graphviz Online (2026).}
 \end{figure}
 
-A~\ref{fig:juncao_dados} sintetiza o encadeamento das operações. O cruzamento
+A Figura~\ref{fig:juncao_dados} sintetiza o encadeamento das operações. O cruzamento
 entre os dois arquivos é realizado por um \textit{inner join} sobre a chave
 comum --- o identificador da proposição, nomeado \texttt{idproposicao} no
 arquivo de autores e \texttt{id} no de metadados. Essa operação atua como
@@ -932,7 +928,7 @@ Os Projetos de Lei são a categoria mais numerosa e diversa de proposições no 
 
 \subsection{Projetos de Lei Complementar (PLP)}
 
-As Propostas de Lei Complementar, por exigirem maioria absoluta para aprovação e tratarem de matérias constitucionalmente reservadas, tendem a apresentar coautorias mais selecionadas. No dataset analisado, sua presença numérica é menor que a de PLs, mas sua contribuição estrutural à rede é comparativamente densa.
+Os Projetos de Lei Complementar, por exigirem maioria absoluta para aprovação e tratarem de matérias constitucionalmente reservadas, tendem a apresentar coautorias mais selecionadas. No dataset analisado, sua presença numérica é menor que a de PLs, mas sua contribuição estrutural à rede é comparativamente densa.
 
 \subsection{Propostas de Emenda à Constituição (PEC)}
 
