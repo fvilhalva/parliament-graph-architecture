@@ -657,7 +657,8 @@ O ecossistema técnico utilizado é integralmente baseado em software livre:
     \item \textbf{pandas 2.2}: manipulação tabular dos CSVs;
     \item \textbf{python-louvain} \cite{blondel2008}: detecção de comunidades pelo algoritmo Louvain;
     \item \textbf{matplotlib} e \textbf{seaborn}: visualização e geração de figuras;
-    \item \textbf{pydantic} e \textbf{pydantic-settings}: validação de tipos e carregamento tipado da configuração a partir do arquivo \texttt{.env};
+    \item \textbf{requests}: cliente HTTP para download dos CSVs da Câmara;
+    \item \textbf{python-dotenv}: carregamento de variáveis de ambiente do arquivo \texttt{.env};
     \item \textbf{pytest} com \textbf{pytest-cov}: validação automatizada e medição de cobertura;
     \item \textbf{Docker} e \textbf{Docker Compose}: empacotamento reprodutível do ambiente de execução.
 \end{itemize}
@@ -838,9 +839,13 @@ Este capítulo descreve a instanciação concreta do artefato de software --- de
 
 O pipeline é organizado em camadas com responsabilidades únicas, conforme o esquema:
 
-\begin{center}
-\texttt{extraction $\rightarrow$ processing $\rightarrow$ core (Graph + Algorithms) $\rightarrow$ repository $\rightarrow$ visualization}
-\end{center}
+\begin{figure}[H]
+    \centering
+    \caption{Diagrama de componentes e fluxo de dados do pipeline.}
+    \label{fig:componentes}
+    \includegraphics[width=0.6\textwidth]{imagens/componentes.png}
+    \fonte{Elaborado pelo autor.}
+\end{figure}
 
 A dependência entre camadas respeita a Regra da Dependência da Arquitetura Limpa: camadas inferiores (extraction, repository) dependem das superiores (models, core), nunca o contrário. Cada camada é um pacote Python independente, contido em \texttt{src/}.
 
@@ -879,7 +884,7 @@ O submódulo \texttt{algorithms/} agrupa funções puras, isoladas de qualquer p
 
 \subsection{Extraction e Processing (Adaptadores de Interface)}
 
-A camada \texttt{extraction/} contém a classe \texttt{ChamberExtractor}, responsável pelo download e cache dos CSVs do Portal de Dados Abertos. Implementa: (i) verificação de existência local antes do download, reutilizando o arquivo em cache quando presente; (ii) download direto dos arquivos CSV do portal via \texttt{pandas}; (iii) persistência do arquivo no diretório de cache local; (iv) reaproveitamento determinístico do cache em execuções subsequentes, tornando a série reprodutível sem depender da rede.
+A camada \texttt{extraction/} contém a classe \texttt{ChamberExtractor}, responsável pelo download e cache dos CSVs do Portal de Dados Abertos. Implementa: (i) verificação de existência local antes do download; (ii) requisição HTTP com timeout configurável; (iii) escrita atômica no diretório de cache; (iv) tratamento de erros de rede com mensagens descritivas.
 
 A camada \texttt{processing/} contém a classe \texttt{ChamberProcessor}, responsável por:
 
