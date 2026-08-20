@@ -1,112 +1,89 @@
-"""Centralized application configuration loaded from .env variables."""
-import os
-import warnings
+"""Centralized application configuration, loaded and validated from .env variables."""
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar
 
-from dotenv import load_dotenv  # type: ignore
+from pydantic import AliasChoices, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv()
-
-
-def _env(name: str, legacy_name: Optional[str] = None, default: Optional[str] = None) -> Optional[str]:
-    """Read an environment variable, falling back to a legacy name with a DeprecationWarning.
-
-    Args:
-        name: Canonical (English) environment variable name.
-        legacy_name: Older (Portuguese) name kept for one release for backwards compatibility.
-        default: Value to return if neither variable is set.
-
-    Returns:
-        The resolved string value, or ``default`` if no variable is set.
-    """
-    value = os.getenv(name)
-    if value is not None:
-        return value
-
-    if legacy_name is not None:
-        legacy_value = os.getenv(legacy_name)
-        if legacy_value is not None:
-            warnings.warn(
-                f"Environment variable '{legacy_name}' is deprecated; rename to '{name}'.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            return legacy_value
-
-    return default
+_BASE_DIR = Path(__file__).parent.parent.parent
+_DATA_DIR = _BASE_DIR / "data"
 
 
-class Config:
-    """Application configuration class.
+class Config(BaseSettings):
+    """Application configuration.
 
-    All settings are loaded from environment variables (.env file).
-    Provides paths, database, API, and analysis parameters.
+    All settings are read from environment variables (``.env`` file) and
+    validated by pydantic at load time. An invalid value (for example a
+    non-integer ``API_TIMEOUT``) fails fast with a descriptive error naming
+    the offending field, instead of a raw ``ValueError`` raised at import time.
+
+    Legacy (Portuguese) variable names are still accepted through
+    ``AliasChoices`` for backwards compatibility.
     """
 
-    # --- PATHS ---
-    BASE_DIR = Path(__file__).parent.parent.parent
-    DATA_DIR = BASE_DIR / "data"
-    CACHE_DIR = Path(_env("CACHE_DIR", default=str(DATA_DIR / "cache")))
-    GEXF_DIR = Path(_env("GEXF_DIR", default=str(DATA_DIR / "gexf")))
-    METRICS_DIR = Path(_env("METRICS_DIR", legacy_name="METRICAS_DIR", default=str(DATA_DIR / "metricas")))
-    PLOTS_DIR = Path(_env("PLOTS_DIR", default=str(DATA_DIR / "plots")))
-    ANALYSIS_DIR = Path(_env("ANALYSIS_DIR", default=str(DATA_DIR / "analysis")))
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # --- PATHS (class constants, not environment-loaded) ---
+    BASE_DIR: ClassVar[Path] = _BASE_DIR
+    DATA_DIR: ClassVar[Path] = _DATA_DIR
+
+    # --- PATHS (environment-loaded) ---
+    CACHE_DIR: Path = _DATA_DIR / "cache"
+    GEXF_DIR: Path = _DATA_DIR / "gexf"
+    METRICS_DIR: Path = Field(
+        default=_DATA_DIR / "metricas",
+        validation_alias=AliasChoices("METRICS_DIR", "METRICAS_DIR"),
+    )
+    PLOTS_DIR: Path = _DATA_DIR / "plots"
+    ANALYSIS_DIR: Path = _DATA_DIR / "analysis"
 
     # --- DATABASE ---
-    DB_PATH = _env("DB_PATH", default=str(DATA_DIR / "parliament.db"))
+    DB_PATH: str = str(_DATA_DIR / "parliament.db")
 
     # --- LEGISLATURE ---
-    CURRENT_LEGISLATURE = int(_env("CURRENT_LEGISLATURE", legacy_name="LEGISLATURA_ATUAL", default="2026"))
-    PILOT_LEGISLATURE = int(_env("PILOT_LEGISLATURE", legacy_name="LEGISLATURA_PILOTO", default="2025"))
-    LEGISLATURE_START = int(_env("LEGISLATURE_START", legacy_name="LEGISLATURA_INICIO", default="2006"))
-
-    # Backwards-compatible alias for callers still using the old attribute name.
-    CURRENT_PILOTO = PILOT_LEGISLATURE
+    CURRENT_LEGISLATURE: int = Field(
+        default=2026,
+        validation_alias=AliasChoices("CURRENT_LEGISLATURE", "LEGISLATURA_ATUAL"),
+    )
+    PILOT_LEGISLATURE: int = Field(
+        default=2025,
+        validation_alias=AliasChoices("PILOT_LEGISLATURE", "LEGISLATURA_PILOTO"),
+    )
+    LEGISLATURE_START: int = Field(
+        default=2006,
+        validation_alias=AliasChoices("LEGISLATURE_START", "LEGISLATURA_INICIO"),
+    )
 
     # --- CHAMBER API ---
-    API_BASE_URL = _env("API_BASE_URL", default="https://dadosabertos.camara.leg.br/api/v2")
-    API_TIMEOUT = int(_env("API_TIMEOUT", default="30"))
+    API_BASE_URL: str = "https://dadosabertos.camara.leg.br/api/v2"
+    API_TIMEOUT: int = 30
 
     # --- LOGGING ---
-    LOG_LEVEL = _env("LOG_LEVEL", default="INFO")
+    LOG_LEVEL: str = "INFO"
 
     # --- GRAPH ANALYSIS ---
-    MIN_COAUTHORSHIPS = int(_env("MIN_COAUTHORSHIPS", legacy_name="MIN_COAUTORIAS", default="3"))
-    MIN_EDGE_WEIGHT = int(_env("MIN_EDGE_WEIGHT", legacy_name="MIN_PESO_ARESTA", default="1"))
-    NUM_COMMUNITIES = int(_env("NUM_COMMUNITIES", legacy_name="NUM_COMUNIDADES", default="5"))
-    MAX_AUTHORS_PER_PROPOSAL = int(_env("MAX_AUTHORS_PER_PROPOSAL", default="30"))
-
-    def __init__(self, year: Optional[int] = None) -> None:
-        """Initialize configuration with a specific legislature year.
-
-        Args:
-            year: Legislature year (default: CURRENT_LEGISLATURE)
-        """
-        self.year = year or self.CURRENT_LEGISLATURE
-        self.coauthorship_csv_url = self.get_coauthorship_csv_url(self.year)
-        self.propositions_csv_url = self.get_propositions_csv_url(self.year)
+    MIN_COAUTHORSHIPS: int = Field(
+        default=3, validation_alias=AliasChoices("MIN_COAUTHORSHIPS", "MIN_COAUTORIAS")
+    )
+    MIN_EDGE_WEIGHT: int = Field(
+        default=1, validation_alias=AliasChoices("MIN_EDGE_WEIGHT", "MIN_PESO_ARESTA")
+    )
+    NUM_COMMUNITIES: int = Field(
+        default=5, validation_alias=AliasChoices("NUM_COMMUNITIES", "NUM_COMUNIDADES")
+    )
+    MAX_AUTHORS_PER_PROPOSAL: int = 30
 
     @classmethod
     def get_coauthorship_csv_url(cls, year: int) -> str:
-        """Get CSV download URL for proposition authors (coauthorships) for a given year.
-
-        Args:
-            year: Legislature year
-
-        Returns:
-            Direct download URL for coauthorship CSV
-        """
+        """Direct download URL for the proposition-authors (coauthorship) CSV of a year."""
         return f"https://dadosabertos.camara.leg.br/arquivos/proposicoesAutores/csv/proposicoesAutores-{year}.csv"
 
     @classmethod
     def get_propositions_csv_url(cls, year: int) -> str:
-        """Get CSV download URL for propositions metadata for a given year.
-
-        Args:
-            year: Legislature year
-
-        Returns:
-            Direct download URL for propositions CSV
-        """
+        """Direct download URL for the propositions-metadata CSV of a year."""
         return f"https://dadosabertos.camara.leg.br/arquivos/proposicoes/csv/proposicoes-{year}.csv"

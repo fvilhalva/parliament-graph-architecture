@@ -24,10 +24,10 @@ def build_pipeline_dependencies() -> tuple[Config, PipelineDependencies]:
     deps = PipelineDependencies(
         extractor=ChamberExtractor(config),
         processor=ChamberProcessor(),
-        graph_exporter=GraphExporter(Config.GEXF_DIR),
-        csv_repository=CsvRepository(Config.METRICS_DIR),
-        db_repository=DB_Exporter(Config.DB_PATH),
-        analysis_repository=AnalysisRepository(Config.ANALYSIS_DIR),
+        graph_exporter=GraphExporter(config.GEXF_DIR),
+        csv_repository=CsvRepository(config.METRICS_DIR),
+        db_repository=DB_Exporter(config.DB_PATH),
+        analysis_repository=AnalysisRepository(config.ANALYSIS_DIR),
         generate_plots=generate_analysis_plots,
     )
     return config, deps
