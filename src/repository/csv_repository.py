@@ -29,10 +29,10 @@ class CsvRepository:
             deputy_dict = asdict(deputy)
             records.append(
                 {
-                    "id_deputado": deputy_dict.get("id"),
-                    "nome": deputy_dict.get("name"),
-                    "sigla_partido": deputy_dict.get("party_code"),
-                    "sigla_uf": deputy_dict.get("state_code"),
+                    "deputy_id": deputy_dict.get("id"),
+                    "name": deputy_dict.get("name"),
+                    "party_code": deputy_dict.get("party_code"),
+                    "state_code": deputy_dict.get("state_code"),
                     "weighted_degree": deputy_dict.get("weighted_degree", 0.0),
                     "degree_centrality": deputy_dict.get("degree_centrality", 0.0),
                     "betweenness_centrality": deputy_dict.get("betweenness_centrality", 0.0),
@@ -90,12 +90,3 @@ class CsvRepository:
         output_file = self.output_dir / f"coauthorships_{year}.csv"
         data_frame.to_csv(output_file, index=False, encoding="utf-8-sig")
         return output_file
-
-    # --- Backwards-compatible aliases (kept for one release) ---
-    def exportar_metricas_deputados(self, deputados: list, ano: int) -> Path:
-        """Deprecated alias for :meth:`export_deputy_metrics`."""
-        return self.export_deputy_metrics(deputados, ano)
-
-    def exportar_metricas_coautorias(self, coautorias: Iterable, ano: int) -> Path:
-        """Deprecated alias for :meth:`export_coauthorship_metrics`."""
-        return self.export_coauthorship_metrics(coautorias, ano)

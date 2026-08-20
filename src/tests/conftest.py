@@ -77,39 +77,7 @@ def coauthorship_edge():
     )
 
 
-# --- Portuguese alias fixtures for backward compatibility ---
-
-@pytest.fixture
-def deputado_silva(deputy_silva):
-    """Portuguese alias for deputy_silva fixture."""
-    return deputy_silva
-
-
-@pytest.fixture
-def proposicao_exemplo(proposition_example):
-    """Portuguese alias for proposition_example fixture."""
-    return proposition_example
-
-
-@pytest.fixture
-def proposicao_outro(proposition_other):
-    """Portuguese alias for proposition_other fixture."""
-    return proposition_other
-
-
-@pytest.fixture
-def aresta_coautoria(coauthorship_edge):
-    """Portuguese alias for coauthorship_edge fixture."""
-    return coauthorship_edge
-
-
 @pytest.fixture
 def example_deputies(deputy_silva, deputy_santos, deputy_oliveira):
     """Create list of deputies for testing."""
     return [deputy_silva, deputy_santos, deputy_oliveira]
-
-
-@pytest.fixture
-def deputados_exemplo(example_deputies):
-    """Portuguese alias for example_deputies fixture."""
-    return example_deputies
