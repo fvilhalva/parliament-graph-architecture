@@ -57,6 +57,13 @@ def _randomise_graph(graph: nx.Graph, n_swaps_factor: int = 10) -> nx.Graph:
     exactly. Each swap exchanges the endpoints of two randomly chosen edges
     while preventing self-loops and multi-edges.
 
+    ``double_edge_swap`` adds the rewired edges *without* their ``weight``
+    attribute, which would silently turn the null graph unweighted and make the
+    comparison against the weighted observed modularity a mismatch. To keep the
+    test weighted and like-for-like, the original edge-weight multiset is
+    shuffled back onto the rewired edges: this preserves both the degree sequence
+    and the weight distribution of the real network while randomising topology.
+
     Args:
         graph: Original graph (not modified).
         n_swaps_factor: Number of attempted swaps = n_swaps_factor * |E|.
@@ -68,6 +75,14 @@ def _randomise_graph(graph: nx.Graph, n_swaps_factor: int = 10) -> nx.Graph:
     except nx.NetworkXError:
         # Falls back gracefully if the graph is too sparse for the requested swaps.
         pass
+
+    # Re-attach weights: preserve the original weight distribution (like-for-like
+    # weighted null) instead of letting the swap reset every edge to unweighted.
+    original_weights = [data.get("weight", 1.0) for _, _, data in graph.edges(data=True)]
+    random.shuffle(original_weights)
+    for (u, v), weight in zip(randomised.edges(), original_weights):
+        randomised[u][v]["weight"] = weight
+
     return randomised
 
 
