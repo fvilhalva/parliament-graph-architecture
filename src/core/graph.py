@@ -187,7 +187,15 @@ class ParliamentaryGraph:
         return results
 
     def compute_betweenness_centrality(self, normalized: bool = True) -> List[Deputy]:
-        """Compute betweenness centrality.
+        """Compute betweenness centrality over the *unweighted* topology.
+
+        Betweenness is deliberately computed on the binary graph: in NetworkX a
+        provided ``weight`` is treated as an edge *distance* (cost), whereas here
+        the weight encodes tie *strength* (affinity) — the inverse semantics.
+        Using the raw weight as distance would treat strong ties as far apart, so
+        the topological (unweighted) shortest paths are used to capture pure
+        brokerage between groups. This keeps betweenness and closeness on the same
+        (topological) footing, while degree and eigenvector remain weighted.
 
         Args:
             normalized: If True, normalize by ``(n-1)(n-2)/2`` for undirected graphs.
@@ -197,7 +205,6 @@ class ParliamentaryGraph:
         """
         betweenness_scores = nx.betweenness_centrality(
             self.graph,
-            weight='weight',
             normalized=normalized,
         )
 

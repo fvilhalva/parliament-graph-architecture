@@ -85,10 +85,10 @@ def _analyze_graph(year: int) -> tuple[nx.Graph | nx.DiGraph | None, dict[str, f
 def _plot_top_deputies_betweenness(df: pd.DataFrame, output_dir: Path, n: int = 20) -> None:
     """Plot top N deputies by betweenness centrality."""
     top_df = df.nlargest(n, "betweenness_centrality").copy().iloc[::-1]
-    top_df["label"] = top_df["nome"] + " (" + top_df["sigla_partido"] + ")"
+    top_df["label"] = top_df["name"] + " (" + top_df["party_code"] + ")"
 
     fig, ax = plt.subplots()
-    sns.barplot(data=top_df, x="betweenness_centrality", y="label", hue="sigla_partido", dodge=False, ax=ax)
+    sns.barplot(data=top_df, x="betweenness_centrality", y="label", hue="party_code", dodge=False, ax=ax)
     ax.set_title(f"Top {n} Deputies by Betweenness Centrality")
     ax.set_xlabel("Betweenness Centrality")
     ax.set_ylabel("Deputy")
@@ -107,10 +107,10 @@ def _plot_top_deputies(df: pd.DataFrame, output_dir: Path, n: int = 20) -> None:
         n: Number of top deputies to display
     """
     top_df = df.nlargest(n, "weighted_degree").copy().iloc[::-1]
-    top_df["label"] = top_df["nome"] + " (" + top_df["sigla_partido"] + ")"
+    top_df["label"] = top_df["name"] + " (" + top_df["party_code"] + ")"
 
     fig, ax = plt.subplots()
-    sns.barplot(data=top_df, x="weighted_degree", y="label", hue="sigla_partido", dodge=False, ax=ax)
+    sns.barplot(data=top_df, x="weighted_degree", y="label", hue="party_code", dodge=False, ax=ax)
     ax.set_title(f"Top {n} Deputies by Weighted Degree")
     ax.set_xlabel("Weighted Degree")
     ax.set_ylabel("Deputy")
@@ -129,14 +129,14 @@ def _plot_parties(df: pd.DataFrame, output_dir: Path, n: int = 15) -> None:
         n: Number of top parties to display
     """
     parties = (
-        df.groupby("sigla_partido", as_index=False)
-        .agg(num_deputies=("id_deputado", "count"), avg_weighted_degree=("weighted_degree", "mean"))
+        df.groupby("party_code", as_index=False)
+        .agg(num_deputies=("deputy_id", "count"), avg_weighted_degree=("weighted_degree", "mean"))
         .sort_values("num_deputies", ascending=False)
         .head(n)
     )
 
     fig, ax = plt.subplots()
-    sns.barplot(data=parties, x="num_deputies", y="sigla_partido", color="#2b8cbe", ax=ax)
+    sns.barplot(data=parties, x="num_deputies", y="party_code", color="#2b8cbe", ax=ax)
     ax.set_title(f"Top {n} Parties by Number of Deputies")
     ax.set_xlabel("Number of Deputies")
     ax.set_ylabel("Party")
@@ -157,7 +157,7 @@ def _plot_metrics_correlation(df: pd.DataFrame, output_dir: Path) -> None:
         data=df,
         x="degree_centrality",
         y="betweenness_centrality",
-        hue="sigla_partido",
+        hue="party_code",
         size="weighted_degree",
         sizes=(20, 220),
         alpha=0.75,

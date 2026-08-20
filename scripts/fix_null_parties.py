@@ -21,23 +21,23 @@ STATE_SENTINEL = "S/UF"
 
 
 def patch_csv(path: Path) -> tuple[int, int]:
-    """Replace NaN in sigla_partido and sigla_uf with sentinels.
+    """Replace NaN in party_code and state_code with sentinels.
 
     Returns:
         (n_party_fixed, n_state_fixed)
     """
     df = pd.read_csv(path)
 
-    n_party = int(df["sigla_partido"].isna().sum()) if "sigla_partido" in df.columns else 0
-    n_state = int(df["sigla_uf"].isna().sum()) if "sigla_uf" in df.columns else 0
+    n_party = int(df["party_code"].isna().sum()) if "party_code" in df.columns else 0
+    n_state = int(df["state_code"].isna().sum()) if "state_code" in df.columns else 0
 
-    if "sigla_partido" in df.columns:
-        df["sigla_partido"] = df["sigla_partido"].fillna(PARTY_SENTINEL)
-        df["sigla_partido"] = df["sigla_partido"].astype(str).str.strip().replace("", PARTY_SENTINEL)
+    if "party_code" in df.columns:
+        df["party_code"] = df["party_code"].fillna(PARTY_SENTINEL)
+        df["party_code"] = df["party_code"].astype(str).str.strip().replace("", PARTY_SENTINEL)
 
-    if "sigla_uf" in df.columns:
-        df["sigla_uf"] = df["sigla_uf"].fillna(STATE_SENTINEL)
-        df["sigla_uf"] = df["sigla_uf"].astype(str).str.strip().replace("", STATE_SENTINEL)
+    if "state_code" in df.columns:
+        df["state_code"] = df["state_code"].fillna(STATE_SENTINEL)
+        df["state_code"] = df["state_code"].astype(str).str.strip().replace("", STATE_SENTINEL)
 
     df.to_csv(path, index=False, encoding="utf-8-sig")
     return n_party, n_state

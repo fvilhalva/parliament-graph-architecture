@@ -57,6 +57,13 @@ def _randomise_graph(graph: nx.Graph, n_swaps_factor: int = 10) -> nx.Graph:
     exactly. Each swap exchanges the endpoints of two randomly chosen edges
     while preventing self-loops and multi-edges.
 
+    ``double_edge_swap`` adds the rewired edges *without* their ``weight``
+    attribute, which would silently turn the null graph unweighted and make the
+    comparison against the weighted observed modularity a mismatch. To keep the
+    test weighted and like-for-like, the original edge-weight multiset is
+    shuffled back onto the rewired edges: this preserves both the degree sequence
+    and the weight distribution of the real network while randomising topology.
+
     Args:
         graph: Original graph (not modified).
         n_swaps_factor: Number of attempted swaps = n_swaps_factor * |E|.
@@ -68,6 +75,14 @@ def _randomise_graph(graph: nx.Graph, n_swaps_factor: int = 10) -> nx.Graph:
     except nx.NetworkXError:
         # Falls back gracefully if the graph is too sparse for the requested swaps.
         pass
+
+    # Re-attach weights: preserve the original weight distribution (like-for-like
+    # weighted null) instead of letting the swap reset every edge to unweighted.
+    original_weights = [data.get("weight", 1.0) for _, _, data in graph.edges(data=True)]
+    random.shuffle(original_weights)
+    for (u, v), weight in zip(randomised.edges(), original_weights):
+        randomised[u][v]["weight"] = weight
+
     return randomised
 
 
@@ -121,7 +136,12 @@ def assess_community_significance(
     q_null_std = (
         (sum((q - q_null_mean) ** 2 for q in null_q_values) / n) ** 0.5 if n > 1 else 0.0
     )
-    p_value = sum(1 for q in null_q_values if q >= q_observed) / n if n else 1.0
+    # Add-one estimator (North, Curtis & Sham, 2002): counts the observed value
+    # itself as one member of the ensemble, so p is never exactly 0 — the honest
+    # lower bound resolvable from a finite number of permutations. With r hits out
+    # of m permutations, p = (r + 1) / (m + 1).
+    r_hits = sum(1 for q in null_q_values if q >= q_observed)
+    p_value = (r_hits + 1) / (n + 1) if n else 1.0
 
     return NullModelResult(
         q_observed=q_observed,

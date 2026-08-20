@@ -18,7 +18,7 @@ _METRIC_COLUMNS: tuple[tuple[str, str], ...] = (
 
 
 class DB_Exporter:
-    """Repositorio para persistencia de metricas em SQLite."""
+    """Repository for persisting deputy metrics into SQLite."""
 
     def __init__(self, db_path: Path | str):
         self.db_path = Path(db_path)
@@ -27,14 +27,13 @@ class DB_Exporter:
     def _connect(self) -> sqlite3.Connection:
         return sqlite3.connect(self.db_path)
 
-    def _garantir_tabela_metricas(self, conn: sqlite3.Connection) -> None:
+    def _ensure_metrics_table(self, conn: sqlite3.Connection) -> None:
         """Create the metrics table if missing, then apply idempotent migrations.
 
-        Legacy databases created before the closeness/eigenvector/community/
-        relatorship columns existed are migrated in place via ``ALTER TABLE
-        ADD COLUMN``. Each ``ALTER`` is guarded by inspecting ``PRAGMA
-        table_info`` so repeated calls are safe (SQLite has no
-        ``ADD COLUMN IF NOT EXISTS``).
+        Legacy databases created before the closeness/eigenvector/community
+        columns existed are migrated in place via ``ALTER TABLE ADD COLUMN``.
+        Each ``ALTER`` is guarded by inspecting ``PRAGMA table_info`` so repeated
+        calls are safe (SQLite has no ``ADD COLUMN IF NOT EXISTS``).
         """
         metrics_ddl = ",\n            ".join(
             f"{name} {ddl}" for name, ddl in _METRIC_COLUMNS
@@ -42,13 +41,13 @@ class DB_Exporter:
         conn.execute(
             f"""
             CREATE TABLE IF NOT EXISTS deputados_metricas (
-                ano INTEGER NOT NULL,
-                id_deputado INTEGER NOT NULL,
-                nome TEXT NOT NULL,
-                sigla_partido TEXT,
-                sigla_uf TEXT,
+                year INTEGER NOT NULL,
+                deputy_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                party_code TEXT,
+                state_code TEXT,
                 {metrics_ddl},
-                PRIMARY KEY (ano, id_deputado)
+                PRIMARY KEY (year, deputy_id)
             )
             """
         )
@@ -61,14 +60,14 @@ class DB_Exporter:
                     f"ALTER TABLE deputados_metricas ADD COLUMN {column_name} {column_ddl}"
                 )
 
-    def exportar_metricas_deputados(self, deputados: list, ano: int) -> Path:
-        """Insere ou atualiza metricas dos deputados para um ano."""
-        registros = []
-        for deputado in deputados:
-            dep = asdict(deputado)
-            registros.append(
+    def export_deputy_metrics(self, deputies: list, year: int) -> Path:
+        """Insert or update deputy metrics for a given year (upsert)."""
+        records = []
+        for deputy in deputies:
+            dep = asdict(deputy)
+            records.append(
                 (
-                    ano,
+                    year,
                     dep.get("id"),
                     dep.get("name"),
                     dep.get("party_code"),
@@ -83,15 +82,15 @@ class DB_Exporter:
             )
 
         with self._connect() as conn:
-            self._garantir_tabela_metricas(conn)
+            self._ensure_metrics_table(conn)
             conn.executemany(
                 """
                 INSERT OR REPLACE INTO deputados_metricas (
-                    ano,
-                    id_deputado,
-                    nome,
-                    sigla_partido,
-                    sigla_uf,
+                    year,
+                    deputy_id,
+                    name,
+                    party_code,
+                    state_code,
                     weighted_degree,
                     degree_centrality,
                     betweenness_centrality,
@@ -100,7 +99,7 @@ class DB_Exporter:
                     community_louvain
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                registros,
+                records,
             )
             conn.commit()
 

@@ -1,30 +1,5 @@
 """Domain constants for parliamentary network analysis."""
 
-# Political parties represented in Brazilian Chamber of Deputies (2006-2026)
-POLITICAL_PARTIES = [
-    # Major parties (consistently represented)
-    'PT', 'PSD', 'MDB', 'PP', 'PL', 'PSB', 'PSDB', 'REPUBLICANOS',
-    'PDT', 'SOLIDARIEDADE', 'AVANTE', 'PODEMOS', 'AGIR', 'NOVO',
-
-    # Represented in specific periods
-    'PCdoB', 'DEM', 'PHS', 'PMN', 'PV', 'PRB', 'PTB', 'PROS',
-    'PATRI', 'UNIÃO', 'Federação'
-]
-
-# Brazilian states by abbreviation
-BRAZILIAN_STATES = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-]
-
-# Analysis thresholds
-# Minimum number of co-authorships to create an edge (adjustable)
-# 2: main allies, all collaborators
-# 3: significant collaborations
-MIN_COAUTHORSHIPS = 2
-MIN_EDGE_WEIGHT = 1
-
 # Maximum number of deputy co-authors allowed per proposal.
 # Proposals above this threshold (mass-signature petitions, full-bench
 # constitutional amendments, etc.) are excluded from the co-authorship
@@ -33,9 +8,6 @@ MIN_EDGE_WEIGHT = 1
 # community detection scientifically meaningless.
 # Tune this value and report sensitivity in the monograph (advisor feedback).
 MAX_AUTHORS_PER_PROPOSAL = 30
-
-# Community detection parameters
-NUM_COMMUNITIES = 5
 
 # ---------------------------------------------------------------------------
 # Proposition type weights
