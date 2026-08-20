@@ -6,6 +6,11 @@ import pandas as pd  # type: ignore
 from models.deputy import Deputy
 from models.proposition import Proposition
 
+# Proposition types kept in the co-authorship graph — the qualitative filter that
+# selects politically substantive matters (bills, constitutional amendments,
+# complementary bills, legislative decrees and committee amendments).
+DEFAULT_PROPOSITION_TYPES = ("PL", "PEC", "PLP", "PDL", "EMC")
+
 
 class ChamberProcessor:
     """Processes raw parliamentary data into domain objects."""
@@ -22,20 +27,25 @@ class ChamberProcessor:
             logger.addHandler(handler)
         return logger
 
-    def process_raw_data(self, raw_df: pd.DataFrame, propositions_df: pd.DataFrame, proposition_filter=['PL', 'PEC', 'PLP', 'PDL', 'EMC'], max_authors: int = 30):
-        # 1. Padronização
+    def process_raw_data(self, raw_df: pd.DataFrame, propositions_df: pd.DataFrame, proposition_filter=None, max_authors: int = 30):
+        # ``None`` default (instead of a mutable list literal) avoids the shared
+        # default-argument pitfall.
+        if proposition_filter is None:
+            proposition_filter = list(DEFAULT_PROPOSITION_TYPES)
+
+        # 1. Column standardisation
         df_authors = raw_df.copy()
         df_props = propositions_df.copy()
 
         df_authors.columns = [c.strip().lower() for c in df_authors.columns]
         df_props.columns = [c.strip().lower() for c in df_props.columns]
 
-        # 2. Filtro de Visão (Manter apenas o que tem valor político real)
-        # Selecionamos apenas Projetos de Lei, Emendas à Constituição e Leis Complementares
+        # 2. Type filter: keep only politically substantive proposition types.
         df_props_filtered = df_props[df_props['siglatipo'].isin(proposition_filter)]
 
-        # 3. Cruzamento (Merge): O "filtro atômico"
-        # O inner join remove instantaneamente os 90 mil registros de requerimentos e ofícios
+        # 3. Merge (the "atomic filter"): the inner join instantly drops the tens
+        # of thousands of requirements and administrative records that are not in
+        # the selected proposition types.
         df_merged = df_authors.merge(
             df_props_filtered[['id', 'siglatipo']],
             left_on='idproposicao',
@@ -45,46 +55,63 @@ class ChamberProcessor:
 
         type_map = df_merged.drop_duplicates('idproposicao').set_index('idproposicao')['siglatipo'].to_dict()
 
-        # 2. Filtros de Domínio (Só Deputados Federais)
+        # 4. Domain filter: keep only federal deputies (author type code 10000).
         df_deputies = df_merged[df_merged['codtipoautor'] == 10000].copy()
         df_deputies = df_deputies.dropna(subset=['iddeputadoautor'])
         df_deputies['iddeputadoautor'] = df_deputies['iddeputadoautor'].astype(int)
 
-        # 3. Metadados dos Nós (Vértices)
+        # 5. Node metadata (vertices).
         df_meta = df_deputies.drop_duplicates(subset=['iddeputadoautor'], keep='last')
         deputy_map = df_meta.set_index('iddeputadoautor')[['nomeautor', 'siglapartidoautor', 'siglaufautor']].to_dict('index')
 
-        # 4. Agrupamento (Arestas)
+        # 6. Grouping into co-authorship sets (edges).
         groups = df_deputies.groupby('idproposicao')['iddeputadoautor'].apply(list)
         coauthorships = groups[groups.apply(len) > 1]
 
-        # 5. Mass-signature filter: exclude proposals whose author count exceeds
+        # 7. Mass-signature filter: exclude proposals whose author count exceeds
         # max_authors. A single PEC with 200+ signatories creates O(n²) pairs
         # and drives edge density above 85%, making community detection invalid.
         coauthorships = coauthorships[coauthorships.apply(len) <= max_authors]
 
         return deputy_map, groups, coauthorships, type_map
 
-    def process_raw_data_unfiltered(self, raw_df: pd.DataFrame):
-        """Process raw data without filtering proposition types or mass signatures.
+    def process_raw_data_unfiltered(
+        self,
+        raw_df: pd.DataFrame,
+        propositions_df: pd.DataFrame,
+    ):
+        """No-filter baseline of :meth:`process_raw_data` for sensitivity studies.
 
-        Intended as a no-filter baseline for the sensitivity analysis discussed
-        in the methodology (demonstrating why the type and ``max_authors`` filters
-        matter — e.g. density climbing towards ~85%).
+        Builds the co-authorship structures WITHOUT the proposition-type filter and
+        WITHOUT the ``max_authors`` mass-signature filter, so their effect can be
+        quantified (e.g. edge density climbing towards ~85% once mass-signature
+        PECs are included). Returns the same 4-tuple as :meth:`process_raw_data`
+        (``deputy_map, groups, coauthorships, type_map``), so its output feeds
+        :meth:`convert_to_domain_objects` unchanged.
 
-        NOTE: this method is intentionally out of sync with :meth:`process_raw_data`
-        — it returns only ``(deputy_map, groups, coauthorships)`` (no ``type_map``)
-        and does not apply the ``max_authors`` filter. Before feeding its output to
-        :meth:`convert_to_domain_objects`, it must be updated to also produce
-        ``type_map``.
+        NOTE: this method is NOT used by the current pipeline. It is kept as a
+        ready-to-use baseline for a future sensitivity analysis of the filters;
+        wire it into the pipeline only when that study is actually run.
 
         Returns:
-            Tuple of (deputy_map, groups, coauthorships).
+            Tuple of (deputy_map, groups, coauthorships, type_map).
         """
-        df = raw_df.copy()
-        df.columns = [c.strip().lower() for c in df.columns]
+        df_authors = raw_df.copy()
+        df_props = propositions_df.copy()
+        df_authors.columns = [c.strip().lower() for c in df_authors.columns]
+        df_props.columns = [c.strip().lower() for c in df_props.columns]
 
-        df_deputies = df[df['codtipoautor'] == 10000].copy()
+        # No type filter: all proposition types are kept. The merge only attaches
+        # each proposition's type so the domain objects remain well-formed.
+        df_merged = df_authors.merge(
+            df_props[['id', 'siglatipo']],
+            left_on='idproposicao',
+            right_on='id',
+            how='inner',
+        )
+        type_map = df_merged.drop_duplicates('idproposicao').set_index('idproposicao')['siglatipo'].to_dict()
+
+        df_deputies = df_merged[df_merged['codtipoautor'] == 10000].copy()
         df_deputies = df_deputies.dropna(subset=['iddeputadoautor'])
         df_deputies['iddeputadoautor'] = df_deputies['iddeputadoautor'].astype(int)
 
@@ -93,8 +120,9 @@ class ChamberProcessor:
 
         groups = df_deputies.groupby('idproposicao')['iddeputadoautor'].apply(list)
         coauthorships = groups[groups.apply(len) > 1]
+        # No max_authors filter here — omitting it is exactly the point of this baseline.
 
-        return deputy_map, groups, coauthorships
+        return deputy_map, groups, coauthorships, type_map
 
     def convert_to_domain_objects(
         self,

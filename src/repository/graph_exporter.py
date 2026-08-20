@@ -69,13 +69,3 @@ class GraphExporter:
         if not gexf_path.exists():
             raise FileNotFoundError(f"GEXF file not found: {gexf_path}")
         return nx.read_gexf(gexf_path)
-
-    # --- Backwards-compatible alias (kept for one release) ---
-    def exportar_gexf(
-        self,
-        grafo: Any,
-        ano: int | None = None,
-        nome_arquivo: str | None = None,
-    ) -> Path:
-        """Deprecated alias for :meth:`export_gexf`."""
-        return self.export_gexf(grafo, year=ano, file_name=nome_arquivo)

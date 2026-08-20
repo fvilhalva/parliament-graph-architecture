@@ -36,10 +36,10 @@ YEARS = [2022, 2023, 2024, 2025]
 
 # Expected columns in the deputy metrics CSV
 EXPECTED_CSV_COLUMNS = {
-    "id_deputado",
-    "nome",
-    "sigla_partido",
-    "sigla_uf",
+    "deputy_id",
+    "name",
+    "party_code",
+    "state_code",
     "weighted_degree",
     "degree_centrality",
     "betweenness_centrality",
@@ -96,13 +96,13 @@ class TestDeputyMetricsCSV:
         path = _csv_path(year)
         _skip_if_missing(path)
         df = pd.read_csv(path)
-        assert df["id_deputado"].is_unique, "Duplicate deputy IDs in CSV"
+        assert df["deputy_id"].is_unique, "Duplicate deputy IDs in CSV"
 
     def test_no_null_critical_fields(self, year: int) -> None:
         path = _csv_path(year)
         _skip_if_missing(path)
         df = pd.read_csv(path)
-        for col in ["id_deputado", "nome", "sigla_partido"]:
+        for col in ["deputy_id", "name", "party_code"]:
             assert df[col].notna().all(), f"Nulls found in column '{col}'"
 
     def test_centrality_values_in_valid_range(self, year: int) -> None:
@@ -129,7 +129,7 @@ class TestDeputyMetricsCSV:
         path = _csv_path(year)
         _skip_if_missing(path)
         df = pd.read_csv(path)
-        assert (df["sigla_partido"].astype(str).str.len() > 0).all(), \
+        assert (df["party_code"].astype(str).str.len() > 0).all(), \
             "Empty party codes found"
 
 
@@ -256,7 +256,7 @@ class TestCsvGexfCoherence:
         df = pd.read_csv(csv_path)
         graph = nx.read_gexf(gexf_path)
 
-        csv_ids = set(df["id_deputado"].astype(str))
+        csv_ids = set(df["deputy_id"].astype(str))
         # GEXF node IDs are strings; the CSV's id_deputado is numeric.
         graph_ids = {str(n) for n in graph.nodes()}
 

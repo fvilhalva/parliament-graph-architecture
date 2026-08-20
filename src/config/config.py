@@ -45,38 +45,11 @@ class Config(BaseSettings):
     # --- DATABASE ---
     DB_PATH: str = str(_DATA_DIR / "parliament.db")
 
-    # --- LEGISLATURE ---
-    CURRENT_LEGISLATURE: int = Field(
-        default=2026,
-        validation_alias=AliasChoices("CURRENT_LEGISLATURE", "LEGISLATURA_ATUAL"),
-    )
-    PILOT_LEGISLATURE: int = Field(
-        default=2025,
-        validation_alias=AliasChoices("PILOT_LEGISLATURE", "LEGISLATURA_PILOTO"),
-    )
-    LEGISLATURE_START: int = Field(
-        default=2006,
-        validation_alias=AliasChoices("LEGISLATURE_START", "LEGISLATURA_INICIO"),
-    )
-
-    # --- CHAMBER API ---
-    API_BASE_URL: str = "https://dadosabertos.camara.leg.br/api/v2"
-    API_TIMEOUT: int = 30
-
-    # --- LOGGING ---
-    LOG_LEVEL: str = "INFO"
-
     # --- GRAPH ANALYSIS ---
-    MIN_COAUTHORSHIPS: int = Field(
-        default=3, validation_alias=AliasChoices("MIN_COAUTHORSHIPS", "MIN_COAUTORIAS")
+    MAX_AUTHORS_PER_PROPOSAL: int = Field(
+        default=30,
+        validation_alias=AliasChoices("MAX_AUTHORS_PER_PROPOSAL", "MAX_AUTORES_POR_PROPOSICAO"),
     )
-    MIN_EDGE_WEIGHT: int = Field(
-        default=1, validation_alias=AliasChoices("MIN_EDGE_WEIGHT", "MIN_PESO_ARESTA")
-    )
-    NUM_COMMUNITIES: int = Field(
-        default=5, validation_alias=AliasChoices("NUM_COMMUNITIES", "NUM_COMUNIDADES")
-    )
-    MAX_AUTHORS_PER_PROPOSAL: int = 30
 
     @classmethod
     def get_coauthorship_csv_url(cls, year: int) -> str:

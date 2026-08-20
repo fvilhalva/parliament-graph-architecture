@@ -136,7 +136,12 @@ def assess_community_significance(
     q_null_std = (
         (sum((q - q_null_mean) ** 2 for q in null_q_values) / n) ** 0.5 if n > 1 else 0.0
     )
-    p_value = sum(1 for q in null_q_values if q >= q_observed) / n if n else 1.0
+    # Add-one estimator (North, Curtis & Sham, 2002): counts the observed value
+    # itself as one member of the ensemble, so p is never exactly 0 — the honest
+    # lower bound resolvable from a finite number of permutations. With r hits out
+    # of m permutations, p = (r + 1) / (m + 1).
+    r_hits = sum(1 for q in null_q_values if q >= q_observed)
+    p_value = (r_hits + 1) / (n + 1) if n else 1.0
 
     return NullModelResult(
         q_observed=q_observed,

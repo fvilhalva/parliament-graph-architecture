@@ -26,14 +26,14 @@ class TestCSVRepository:
 
     def test_salvar_csv_cria_arquivo(self, tmp_path, deputados_exemplo):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.exportar_metricas_deputados(deputados_exemplo, ano=2025)
+        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
 
         assert arquivo.exists()
         assert arquivo.name == "deputados_metricas_2025.csv"
 
     def test_csv_nao_corrompido(self, tmp_path, deputados_exemplo):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.exportar_metricas_deputados(deputados_exemplo, ano=2025)
+        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
 
         df = pd.read_csv(arquivo)
         assert len(df) == len(deputados_exemplo)
@@ -41,21 +41,21 @@ class TestCSVRepository:
 
     def test_ler_csv_valido(self, tmp_path, deputados_exemplo):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.exportar_metricas_deputados(deputados_exemplo, ano=2025)
+        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
 
         dados_lidos = pd.read_csv(arquivo)
         assert len(dados_lidos) > 0
 
     def test_arquivo_csv_com_dados_completos(self, tmp_path, deputados_exemplo):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.exportar_metricas_deputados(deputados_exemplo, ano=2025)
+        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
 
         dados_lidos = pd.read_csv(arquivo)
         colunas_esperadas = {
-            "id_deputado",
-            "nome",
-            "sigla_partido",
-            "sigla_uf",
+            "deputy_id",
+            "name",
+            "party_code",
+            "state_code",
             "weighted_degree",
             "degree_centrality",
             "betweenness_centrality",
@@ -64,10 +64,10 @@ class TestCSVRepository:
 
     def test_csv_ordenado_por_centralidade(self, tmp_path, deputados_exemplo):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.exportar_metricas_deputados(deputados_exemplo, ano=2025)
+        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
 
         dados_lidos = pd.read_csv(arquivo)
-        assert list(dados_lidos["id_deputado"]) == [3, 1, 2]
+        assert list(dados_lidos["deputy_id"]) == [3, 1, 2]
 
     def test_export_coauthorship_metrics_creates_file(self, tmp_path):
         csv_repo = CsvRepository(tmp_path)
@@ -103,15 +103,15 @@ class TestGraphExporter:
     @pytest.fixture
     def grafo_exemplo(self):
         grafo = nx.Graph()
-        grafo.graph["nome"] = "Grafo 2024"
+        grafo.graph["name"] = "Grafo 2024"
         grafo.add_node("1", label="Ana")
         grafo.add_node("2", label="Bruno")
         grafo.add_edge("1", "2", weight=3)
         return grafo
 
-    def test_exportar_gexf_cria_arquivo(self, tmp_path, grafo_exemplo):
+    def test_export_gexf_cria_arquivo(self, tmp_path, grafo_exemplo):
         exporter = GraphExporter(tmp_path)
-        arquivo = exporter.exportar_gexf(grafo_exemplo, ano=2025)
+        arquivo = exporter.export_gexf(grafo_exemplo, year=2025)
 
         assert arquivo.exists()
         assert arquivo.name == "chamber_graph_2025.gexf"
@@ -168,7 +168,7 @@ class TestDBExporter:
             Deputy(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_centrality=0.2, betweenness_centrality=0.1),
         ]
 
-        path_return = exporter.exportar_metricas_deputados(deputies, ano=2025)
+        path_return = exporter.export_deputy_metrics(deputies, year=2025)
 
         assert path_return == db_path
         assert db_path.exists()
@@ -181,19 +181,19 @@ class TestDBExporter:
         db_path = tmp_path / "metricas.db"
         exporter = DB_Exporter(db_path)
 
-        exporter.exportar_metricas_deputados(
+        exporter.export_deputy_metrics(
             [Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4)],
-            ano=2025,
+            year=2025,
         )
-        exporter.exportar_metricas_deputados(
+        exporter.export_deputy_metrics(
             [Deputy(1, "Ana", "PT", "SP", weighted_degree=99, degree_centrality=0.9)],
-            ano=2025,
+            year=2025,
         )
 
         with sqlite3.connect(db_path) as conn:
             total = conn.execute("SELECT COUNT(*) FROM deputados_metricas").fetchone()[0]
             weighted_degree = conn.execute(
-                "SELECT weighted_degree FROM deputados_metricas WHERE ano = 2025 AND id_deputado = 1"
+                "SELECT weighted_degree FROM deputados_metricas WHERE year = 2025 AND deputy_id = 1"
             ).fetchone()[0]
 
         assert total == 1

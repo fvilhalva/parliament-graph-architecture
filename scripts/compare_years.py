@@ -123,7 +123,7 @@ def _plot_betweenness_heatmap(rows: list[dict]) -> None:
 
     for r in rows:
         df = r["df"].copy()
-        df["label"] = df["nome"] + " (" + df["sigla_partido"] + ")"
+        df["label"] = df["name"] + " (" + df["party_code"] + ")"
         top = df.nlargest(TOP_N, "betweenness_centrality").set_index("label")["betweenness_centrality"]
         year_dfs[r["year"]] = top
         all_names.update(top.index)
@@ -193,7 +193,7 @@ def main() -> None:
     print("\n=== Top 5 by Betweenness Centrality per Year ===")
     for r in rows:
         df = r["df"]
-        top = df.nlargest(5, "betweenness_centrality")[["nome", "sigla_partido", "betweenness_centrality"]]
+        top = df.nlargest(5, "betweenness_centrality")[["name", "party_code", "betweenness_centrality"]]
         print(f"\n{r['year']}:")
         print(top.to_string(index=False))
 

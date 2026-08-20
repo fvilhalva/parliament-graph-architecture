@@ -176,7 +176,7 @@ def repository_stage(
     )
     logger.info(f"CSV coauthorships exported to: {coauthorship_file}")
 
-    db_path = db_repository.exportar_metricas_deputados(deputies, year)
+    db_path = db_repository.export_deputy_metrics(deputies, year)
     logger.info(f"SQLite exported to: {db_path}")
 
     analysis_file = analysis_repository.save(analysis)
