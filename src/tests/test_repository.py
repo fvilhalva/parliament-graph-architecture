@@ -24,33 +24,33 @@ class TestCSVRepository:
             Deputy(3, "Carla", "MDB", "MG", weighted_degree=30, degree_centrality=0.6, betweenness_centrality=0.3),
         ]
 
-    def test_salvar_csv_cria_arquivo(self, tmp_path, deputados_exemplo):
+    def test_export_creates_file(self, tmp_path, example_deputies):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
+        output_file = csv_repo.export_deputy_metrics(example_deputies, year=2025)
 
-        assert arquivo.exists()
-        assert arquivo.name == "deputados_metricas_2025.csv"
+        assert output_file.exists()
+        assert output_file.name == "deputados_metricas_2025.csv"
 
-    def test_csv_nao_corrompido(self, tmp_path, deputados_exemplo):
+    def test_csv_not_corrupted(self, tmp_path, example_deputies):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
+        output_file = csv_repo.export_deputy_metrics(example_deputies, year=2025)
 
-        df = pd.read_csv(arquivo)
-        assert len(df) == len(deputados_exemplo)
+        df = pd.read_csv(output_file)
+        assert len(df) == len(example_deputies)
         assert not df.empty
 
-    def test_ler_csv_valido(self, tmp_path, deputados_exemplo):
+    def test_csv_is_readable(self, tmp_path, example_deputies):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
+        output_file = csv_repo.export_deputy_metrics(example_deputies, year=2025)
 
-        dados_lidos = pd.read_csv(arquivo)
-        assert len(dados_lidos) > 0
+        data = pd.read_csv(output_file)
+        assert len(data) > 0
 
-    def test_arquivo_csv_com_dados_completos(self, tmp_path, deputados_exemplo):
+    def test_csv_has_expected_columns(self, tmp_path, example_deputies):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
+        output_file = csv_repo.export_deputy_metrics(example_deputies, year=2025)
 
-        dados_lidos = pd.read_csv(arquivo)
+        data = pd.read_csv(output_file)
         colunas_esperadas = {
             "deputy_id",
             "name",
@@ -60,14 +60,14 @@ class TestCSVRepository:
             "degree_centrality",
             "betweenness_centrality",
         }
-        assert colunas_esperadas.issubset(set(dados_lidos.columns))
+        assert colunas_esperadas.issubset(set(data.columns))
 
-    def test_csv_ordenado_por_centralidade(self, tmp_path, deputados_exemplo):
+    def test_csv_sorted_by_centrality(self, tmp_path, example_deputies):
         csv_repo = CsvRepository(tmp_path)
-        arquivo = csv_repo.export_deputy_metrics(deputados_exemplo, year=2025)
+        output_file = csv_repo.export_deputy_metrics(example_deputies, year=2025)
 
-        dados_lidos = pd.read_csv(arquivo)
-        assert list(dados_lidos["deputy_id"]) == [3, 1, 2]
+        data = pd.read_csv(output_file)
+        assert list(data["deputy_id"]) == [3, 1, 2]
 
     def test_export_coauthorship_metrics_creates_file(self, tmp_path):
         csv_repo = CsvRepository(tmp_path)
@@ -98,69 +98,69 @@ class TestCSVRepository:
 
 
 class TestGraphExporter:
-    """Testes para exportação/importação de grafos GEXF."""
+    """Tests for GEXF graph export/import."""
 
     @pytest.fixture
-    def grafo_exemplo(self):
-        grafo = nx.Graph()
-        grafo.graph["name"] = "Grafo 2024"
-        grafo.add_node("1", label="Ana")
-        grafo.add_node("2", label="Bruno")
-        grafo.add_edge("1", "2", weight=3)
-        return grafo
+    def example_graph(self):
+        graph = nx.Graph()
+        graph.graph["name"] = "Grafo 2024"
+        graph.add_node("1", label="Ana")
+        graph.add_node("2", label="Bruno")
+        graph.add_edge("1", "2", weight=3)
+        return graph
 
-    def test_export_gexf_cria_arquivo(self, tmp_path, grafo_exemplo):
+    def test_export_gexf_creates_file(self, tmp_path, example_graph):
         exporter = GraphExporter(tmp_path)
-        arquivo = exporter.export_gexf(grafo_exemplo, year=2025)
+        output_file = exporter.export_gexf(example_graph, year=2025)
 
-        assert arquivo.exists()
-        assert arquivo.name == "chamber_graph_2025.gexf"
+        assert output_file.exists()
+        assert output_file.name == "chamber_graph_2025.gexf"
 
-    def test_arquivo_gexf_valido_xml(self, tmp_path, grafo_exemplo):
+    def test_gexf_is_valid_xml(self, tmp_path, example_graph):
         exporter = GraphExporter(tmp_path)
-        arquivo = exporter.to_gexf(grafo_exemplo, tmp_path / "grafo.gexf")
+        output_file = exporter.to_gexf(example_graph, tmp_path / "graph.gexf")
 
-        raiz = ET.parse(arquivo).getroot()
-        assert raiz.tag.endswith("gexf")
+        root = ET.parse(output_file).getroot()
+        assert root.tag.endswith("gexf")
 
-    def test_gexf_contem_nodes(self, tmp_path, grafo_exemplo):
+    def test_gexf_contains_nodes(self, tmp_path, example_graph):
         exporter = GraphExporter(tmp_path)
-        caminho = exporter.to_gexf(grafo_exemplo, tmp_path / "grafo.gexf")
+        path = exporter.to_gexf(example_graph, tmp_path / "graph.gexf")
 
-        grafo_lido = nx.read_gexf(caminho)
-        assert len(grafo_lido.nodes()) == len(grafo_exemplo.nodes())
+        loaded_graph = nx.read_gexf(path)
+        assert len(loaded_graph.nodes()) == len(example_graph.nodes())
 
-    def test_gexf_contem_arestas(self, tmp_path, grafo_exemplo):
+    def test_gexf_contains_edges(self, tmp_path, example_graph):
         exporter = GraphExporter(tmp_path)
-        caminho = exporter.to_gexf(grafo_exemplo, tmp_path / "grafo.gexf")
+        path = exporter.to_gexf(example_graph, tmp_path / "graph.gexf")
 
-        grafo_lido = nx.read_gexf(caminho)
-        assert len(grafo_lido.edges()) == len(grafo_exemplo.edges())
+        loaded_graph = nx.read_gexf(path)
+        assert len(loaded_graph.edges()) == len(example_graph.edges())
 
-    def test_metadados_preservados_gexf(self, tmp_path, grafo_exemplo):
+    def test_gexf_metadata_preserved(self, tmp_path, example_graph):
         exporter = GraphExporter(tmp_path)
-        caminho = exporter.to_gexf(grafo_exemplo, tmp_path / "grafo.gexf")
+        path = exporter.to_gexf(example_graph, tmp_path / "graph.gexf")
 
-        grafo_lido = nx.read_gexf(caminho)
-        # O reader do NetworkX preserva metadados estruturais do GEXF
-        # (mode/edge_default), mas pode descartar atributos customizados
-        # de graph dependendo da versão.
-        assert grafo_lido.graph.get("mode") == "static"
-        assert "edge_default" in grafo_lido.graph
+        loaded_graph = nx.read_gexf(path)
+        # NetworkX's reader preserves the GEXF structural metadata
+        # (mode/edge_default) but may drop custom graph attributes
+        # depending on the version.
+        assert loaded_graph.graph.get("mode") == "static"
+        assert "edge_default" in loaded_graph.graph
 
-    def test_importar_gexf(self, tmp_path, grafo_exemplo):
+    def test_gexf_import(self, tmp_path, example_graph):
         exporter = GraphExporter(tmp_path)
-        caminho = exporter.to_gexf(grafo_exemplo, tmp_path / "grafo.gexf")
+        path = exporter.to_gexf(example_graph, tmp_path / "graph.gexf")
 
-        grafo_importado = exporter.from_gexf(caminho)
-        assert len(grafo_importado.nodes()) == len(grafo_exemplo.nodes())
-        assert len(grafo_importado.edges()) == len(grafo_exemplo.edges())
+        imported_graph = exporter.from_gexf(path)
+        assert len(imported_graph.nodes()) == len(example_graph.nodes())
+        assert len(imported_graph.edges()) == len(example_graph.edges())
 
 
 class TestDBExporter:
     """Tests for metrics persistence in SQLite."""
 
-    def test_exportar_metricas_cria_db_e_tabela(self, tmp_path):
+    def test_export_creates_db_and_table(self, tmp_path):
         db_path = tmp_path / "metricas.db"
         exporter = DB_Exporter(db_path)
         deputies = [
@@ -177,7 +177,7 @@ class TestDBExporter:
             total = conn.execute("SELECT COUNT(*) FROM deputados_metricas").fetchone()[0]
         assert total == 2
 
-    def test_exportar_metricas_faz_upsert(self, tmp_path):
+    def test_export_performs_upsert(self, tmp_path):
         db_path = tmp_path / "metricas.db"
         exporter = DB_Exporter(db_path)
 
@@ -200,29 +200,29 @@ class TestDBExporter:
         assert weighted_degree == 99
 
 
-class TestRepositoryErros:
-    """Testes de tratamento de erros"""
+class TestRepositoryErrors:
+    """Error-handling tests."""
 
-    def test_arquivo_nao_encontrado(self):
-        """Deve tratar arquivo não encontrado"""
+    def test_file_not_found(self):
+        """Should handle a missing file."""
         exporter = GraphExporter(".")
         with pytest.raises(FileNotFoundError):
-            exporter.from_gexf("arquivo_inexistente.gexf")
+            exporter.from_gexf("missing_file.gexf")
 
-    def test_arquivo_corrompido(self, tmp_path):
-        """Deve tratar arquivo corrompido"""
-        arquivo = tmp_path / "corrompido.gexf"
-        arquivo.write_text("<gexf><graph></gexf>", encoding="utf-8")
+    def test_corrupted_file(self, tmp_path):
+        """Should handle a corrupted file."""
+        output_file = tmp_path / "corrupted.gexf"
+        output_file.write_text("<gexf><graph></gexf>", encoding="utf-8")
         exporter = GraphExporter(tmp_path)
 
         with pytest.raises(Exception):
-            exporter.from_gexf(arquivo)
+            exporter.from_gexf(output_file)
 
-    def test_permissao_negada_escrita(self, tmp_path):
-        """Deve tratar erro de permissão"""
+    def test_write_permission_denied(self, tmp_path):
+        """Should handle a permission error."""
         exporter = GraphExporter(tmp_path)
-        grafo = nx.Graph()
-        grafo.add_edge("1", "2")
+        graph = nx.Graph()
+        graph.add_edge("1", "2")
 
         with pytest.raises(OSError):
-            exporter.to_gexf(grafo, tmp_path)
+            exporter.to_gexf(graph, tmp_path)

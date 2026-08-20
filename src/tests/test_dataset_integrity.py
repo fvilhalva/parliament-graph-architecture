@@ -257,7 +257,7 @@ class TestCsvGexfCoherence:
         graph = nx.read_gexf(gexf_path)
 
         csv_ids = set(df["deputy_id"].astype(str))
-        # GEXF node IDs are strings; the CSV's id_deputado is numeric.
+        # GEXF node IDs are strings; the CSV's deputy_id is numeric.
         graph_ids = {str(n) for n in graph.nodes()}
 
         missing_in_csv = graph_ids - csv_ids
