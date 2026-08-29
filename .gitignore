@@ -49,3 +49,8 @@ Desktop.ini
 # Nunca suba senhas ou chaves de API (mesmo que a da Câmara seja aberta, é boa prática)
 .env
 !doc/*.tex
+
+# ==========================================
+# 6. Bibliografia (PDFs de artigos/livros — pesados, não versionar)
+# ==========================================
+doc/bibliografia/
