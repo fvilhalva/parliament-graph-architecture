@@ -1,0 +1,18 @@
+Olá Felipe. Segue abaixo algumas sugestões e pontos de destaque do material pdf que me enviou.
+
+    - Em relação ao tema, acrescente respostas às seguintes perguntas referente à sua hipótese: Existe concentração de poder em poucos parlamentares? Comunidades detectadas correspondem a partidos ou coalizões? A centralidade prediz influência política real?
+    - A definição de influência política está incompleta. Faça uma pesquisa para ter uma definição mais formal. Construa frases do tipo, "Neste trabalho, influência é operacionalizada como ...."
+    - Em relação à modelagem do grafo, nós precisamos responder perguntas como: coautoria implica influência? Como lidar com proposições com centenas de autores? Como você chegou a esses pesos (PL=10, PLP=5, PEC=1)? A gente precisa explicar esses valores ou se foi arbitrário.
+    - Em relação à construção do grafo, precisamos dizer se é grafo simples ou multigrafo, se é ponderado (neste caso, sim), se é estático ou temporal?
+    - Tem uma regra de normalização que usamos quando temos muitas fontes de interferência no processo. Adaptando para o seu trabalho, podemos ter a referência ao número de autores: Wij = (1 / (num_autores - 1)). Esse tipo de normalização, ajuda a evitar ditorções.
+    - Repensar a ideia de grafos bipartidos como: deputado <--> proposição  --> depois projeção.
+    - Você vai tratar de análise temporal? Se for, precisamos ver times series.
+    - Precisamos também pensar na validação do seu trabalho. Do jeito que está: execução + geração de artefatos é uma validação mais técnica do que científica. Para melhorar, podemos comparar com uma dessas três possibilidades: validação externa (lideranças reais ou dados públicos políticos); baselines (grafo aleatório); e testes estatísticos (correlação entre métricas ou significância de comunidades (essa última (significância de comunidades ) normalmente é a mais indicada. 
+    - Em relação à arquitetura, ficou boa. Porém, podemos melhorar em alguns pontos: incluir diagrama de componentes e fluxo de dados; definir interfaces (ex. repositórios); e tipagem. Há no python uma ferramenta que você pode usar: typing ou pydantic. 
+    - Na parte de reprodutibilidade, você usa o docker, o que é ótimo, mas podemos pensar em fixar versões (requirements.txt ou poetry.lock), dataset versionado.
+    - Nos testes, você menciona a cobertura mas precisa dizer a porcentagem e quais os testes. Dá pra usar alguns como: testes unários, testes de integração (usado principalmente em  pipeline. Dê repente combina mais com o seu trabalho) e testes de propriedades (exemplo: invariantes de grafo).
+    - Na parte matemática, às vezes você usa grau simples e às vezes grau ponderado. Ou um ou outro. 
+    - Faltam definições formais para coisas como o tipo de grafo: G = (V, E. w)
+    - E normalização ou não para betweenness
+    - Em relação à escrita, você mistura português e inglês. Deixe tudo em um só idioma.
+    - Por fim, eu pensei em melhorar o trabalho para de repente comparar algoritmos da comunidade: Louvain vs Leiden. Usar visualização interativa. E acho que está bom até aqui. Esse tópico 16 pode ficar também para trabalhos futuros.
