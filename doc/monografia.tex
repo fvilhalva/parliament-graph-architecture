@@ -760,7 +760,7 @@ Adicionalmente, três decisões qualitativas complementam a heurística:
     \item \textbf{Filtro de tipos de proposição}: 
     Apenas proposições com conteúdo legislativo substantivo são consideradas: Projetos de Lei (PL), Propostas de Emenda à Constituição (PEC), Projetos de Lei Complementar (PLP), Projetos de Decreto Legislativo (PDL) e Emendas (EMC). Requerimentos, ofícios e proposições administrativas são excluídos.
     
-    \item \textbf{Filtro de massa de signatários}: Proposições com mais de 30 deputados coautores são excluídas da construção de arestas. Empiricamente, uma única PEC com 226 signatários eleva a densidade da rede para aproximadamente 85\%, inviabilizando a detecção de comunidades. O limite de 30 é uma decisão metodológica conservadora, declarada como parâmetro sensível para análise de sensibilidade em trabalhos futuros.
+    \item \textbf{Filtro de massa de signatários}: Proposições com mais de 30 deputados coautores são excluídas da construção de arestas. Empiricamente, a inclusão dessas matérias --- a maior delas uma PEC com 226 signatários --- eleva a densidade da rede de 9{,}9\% para 85{,}4\% em 2025, transformando-a em um grafo quase-completo e inviabilizando a detecção de comunidades (demonstração no Capítulo~\ref{cap:resultados}). Como consequência direta, \textbf{nenhuma PEC integra a rede de coautoria analisada}, pois todas superam o limiar de 30 --- resultado intencional, e não uma perda: a co-assinatura em massa reflete adesão agregada, não articulação coordenada, e sua exclusão é coerente com a definição de influência adotada. Cabe notar que a heurística de ponderação $1/(n_p-1)$ e este filtro são \textbf{complementares}: a primeira trata a distorção de \emph{peso} (cada par de uma PEC de massa contribui apenas $1/225$), enquanto o filtro trata a distorção \emph{topológica} --- a mera \emph{existência} das $\binom{226}{2} \approx 25\,\text{mil}$ arestas, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar. O limite de 30 é uma decisão conservadora, declarada como parâmetro sensível para análise de sensibilidade em trabalhos futuros.
 
     \item \textbf{Pesos uniformes por tipo de proposição}: Embora alguns trabalhos anteriores tenham experimentado pesos diferenciados por tipo (por exemplo, PEC com peso maior que PL), não existe na literatura uma escala teoricamente justificada para tal ponderação. Adota-se, portanto, peso igual a 1 para todos os tipos, sendo a seleção qualitativa realizada pelo filtro de tipos descrito acima.
 \end{enumerate}
@@ -1152,6 +1152,27 @@ Evair Vieira de Melo (PP)      & Luiz Lima (PL)               \\
 [PREENCHER: Achado 1 --- as pontes se distribuem por vários partidos (REPUBLIC, PL, MDB, PP), e o principal \textit{broker} não é do maior bloco: o papel de ponte é estrutural e individual, não determinado pelo tamanho do partido.]
 
 [PREENCHER: Achado 2 (o mais importante) --- o grau ponderado é dominado por partidos pequenos e ideologicamente coesos (PSOL, NOVO), que coassinam intensamente em bloco. Isso revela que a centralidade de coautoria mede \textbf{intensidade de articulação}, e \textbf{não poder institucional} (relatorias, presidência de comissões, controle de pauta) --- daí lideranças formais não aparecerem no topo. Retomar aqui a definição operacional de influência da Seção de métodos.]
+
+% NORTE: responde a pergunta norteadora (i) --- concentração da articulação em poucos.
+A concentração da articulação em poucos parlamentares --- primeira pergunta norteadora --- é quantificada pelo coeficiente de Gini \cite{gini1921} da distribuição de cada centralidade (0 indica igualdade total; 1, concentração máxima) e pela participação dos dez deputados mais centrais. A Tabela~\ref{tab:concentracao} apresenta os valores de 2025.
+
+\begin{table}[H]
+\centering
+\caption{Concentração da centralidade em 2025 (coeficiente de Gini e participação dos 10 mais centrais).}
+\label{tab:concentracao}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Métrica} & \textbf{Gini} & \textbf{Top-10} \\
+\midrule
+Autovetor       & 0,951 & 82\% \\
+Intermediação   & 0,740 & 26\% \\
+Grau ponderado  & 0,566 & 21\% \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+[PREENCHER: discutir que há forte concentração da articulação, \emph{extrema} no autovetor (Gini 0,95: os dez mais concentram 82\%) --- reflexo direto da câmara de eco de bancadas coesas ---, alta na intermediação (0,74) e moderada no grau (0,57). Ressalvar que é concentração da \emph{articulação} (coautoria), não de poder institucional. Observar que o padrão é estável nos quatro anos (Gini do autovetor entre 0,87 e 0,98), e que a divergência entre as métricas confirma que as quatro dimensões de centralidade não são redundantes.]
 
 \section{DETECÇÃO DE COMUNIDADES E TESTE DA HIPÓTESE CENTRAL}
 
