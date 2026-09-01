@@ -8,7 +8,42 @@ from core.algorithms.metrics import (
     calculate_closeness_centrality,
     calculate_degree_centrality,
     calculate_eigenvector_centrality,
+    gini_coefficient,
+    top_k_share,
 )
+
+
+class TestGiniCoefficient:
+    """Tests for the Gini concentration coefficient."""
+
+    def test_perfect_equality_is_zero(self):
+        assert gini_coefficient([1, 1, 1, 1]) == 0.0
+
+    def test_empty_and_all_zero(self):
+        assert gini_coefficient([]) == 0.0
+        assert gini_coefficient([0, 0, 0]) == 0.0
+
+    def test_known_value(self):
+        # [0, 0, 0, 10] -> G = (2*(4*10) - 5*10) / (4*10) = 30/40 = 0.75
+        assert gini_coefficient([0, 0, 0, 10]) == pytest.approx(0.75)
+
+    def test_in_unit_interval(self):
+        assert 0.0 <= gini_coefficient([1, 2, 3, 4, 5, 100]) <= 1.0
+
+
+class TestTopKShare:
+    """Tests for the top-k concentration share."""
+
+    def test_share_of_largest(self):
+        # top-2 of [1,2,3,4] -> (4+3)/10 = 0.7
+        assert top_k_share([1, 2, 3, 4], 2) == pytest.approx(0.7)
+
+    def test_all_when_k_covers_everything(self):
+        assert top_k_share([2, 2, 2], 3) == pytest.approx(1.0)
+
+    def test_empty_or_nonpositive(self):
+        assert top_k_share([], 3) == 0.0
+        assert top_k_share([1, 2, 3], 0) == 0.0
 
 
 @pytest.fixture

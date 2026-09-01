@@ -15,6 +15,7 @@ from typing import Any
 
 from core.algorithms.analysis_result import (
     AnalysisResult,
+    ConcentrationSummary,
     MethodSummary,
     PartitionAgreement,
 )
@@ -94,6 +95,14 @@ def _decode(payload: dict) -> AnalysisResult:
     label_prop_raw = payload.get("label_propagation") or {}
     agreement_raw = payload.get("partition_agreement") or {}
 
+    concentration = {
+        str(metric): ConcentrationSummary(
+            gini=float(summary.get("gini", 0.0)),
+            top10_share=float(summary.get("top10_share", 0.0)),
+        )
+        for metric, summary in (payload.get("concentration") or {}).items()
+    }
+
     return AnalysisResult(
         year=int(payload["year"]),
         n_nodes=int(payload.get("n_nodes", 0)),
@@ -118,4 +127,5 @@ def _decode(payload: dict) -> AnalysisResult:
             ),
         ),
         null_model=null_model,
+        concentration=concentration,
     )

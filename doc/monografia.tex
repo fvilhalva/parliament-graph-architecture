@@ -311,12 +311,22 @@ A pergunta de pesquisa central que orienta este trabalho é formulada em termos 
 A essa pergunta associa-se uma hipótese falsificável, enunciada abaixo como predição sobre a estrutura da rede. O procedimento que a operacionaliza e a testa é descrito no Capítulo~\ref{cap:metodologia}, e o veredito correspondente --- corroboração ou refutação --- é apresentado no Capítulo~\ref{cap:resultados}.
 
 \begin{itemize}
-    \item \textbf{H1 - Única Hipótese (Estrutura não-aleatória)}: a rede de coautoria parlamentar apresenta estrutura de comunidades não-aleatória, com modularidade $Q$ substancialmente superior à esperada em redes com a mesma sequência de graus e ligações redistribuídas ao acaso.
+    \item \textbf{H1 --- Estrutura de comunidades não-aleatória}: a modularidade $Q$ da rede de coautoria parlamentar é significativamente superior à obtida em grafos nulos que preservam a mesma sequência de graus (\textit{configuration model}). Como predição falsificável, H1 é \textbf{refutada} caso a modularidade observada não se distinga estatisticamente da distribuição nula ($p \geq \alpha$) --- situação em que a fragmentação em comunidades seria indistinguível de um arranjo aleatório de colaborações e a coautoria não refletiria organização política estruturada.
 \end{itemize}
 
 Coerentemente com o paradigma de \textit{Design Science Research} adotado (Capítulo~\ref{cap:metodologia}), H1 cumpre o papel de \textbf{condição de validade} da análise, e não de tese conclusiva sobre o sistema político: antes de interpretar centralidades e comunidades como estruturas de influência, é necessário demonstrar que a organização modular da rede não é mero artefato do acaso ou da distribuição de graus. A contribuição central do trabalho é, portanto, a arquitetura reprodutível que \textit{viabiliza} essa análise; o teste de H1 e os resultados descritivos são a demonstração de que o artefato opera corretamente sobre o período 2022--2025.
 
 Além do teste dessa hipótese, o trabalho produz, como resultados descritivos complementares, o cálculo das quatro métricas de centralidade para cada deputado e a comparação entre dois algoritmos independentes de detecção de comunidades --- elementos que compõem a caracterização das estruturas de influência da rede e reforçam a robustez do achado central.
+
+Essa caracterização é organizada em torno de três \textbf{perguntas norteadoras}, de natureza descritiva e exploratória --- e não hipóteses a serem testadas estatisticamente:
+
+\begin{enumerate}[label=(\roman*)]
+    \item há concentração da articulação legislativa em poucos parlamentares?
+    \item as comunidades detectadas correspondem a partidos ou coalizões reais?
+    \item a centralidade de coautoria prediz influência política real?
+\end{enumerate}
+
+\noindent Diferentemente de H1, essas questões não são submetidas a teste de significância: são respondidas pela caracterização empírica da rede no Capítulo~\ref{cap:resultados}. A hipótese H1 é, ainda assim, a \textbf{condição que as viabiliza} --- só faz sentido perguntar se as comunidades correspondem a partidos, por exemplo, depois de demonstrado que a estrutura comunitária não é fruto do acaso.
 
 \section{ESTRUTURA DO TRABALHO}
 
