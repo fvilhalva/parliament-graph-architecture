@@ -1046,52 +1046,225 @@ O código-fonte completo, juntamente com a documentação técnica, está dispon
 \chapter{Resultados e Discussões}
 \label{cap:resultados}
 
-Este capitulo descreve os resultados gerados pelo software da pesquisa, e além disso, as discussões sobre os dados agregados.
+% ═══════════════════════════════════════════════════════════════════════
+% NORTE DO CAPÍTULO: apresentar os números gerados pelo artefato (tabelas
+% com dados reais) e DISCUTIR o que significam. Ordem: (1) o artefato
+% funciona/é reprodutível; (2) como é a rede e quem são os centrais;
+% (3) as comunidades e o teste de H1; (4) a estabilidade ao longo dos anos.
+% Fonte única dos números: data/analysis/*.json e data/metricas/*.csv.
+% ═══════════════════════════════════════════════════════════════════════
+
+Este capítulo apresenta os resultados produzidos pelo artefato para o período 2022--2025 e discute seu significado. Primeiro valida-se a arquitetura e sua reprodutibilidade; em seguida, caracterizam-se a rede e os deputados mais centrais; então testa-se a hipótese central (H1) por meio da detecção de comunidades e do modelo nulo; por fim, avalia-se a estabilidade do padrão ao longo dos quatro anos.
 
 \section{VALIDAÇÃO DA ARQUITETURA E REPRODUTIBILIDADE}
 
-A arquitetura foi testada e validada por meio testes unitarios por módulo do software, 
-
+% NORTE: mostrar que o artefato "roda" e é confiável, antes de interpretar dados.
 \subsection{Desempenho Computacional}
 
+% NORTE: tempo de execução, hardware, determinismo (seed=42), cobertura de testes.
+O \textit{pipeline} completo (quatro anos) executa em [PREENCHER: tempo, ex.\ 15--25] minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 210 testes automatizados (cobertura total de 83\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. [PREENCHER: comentar que a execução via Docker replica o ambiente exatamente.]
+
 \subsection{Geração de Artefatos (Interoperabilidade)}
+
+% NORTE: listar os formatos exportados e por que importam (auditabilidade, Gephi).
+Cada execução persiste os resultados em formatos abertos e interoperáveis: CSV (métricas por deputado), GEXF (grafo, compatível com o Gephi), SQLite (persistência consultável) e JSON (\texttt{AnalysisResult} auditável). [PREENCHER: destacar que o GEXF permite validação cruzada independente --- abrir no Gephi e recalcular a modularidade confirma os valores do \textit{pipeline}.]
 
 \section{ANÁLISE DE CENTRALIDADE E INFLUÊNCIA PARLAMENTAR}
 
 \subsection{O Grafo Resultante}
 
+% NORTE: apresentar a Tabela 1 (estrutura da rede) e a Tabela 2 (efeito dos filtros).
+A Tabela~\ref{tab:metricas_rede} sintetiza a estrutura da rede em cada ano.
+
+\begin{table}[H]
+\centering
+\caption{Métricas estruturais da rede de coautoria por ano.}
+\label{tab:metricas_rede}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Indicador} & \textbf{2022} & \textbf{2023} & \textbf{2024} & \textbf{2025} \\
+\midrule
+Nós (deputados ativos)       & 273   & 360   & 337   & 331   \\
+Arestas (coautorias únicas)  & 3.085 & 5.082 & 4.426 & 5.407 \\
+Densidade                    & 8,31\% & 7,86\% & 7,82\% & 9,90\% \\
+Modularidade Louvain ($Q$)   & 0,596 & 0,640 & 0,634 & 0,634 \\
+Comunidades (Louvain)        & 15    & 12    & 14    & 16    \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+% NORTE: justificar EMPIRICAMENTE os filtros (Tabela do 85%). Argumento forte p/ banca.
+A relevância dos filtros de modelagem (Seção~\ref{subsec:heuristica}) é confirmada empiricamente. A Tabela~\ref{tab:filtros} mostra o efeito do filtro de massa de signatários sobre a densidade em 2025.
+
+\begin{table}[H]
+\centering
+\caption{Efeito do filtro de massa de signatários sobre a densidade (2025).}
+\label{tab:filtros}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Configuração} & \textbf{Arestas} & \textbf{Densidade} \\
+\midrule
+Sem filtro de massa (apenas tipo)      & 124.671 & 85,35\% \\
+Com filtro (\texttt{max\_authors}=30)  & 5.407   & 9,90\%  \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+A remoção de 70 proposições com mais de 30 coautores --- a maior com 226 signatários (uma PEC) --- reduz a densidade de 85,35\% para 9,90\%, transformando um grafo quase-completo em uma rede analisável. [PREENCHER: reforçar que a normalização $1/(n_p-1)$ trata a distorção de \emph{peso}, enquanto o filtro trata a distorção \emph{topológica} (existência de arestas) --- os dois são complementares.]
+
 \subsection{Os Deputados mais Influentes}
+
+% NORTE: Tabela dos top-centrais (2025) + a DISCUSSÃO mais importante do trabalho:
+% centralidade de coautoria mede ARTICULAÇÃO, não poder institucional.
+A Tabela~\ref{tab:top_deputados} apresenta os deputados de maior centralidade em 2025, sob duas óticas: intermediação (pontes entre grupos) e grau ponderado (intensidade de colaboração).
+
+\begin{table}[H]
+\centering
+\caption{Deputados de maior centralidade em 2025.}
+\label{tab:top_deputados}
+\begin{tabular}{ll}
+\toprule
+\textbf{Top intermediação (pontes)} & \textbf{Top grau ponderado (coesão)} \\
+\midrule
+Franciane Bayer (REPUBLICANOS) & Célia Xakriabá (PSOL)       \\
+Alberto Fraga (PL)             & Adriana Ventura (NOVO)       \\
+Bibo Nunes (PL)                & Fernanda Melchionna (PSOL)   \\
+Pezenti (MDB)                  & Marcel van Hattem (NOVO)     \\
+Evair Vieira de Melo (PP)      & Luiz Lima (PL)               \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+% NORTE (parágrafo-chave da defesa): dois achados a discutir.
+[PREENCHER: Achado 1 --- as pontes se distribuem por vários partidos (REPUBLIC, PL, MDB, PP), e o principal \textit{broker} não é do maior bloco: o papel de ponte é estrutural e individual, não determinado pelo tamanho do partido.]
+
+[PREENCHER: Achado 2 (o mais importante) --- o grau ponderado é dominado por partidos pequenos e ideologicamente coesos (PSOL, NOVO), que coassinam intensamente em bloco. Isso revela que a centralidade de coautoria mede \textbf{intensidade de articulação}, e \textbf{não poder institucional} (relatorias, presidência de comissões, controle de pauta) --- daí lideranças formais não aparecerem no topo. Retomar aqui a definição operacional de influência da Seção de métodos.]
 
 \section{DETECÇÃO DE COMUNIDADES E TESTE DA HIPÓTESE CENTRAL}
 
 \subsection{Comparação Louvain vs.\ Label Propagation}
 
+% NORTE: Tabela do ARI (4 anos) + discussão honesta sobre ARI moderado.
+A concordância entre as duas partições, medida pelo \textit{Adjusted Rand Index} (ARI), é apresentada na Tabela~\ref{tab:ari}.
+
+\begin{table}[H]
+\centering
+\caption{Concordância entre Louvain e Label Propagation (ARI) por ano.}
+\label{tab:ari}
+\begin{tabular}{lrrrr}
+\toprule
+ & \textbf{2022} & \textbf{2023} & \textbf{2024} & \textbf{2025} \\
+\midrule
+Comunidades (Louvain)          & 15    & 12    & 14    & 16    \\
+Comunidades (Label Prop.)      & 19    & 13    & 12    & 10    \\
+ARI                            & 0,325 & 0,281 & 0,416 & 0,423 \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+[PREENCHER: discutir que o ARI é moderado (0,28--0,42), mas que os dois algoritmos convergem no \emph{essencial} --- a existência de forte estrutura modular ---, divergindo apenas na granularidade das fronteiras entre comunidades; o Label Propagation é reconhecidamente instável. Enquadrar como verificação de consistência do sinal, não como identidade de partições.]
+
 \subsection{Análise pela Modularidade (Q) --- Teste da Hipótese H1}
+
+% NORTE: Tabela do modelo nulo (o resultado central) + veredito de H1.
+% + cruzamento comunidade × partido (a validação de que as comunidades são reais).
+A Tabela~\ref{tab:null_model} apresenta o teste de significância da estrutura comunitária contra o modelo nulo ponderado.
+
+\begin{table}[H]
+\centering
+\caption{Teste de significância da estrutura comunitária (modelo nulo ponderado, 200 permutações).}
+\label{tab:null_model}
+\begin{tabular}{lrrrr}
+\toprule
+ & \textbf{2022} & \textbf{2023} & \textbf{2024} & \textbf{2025} \\
+\midrule
+$Q_{\text{obs}}$                       & 0,596  & 0,640  & 0,634  & 0,634  \\
+$Q_{\text{nulo}}$ (média)              & 0,370  & 0,420  & 0,415  & 0,467  \\
+$p$-valor                              & <0,005 & <0,005 & <0,005 & <0,005 \\
+Significativo ($\alpha=0{,}05$)        & Sim    & Sim    & Sim    & Sim    \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+Em todos os anos, a modularidade observada supera a média do modelo nulo, e \textbf{nenhum dos 200 grafos nulos atinge $Q_{\text{obs}}$} ($p<0{,}005$). \textbf{A hipótese H1 é, portanto, corroborada}: a estrutura de comunidades da rede é não-aleatória. [PREENCHER: enfatizar que o nulo é \emph{ponderado} (pesos reatribuídos), tornando a comparação homogênea; e que H1 é a condição de validade que autoriza interpretar as comunidades como estruturas reais.]
+
+% NORTE: aqui vai o "ouro" --- mostrar que as comunidades correspondem a partidos.
+[PREENCHER: inserir a Tabela do cruzamento comunidade $\times$ partido (gerável a partir de \texttt{data/metricas/deputados\_metricas\_2025.csv}, colunas \texttt{community\_louvain} e \texttt{party\_code}) e discutir que as maiores comunidades são dominadas por partidos reais (ex.: uma comunidade $\approx$54\% PL; outra $\approx$59\% PT; outra concentrando o PSOL) --- ou seja, o algoritmo recupera a realidade partidária \emph{sem} jamais receber rótulo ideológico. Esta é a validação qualitativa exigida na metodologia.]
 
 \section{ANÁLISE TEMPORAL (2022--2025)}
 \label{sec:temporal}
 
 \subsection{Estabilidade do Padrão Estrutural}
 
+% NORTE: mostrar que Q e o veredito de H1 se mantêm nos 4 anos (persistência).
+[PREENCHER: observar que $Q_{\text{obs}}$ permanece na faixa estreita $[0{,}596;\ 0{,}640]$ e que H1 é confirmada em todos os anos --- a fragmentação em comunidades é um padrão \emph{persistente}, não um artefato de um ano específico. Comentar a densidade ligeiramente maior em 2025.]
+
 \subsection{Discussão Longitudinal}
+
+% NORTE: a ressalva metodológica do recorte + leitura política prudente.
+[PREENCHER: ressalvar que 2022 pertence à 56ª Legislatura (encerramento, ano eleitoral) enquanto 2023--2025 são da 57ª --- portanto 2022 é ponto de referência de persistência, não comparação ponto-a-ponto homogênea. Discutir, com prudência, o que a estabilidade sugere sobre o comportamento legislativo, sem extrapolar além do que a coautoria (proxy de articulação) permite afirmar.]
 
 %-------------------------------------------------------------------------------------%
 \chapter{Conclusão}
 \label{cap:conclusao}
 
+% ═══════════════════════════════════════════════════════════════════════
+% NORTE DO CAPÍTULO: retomar o problema, afirmar o que foi entregue (o
+% artefato) e o que foi demonstrado (H1), listar contribuições, reconhecer
+% limitações com honestidade e apontar trabalhos futuros. Manter o fio DSR:
+% a contribuição é a ARQUITETURA; a análise é a demonstração de que funciona.
+% ═══════════════════════════════════════════════════════════════════════
+
 \section{SÍNTESE DOS ACHADOS}
+
+% NORTE: 1 parágrafo respondendo ao problema de pesquisa.
+[PREENCHER: retomar o objetivo geral e afirmar que foi cumprido --- construiu-se e validou-se uma arquitetura reprodutível que transforma dados legislativos brutos em evidências mensuráveis. H1 foi corroborada nos quatro anos ($p<0{,}005$); as centralidades e comunidades caracterizam as estruturas de influência, com o achado de que a coautoria mede articulação (não poder institucional).]
 
 \section{CONTRIBUIÇÕES}
 
 \subsection{Contribuição técnica}
 
+% NORTE: o artefato em si.
+[PREENCHER: a arquitetura modular reprodutível (Arquitetura Limpa + SOLID), auditável, containerizada, coberta por 210 testes (incluindo testes de integridade de dataset), independente de reexecução --- ferramenta reutilizável para análises legislativas computacionais.]
+
 \subsection{Contribuição analítica}
+
+% NORTE: o que a aplicação revelou.
+[PREENCHER: a caracterização estrutural do legislativo 2022--2025 --- estrutura modular não-aleatória persistente, comunidades que recuperam a organização partidária, e a distinção empírica entre articulação (coautoria) e poder institucional.]
 
 \section{LIMITAÇÕES}
 
+% NORTE: seção que IMPRESSIONA a banca. Ser honesto = força, não fraqueza.
+[PREENCHER, em itens:]
+\begin{itemize}
+    \item \textbf{Coautoria como \textit{proxy}}: mede articulação, não voto igual nem posição ideológica formal; dois adversários podem coassinar um projeto pontual.
+    \item \textbf{Centralidade $\neq$ poder institucional}: a rede não captura relatorias, presidência de comissões ou controle de pauta.
+    \item \textbf{ARI moderado} (0,28--0,42): os algoritmos divergem na granularidade das fronteiras.
+    \item \textbf{Recorte de 2022}: pertence à 56ª Legislatura (ano eleitoral atípico).
+    \item \textbf{Parâmetro \texttt{max\_authors}=30}: escolha conservadora; análise de sensibilidade fica como trabalho futuro. [PREENCHER: se já tiver rodado 20/30/40, mover para os resultados.]
+    \item \textbf{Acoplamento à fonte}: o artefato depende do esquema de CSV da Câmara.
+\end{itemize}
+
 \section{TRABALHOS FUTUROS}
 
+% NORTE: caminhos concretos (vários já estão nos slides).
+\begin{itemize}
+    \item Análise de sensibilidade dos parâmetros (\texttt{max\_authors}, filtro de tipos).
+    \item Comparação com o algoritmo de Leiden \citeonline{traag2019}.
+    \item Cruzamento com dados de votação nominal, testando se a coautoria prediz votos.
+    \item Extensão da série histórica e aprofundamento da análise longitudinal.
+    \item Aplicação de Redes Neurais de Grafos (GNNs) para predição de comportamento legislativo.
+\end{itemize}
+
 \section{CONSIDERAÇÕES FINAIS}
+
+% NORTE: fechamento curto, retomando o valor do artefato (transparência/auditoria).
+[PREENCHER: parágrafo final --- reforçar o valor de uma ferramenta aberta e auditável para transparência parlamentar, unindo engenharia de software e método científico, e convidar à reutilização/extensão do artefato.]
 
 %-------------------------------------------------------------------------------------%
 %                             P Ó S   T E X T U A L                                  %
