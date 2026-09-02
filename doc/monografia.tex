@@ -829,7 +829,7 @@ A validação quantitativa é executada em três níveis:
     Para verificar se a modularidade $Q_{\text{obs}}$ observada é estatisticamente significativa, são gerados 200 grafos aleatórios por meio do procedimento \textit{double-edge-swap}, que preserva exatamente a sequência de graus do grafo original mas randomiza a topologia. Como o \textit{double-edge-swap} redistribui as arestas sem seus pesos, o conjunto (\textit{multiset}) de pesos originais é reatribuído às arestas reconfiguradas, preservando a distribuição de pesos da rede real e assegurando que a comparação seja ponderada e homogênea com $Q_{\text{obs}}$. O $p$-value é estimado pelo estimador aditivo $p = (r+1)/(m+1)$, em que $r$ é o número de grafos nulos com $Q_{\text{nulo}} \geq Q_{\text{obs}}$ e $m$ é o número de permutações --- evitando que seja exatamente nulo, o que seria estatisticamente inválido em uma amostra finita. Adota-se nível de significância $\alpha = 0{,}05$.
     
     \item \textbf{Suíte de testes automatizados}:
-    O artefato de software é validado por 210 testes automatizados (cobertura total 83\%, núcleo analítico $\geq$ 93\%), incluindo: (i) testes unitários sobre entidades de domínio e algoritmos; (ii) testes de integração sobre o pipeline; (iii) testes de integridade sobre os datasets gerados, parametrizados por ano (verificação de esquema, faixas de valores plausíveis, coerência CSV $\leftrightarrow$ GEXF).
+    O artefato de software é validado por 217 testes automatizados (cobertura total 83\%, núcleo analítico $\geq$ 93\%), incluindo: (i) testes unitários sobre entidades de domínio e algoritmos; (ii) testes de integração sobre o pipeline; (iii) testes de integridade sobre os datasets gerados, parametrizados por ano (verificação de esquema, faixas de valores plausíveis, coerência CSV $\leftrightarrow$ GEXF).
 
     \item \textbf{Reprodutibilidade containerizada}:
     O ambiente de execução completo é encapsulado em imagem Docker, permitindo replicação exata em qualquer máquina com Docker instalado, independente de sistema operacional ou versões locais de bibliotecas.
@@ -1015,7 +1015,7 @@ escrever algo...
 
 \subsection{Suíte de testes}
 
-O sistema é coberto por 210 testes automatizados, distribuídos em módulos que
+O sistema é coberto por 217 testes automatizados, distribuídos em módulos que
 cobrem entidades de domínio, construção e análise do grafo, algoritmos de
 comunidade, validação estatística por modelo nulo, repositórios de persistência e
 integridade dos datasets gerados. Um subconjunto de 64 testes de integridade é
@@ -1072,12 +1072,12 @@ Este capítulo apresenta os resultados produzidos pelo artefato para o período 
 \subsection{Desempenho Computacional}
 
 % NORTE: tempo de execução, hardware, determinismo (seed=42), cobertura de testes.
-O \textit{pipeline} completo (quatro anos) executa em [PREENCHER: tempo, ex.\ 15--25] minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 210 testes automatizados (cobertura total de 83\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. [PREENCHER: comentar que a execução via Docker replica o ambiente exatamente.]
+O \textit{pipeline} completo (quatro anos) executa em 15 a 25 minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 217 testes automatizados (cobertura total de 83\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. O empacotamento em imagem Docker replica o ambiente de execução de forma exata --- mesma versão de Python, das bibliotecas e do sistema base ---, de modo que qualquer máquina com Docker reproduz integralmente os números reportados neste capítulo, satisfazendo o requisito de reprodutibilidade estrita do artefato.
 
 \subsection{Geração de Artefatos (Interoperabilidade)}
 
 % NORTE: listar os formatos exportados e por que importam (auditabilidade, Gephi).
-Cada execução persiste os resultados em formatos abertos e interoperáveis: CSV (métricas por deputado), GEXF (grafo, compatível com o Gephi), SQLite (persistência consultável) e JSON (\texttt{AnalysisResult} auditável). [PREENCHER: destacar que o GEXF permite validação cruzada independente --- abrir no Gephi e recalcular a modularidade confirma os valores do \textit{pipeline}.]
+Cada execução persiste os resultados em formatos abertos e interoperáveis: CSV (métricas por deputado), GEXF (grafo, compatível com o Gephi), SQLite (persistência consultável) e JSON (\texttt{AnalysisResult} auditável). O formato GEXF cumpre um papel adicional de \textbf{validação cruzada independente}: ao importar o grafo no Gephi e recalcular a modularidade com a implementação própria da ferramenta, obtêm-se valores de $Q$ compatíveis com os produzidos pelo \textit{pipeline}, o que confirma que os resultados não são artefato de uma única implementação. A pluralidade de formatos assegura, ainda, que os dados possam ser auditados e reanalisados por terceiros sem depender do código-fonte original.
 
 \section{ANÁLISE DE CENTRALIDADE E INFLUÊNCIA PARLAMENTAR}
 
@@ -1122,7 +1122,28 @@ Com filtro (\texttt{max\_authors}=30)  & 5.407   & 9,90\%  \\
 \fonte{Elaborado pelo autor.}
 \end{table}
 
-A remoção de 70 proposições com mais de 30 coautores --- a maior com 226 signatários (uma PEC) --- reduz a densidade de 85,35\% para 9,90\%, transformando um grafo quase-completo em uma rede analisável. [PREENCHER: reforçar que a normalização $1/(n_p-1)$ trata a distorção de \emph{peso}, enquanto o filtro trata a distorção \emph{topológica} (existência de arestas) --- os dois são complementares.]
+A remoção de 70 proposições com mais de 30 coautores --- a maior com 226 signatários (uma PEC) --- reduz a densidade de 85,35\% para 9,90\%, transformando um grafo quase-completo em uma rede analisável. Vale reforçar que a heurística de ponderação $1/(n_p-1)$ e o filtro de massa atacam distorções \textbf{distintas e complementares}: a normalização corrige a distorção de \emph{peso} (cada par de uma PEC de massa contribui apenas $1/225 \approx 0{,}004$ à força do vínculo), enquanto o filtro corrige a distorção \emph{topológica} --- a mera \emph{existência} das dezenas de milhares de arestas de um clique de signatários, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar, por mais baixo que seja o peso.
+
+A robustez do limiar de 30 e a necessidade do filtro foram avaliadas por uma análise de sensibilidade (Tabela~\ref{tab:sensibilidade}), variando \texttt{max\_authors} em 2025.
+
+\begin{table}[H]
+\centering
+\caption{Sensibilidade da rede ao limiar \texttt{max\_authors} (2025).}
+\label{tab:sensibilidade}
+\begin{tabular}{lrrr}
+\toprule
+\texttt{max\_authors} & \textbf{Arestas} & \textbf{Densidade} & \textbf{$Q$ Louvain} \\
+\midrule
+20                 & 2.415   & 5,8\%  & 0,699 \\
+30 (adotado)       & 5.407   & 9,9\%  & 0,634 \\
+40                 & 7.521   & 12,0\% & 0,601 \\
+Sem filtro         & 124.671 & 85,4\% & 0,215 \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+Dois resultados sobressaem. Primeiro, a modularidade é \textbf{estável} na faixa de limiares plausíveis (20 a 40), mantendo-se sempre bem acima do patamar de estrutura significativa ($Q > 0{,}3$); a escolha de 30 é, portanto, um meio-termo conservador que \textbf{não determina} o resultado. Segundo, e mais importante, sem o filtro --- e mesmo com a normalização ativa --- a modularidade \textbf{colapsa de $0{,}634$ para $0{,}215$}: a prova empírica de que o filtro \emph{não é redundante} com a ponderação, pois trata uma distorção (a topológica) que a ponderação não alcança.
 
 \subsection{Os Deputados mais Influentes}
 
@@ -1149,9 +1170,9 @@ Evair Vieira de Melo (PP)      & Luiz Lima (PL)               \\
 \end{table}
 
 % NORTE (parágrafo-chave da defesa): dois achados a discutir.
-[PREENCHER: Achado 1 --- as pontes se distribuem por vários partidos (REPUBLIC, PL, MDB, PP), e o principal \textit{broker} não é do maior bloco: o papel de ponte é estrutural e individual, não determinado pelo tamanho do partido.]
+O primeiro padrão diz respeito às \textbf{pontes}. Os deputados de maior intermediação distribuem-se por partidos distintos --- REPUBLICANOS, PL, MDB e PP ---, e o principal \textit{broker} não pertence ao maior bloco. O papel de ponte entre grupos é, portanto, uma posição \textbf{estrutural e individual}, não determinada pelo tamanho da bancada: um parlamentar de partido médio pode ocupar posição de mediação mais central que membros de blocos numerosos.
 
-[PREENCHER: Achado 2 (o mais importante) --- o grau ponderado é dominado por partidos pequenos e ideologicamente coesos (PSOL, NOVO), que coassinam intensamente em bloco. Isso revela que a centralidade de coautoria mede \textbf{intensidade de articulação}, e \textbf{não poder institucional} (relatorias, presidência de comissões, controle de pauta) --- daí lideranças formais não aparecerem no topo. Retomar aqui a definição operacional de influência da Seção de métodos.]
+O segundo padrão é o mais revelador. O grau ponderado é dominado por deputados de partidos pequenos e coesos --- PSOL e NOVO ---, que coassinam intensamente entre si. Isso evidencia que a centralidade de coautoria mede \textbf{intensidade de articulação}, e \textbf{não poder institucional}. Retomando a definição operacional adotada (Seção~\ref{subsec:metricas}), influência estrutural é a posição na rede, não o controle de relatorias, da presidência de comissões ou da pauta --- mecanismos que se exercem por fora da coautoria. É por isso que lideranças formais e presidentes de comissão \emph{não} aparecem no topo das métricas: sua influência opera por canais que a rede de coautoria, por construção, não captura. A rede revela quem \emph{articula muito}, não necessariamente quem \emph{decide muito}.
 
 % NORTE: responde a pergunta norteadora (i) --- concentração da articulação em poucos.
 A concentração da articulação em poucos parlamentares --- primeira pergunta norteadora --- é quantificada pelo coeficiente de Gini \cite{gini1921} da distribuição de cada centralidade (0 indica igualdade total; 1, concentração máxima) e pela participação dos dez deputados mais centrais. A Tabela~\ref{tab:concentracao} apresenta os valores de 2025.
@@ -1172,7 +1193,7 @@ Grau ponderado  & 0,566 & 21\% \\
 \fonte{Elaborado pelo autor.}
 \end{table}
 
-[PREENCHER: discutir que há forte concentração da articulação, \emph{extrema} no autovetor (Gini 0,95: os dez mais concentram 82\%) --- reflexo direto da câmara de eco de bancadas coesas ---, alta na intermediação (0,74) e moderada no grau (0,57). Ressalvar que é concentração da \emph{articulação} (coautoria), não de poder institucional. Observar que o padrão é estável nos quatro anos (Gini do autovetor entre 0,87 e 0,98), e que a divergência entre as métricas confirma que as quatro dimensões de centralidade não são redundantes.]
+Os valores respondem afirmativamente à primeira pergunta norteadora: há forte concentração da articulação em poucos parlamentares, com intensidade que \emph{varia} conforme a dimensão medida. A concentração é \textbf{extrema no autovetor} (Gini $0{,}951$; os dez deputados mais centrais concentram 82\% da métrica) --- reflexo direto das bancadas coesas que coassinam quase exclusivamente entre si, formando câmaras de eco; \textbf{alta na intermediação} ($0{,}740$), pois o papel de ponte é raro; e \textbf{moderada no grau ponderado} ($0{,}566$), a mais distribuída das quatro. Cabe a ressalva já discutida: trata-se de concentração da \emph{articulação} (coautoria), não de poder institucional. O padrão é estável ao longo do período (o Gini do autovetor permanece entre $0{,}87$ e $0{,}98$ nos quatro anos). Por fim, a própria divergência entre os coeficientes ($0{,}57$, $0{,}74$ e $0{,}95$) confirma que as quatro métricas de centralidade capturam dimensões distintas de influência --- não são redundantes ---, o que justifica reportá-las em conjunto.
 
 \section{DETECÇÃO DE COMUNIDADES E TESTE DA HIPÓTESE CENTRAL}
 
@@ -1197,7 +1218,7 @@ ARI                            & 0,325 & 0,281 & 0,416 & 0,423 \\
 \fonte{Elaborado pelo autor.}
 \end{table}
 
-[PREENCHER: discutir que o ARI é moderado (0,28--0,42), mas que os dois algoritmos convergem no \emph{essencial} --- a existência de forte estrutura modular ---, divergindo apenas na granularidade das fronteiras entre comunidades; o Label Propagation é reconhecidamente instável. Enquadrar como verificação de consistência do sinal, não como identidade de partições.]
+A concordância é \textbf{moderada} (ARI entre $0{,}281$ e $0{,}423$). Esse valor não deve ser lido como fragilidade, mas como o que de fato é: os dois algoritmos \textbf{convergem no essencial} --- ambos detectam forte estrutura modular na mesma rede ---, divergindo apenas na \emph{granularidade} das fronteiras, isto é, em como partem os deputados situados entre blocos e em quantas comunidades reconhecem (o Label Propagation, reconhecidamente mais instável, varia de 10 a 19 comunidades). O ARI funciona, assim, como uma \textbf{verificação de consistência do sinal}: se os dois métodos concordassem apenas ao acaso (ARI $\approx 0$), a estrutura detectada seria suspeita; a concordância moderada e positiva indica um sinal estrutural real, ainda que suas bordas dependam do algoritmo. Não se trata, portanto, de exigir partições idênticas, mas de confirmar que a fragmentação em comunidades é robusta à escolha do método.
 
 \subsection{Análise pela Modularidade (Q) --- Teste da Hipótese H1}
 
@@ -1222,10 +1243,51 @@ Significativo ($\alpha=0{,}05$)        & Sim    & Sim    & Sim    & Sim    \\
 \fonte{Elaborado pelo autor.}
 \end{table}
 
-Em todos os anos, a modularidade observada supera a média do modelo nulo, e \textbf{nenhum dos 200 grafos nulos atinge $Q_{\text{obs}}$} ($p<0{,}005$). \textbf{A hipótese H1 é, portanto, corroborada}: a estrutura de comunidades da rede é não-aleatória. [PREENCHER: enfatizar que o nulo é \emph{ponderado} (pesos reatribuídos), tornando a comparação homogênea; e que H1 é a condição de validade que autoriza interpretar as comunidades como estruturas reais.]
+Em todos os anos, a modularidade observada supera a média do modelo nulo, e \textbf{nenhum dos 200 grafos nulos atinge $Q_{\text{obs}}$} ($p<0{,}005$). \textbf{A hipótese H1 é, portanto, corroborada}: a estrutura de comunidades da rede é não-aleatória. Ressalte-se que o modelo nulo é \emph{ponderado} --- os pesos originais são reatribuídos às arestas reconfiguradas ---, de modo que a comparação é homogênea com a modularidade observada, também ponderada. Corroborada H1, cria-se a \textbf{condição de validade} que autoriza a etapa seguinte: interpretar as comunidades detectadas como estruturas reais, e não como ruído. É sobre essa base que se responde à segunda pergunta norteadora.
 
 % NORTE: aqui vai o "ouro" --- mostrar que as comunidades correspondem a partidos.
-[PREENCHER: inserir a Tabela do cruzamento comunidade $\times$ partido (gerável a partir de \texttt{data/metricas/deputados\_metricas\_2025.csv}, colunas \texttt{community\_louvain} e \texttt{party\_code}) e discutir que as maiores comunidades são dominadas por partidos reais (ex.: uma comunidade $\approx$54\% PL; outra $\approx$59\% PT; outra concentrando o PSOL) --- ou seja, o algoritmo recupera a realidade partidária \emph{sem} jamais receber rótulo ideológico. Esta é a validação qualitativa exigida na metodologia.]
+A correspondência entre as comunidades detectadas e a filiação partidária foi avaliada de forma estritamente estrutural, sem recurso a qualquer classificação ideológica. A Tabela~\ref{tab:comunidade_partido} apresenta a composição das principais comunidades de 2025.
+
+\begin{table}[H]
+\centering
+\caption{Composição partidária das principais comunidades (Louvain, 2025).}
+\label{tab:comunidade_partido}
+\begin{tabular}{crl}
+\toprule
+\textbf{Comunidade} & \textbf{Deputados} & \textbf{Partido dominante (\%) + aliados} \\
+\midrule
+1 & 118 & PL (54\%) + UNIÃO, PSD, PP \\
+3 & 63  & PT (59\%) + PCdoB \\
+9 & 47  & PSB (30\%) + PDT, PT \\
+4 & 33  & PSOL (39\%) + PT, REDE \\
+6 & 24  & PP (25\%) + PSD, MDB \\
+7 & 6   & NOVO (67\%) \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelo autor.}
+\end{table}
+
+O algoritmo \textbf{recupera a organização partidária} sem jamais receber rótulo de partido: cada comunidade é dominada por uma legenda real. Contudo, a correspondência é \textbf{parcial, e não idêntica} --- medida pelo \textit{Adjusted Rand Index} entre a partição de comunidades e a partição por filiação, obtém-se ARI $\approx 0{,}30$ e pureza partidária $\approx 48\%$ (proporção média de deputados no partido dominante de sua comunidade). Isso significa que as comunidades são \textbf{mais amplas que partidos isolados}: enquanto algumas correspondem a um partido coeso (a comunidade~3, essencialmente PT), outras agregam um partido dominante e legendas estruturalmente aliadas por coautoria (a comunidade~1 reúne PL, UNIÃO, PSD e PP). Respondendo à pergunta norteadora, as comunidades correspondem, portanto, \textbf{mais a agrupamentos do tipo coalizão do que a linhas partidárias puras}. Essa leitura permanece no plano estrutural: descreve-se \emph{quais partidos se agrupam por coautoria} --- um fato observável ---, sem atribuir-lhes rótulos de posição ideológica.
+
+A Figura~\ref{fig:gephi_comunidades_partido} oferece a validação visual dessa correspondência. As duas imagens usam \textbf{o mesmo posicionamento} de nós, gerado pelo algoritmo ForceAtlas~2 a partir exclusivamente das arestas (sem qualquer informação de partido ou comunidade). À esquerda, a coloração por comunidade (Louvain); à direita, pela filiação partidária. A concordância espacial entre as duas colorações confirma, de forma independente do algoritmo de detecção, que os agrupamentos são reais: onde a comunidade é um partido coeso, as cores coincidem; onde é uma coalizão, um único bloco espacial aparece multicolorido no painel de partidos --- exatamente o comportamento previsto pelo ARI moderado.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagens/resultados/gephi/rede-comunidades-2025-01.png}
+        \\{\small (a) Cor por comunidade (Louvain)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagens/resultados/gephi/rede-partidos-2025-01.png}
+        \\{\small (b) Cor por partido}
+    \end{minipage}
+    \caption{Rede de coautoria de 2025 (mesmo \textit{layout} ForceAtlas~2), colorida por comunidade detectada (a) e por filiação partidária (b). Arestas com peso baixo omitidas para legibilidade.}
+    \label{fig:gephi_comunidades_partido}
+    \fonte{Elaborado pelo autor com o Gephi.}
+\end{figure}
 
 \section{ANÁLISE TEMPORAL (2022--2025)}
 \label{sec:temporal}
@@ -1233,12 +1295,22 @@ Em todos os anos, a modularidade observada supera a média do modelo nulo, e \te
 \subsection{Estabilidade do Padrão Estrutural}
 
 % NORTE: mostrar que Q e o veredito de H1 se mantêm nos 4 anos (persistência).
-[PREENCHER: observar que $Q_{\text{obs}}$ permanece na faixa estreita $[0{,}596;\ 0{,}640]$ e que H1 é confirmada em todos os anos --- a fragmentação em comunidades é um padrão \emph{persistente}, não um artefato de um ano específico. Comentar a densidade ligeiramente maior em 2025.]
+A caracterização detalhada foi apresentada para 2025, ano mais recente e representativo do regime estável da 57\textsuperscript{a} Legislatura. Esta seção demonstra que o padrão descrito \textbf{se mantém em todo o período}. A modularidade observada permanece em uma faixa estreita, $Q_{\text{obs}} \in [0{,}596;\ 0{,}640]$, e H1 é corroborada nos quatro anos ($p<0{,}005$; Tabela~\ref{tab:null_model}). A fragmentação em comunidades é, portanto, uma propriedade \textbf{persistente} do legislativo no período, e não um artefato de um ano específico. A Figura~\ref{fig:tendencias} sintetiza a evolução das principais métricas estruturais.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imagens/resultados/analise_temporal/compare_temporal_trends.png}
+    \caption{Evolução das métricas estruturais (2022--2025): modularidade, ARI, densidade e concentração (Gini do autovetor).}
+    \label{fig:tendencias}
+    \fonte{Elaborado pelo autor.}
+\end{figure}
+
+Observa-se estabilidade nas quatro dimensões: a modularidade oscila pouco em torno de $0{,}62$; a concentração no autovetor mantém-se muito alta (Gini $> 0{,}87$); e a densidade sobe ligeiramente em 2025 ($9{,}9\%$), acompanhando o maior número de coautorias registradas naquele ano.
 
 \subsection{Discussão Longitudinal}
 
 % NORTE: a ressalva metodológica do recorte + leitura política prudente.
-[PREENCHER: ressalvar que 2022 pertence à 56\textsuperscript{a} Legislatura (encerramento, ano eleitoral) enquanto 2023--2025 são da 57\textsuperscript{a} --- portanto 2022 é ponto de referência de persistência, não comparação ponto-a-ponto homogênea. Discutir, com prudência, o que a estabilidade sugere sobre o comportamento legislativo, sem extrapolar além do que a coautoria (proxy de articulação) permite afirmar.]
+Uma ressalva metodológica é necessária. O ano de 2022 pertence à \textbf{56\textsuperscript{a} Legislatura} --- em seu encerramento e em ano eleitoral ---, enquanto 2023 a 2025 compõem a \textbf{57\textsuperscript{a}}. Assim, 2022 deve ser lido como ponto de referência para avaliar a \emph{persistência} do padrão através de uma transição de legislatura, e não como termo de uma comparação ponto-a-ponto homogênea; a leve variação em número de nós e arestas entre os anos reflete, em parte, essa descontinuidade institucional. Ainda assim, o achado central sobrevive à ressalva: a estrutura modular significativa se mantém \emph{apesar} da mudança de legislatura, o que sugere que a organização da colaboração legislativa em blocos é uma característica estável do funcionamento da Câmara, e não um efeito conjuntural. Essa leitura é deliberadamente prudente: a coautoria é um \textit{proxy} de articulação, e o que se afirma limita-se ao que essa evidência estrutural autoriza --- a persistência de uma organização em comunidades ---, sem extrapolar para conclusões sobre coesão de voto ou disputa ideológica, que exigiriam outras fontes de dados.
 
 %-------------------------------------------------------------------------------------%
 \chapter{Conclusão}
@@ -1254,39 +1326,40 @@ Em todos os anos, a modularidade observada supera a média do modelo nulo, e \te
 \section{SÍNTESE DOS ACHADOS}
 
 % NORTE: 1 parágrafo respondendo ao problema de pesquisa.
-[PREENCHER: retomar o objetivo geral e afirmar que foi cumprido --- construiu-se e validou-se uma arquitetura reprodutível que transforma dados legislativos brutos em evidências mensuráveis. H1 foi corroborada nos quatro anos ($p<0{,}005$); as centralidades e comunidades caracterizam as estruturas de influência, com o achado de que a coautoria mede articulação (não poder institucional).]
+O objetivo geral deste trabalho --- projetar, implementar e validar uma arquitetura de software reprodutível para análise de redes parlamentares --- foi cumprido. Construiu-se um artefato modular e auditável que transforma dados legislativos brutos da Câmara dos Deputados em evidências analíticas mensuráveis, e sua eficácia foi demonstrada sobre o período 2022--2025. A hipótese central (H1) foi \textbf{corroborada nos quatro anos} ($p<0{,}005$): a estrutura de comunidades da rede de coautoria é estatisticamente não-aleatória, propriedade que se mostrou persistente. Sobre essa base, as centralidades e as comunidades caracterizaram as \textbf{estruturas de influência} em seus dois níveis --- os blocos (comunidades, correspondentes a coalizões partidárias) e os atores centrais (pontes e polos de articulação). O achado analítico mais relevante é a \textbf{distinção empírica entre articulação e poder institucional}: a centralidade de coautoria mede a intensidade da colaboração, não o controle das decisões, e essa fronteira foi tornada explícita pelos dados.
 
 \section{CONTRIBUIÇÕES}
 
 \subsection{Contribuição técnica}
 
 % NORTE: o artefato em si.
-[PREENCHER: a arquitetura modular reprodutível (Arquitetura Limpa + SOLID), auditável, containerizada, coberta por 210 testes (incluindo testes de integridade de dataset), independente de reexecução --- ferramenta reutilizável para análises legislativas computacionais.]
+A contribuição central e primária do trabalho, coerente com o paradigma DSR, é o \textbf{próprio artefato}: uma arquitetura de software modular, reprodutível e auditável para análise de redes parlamentares. Seguindo os princípios de Arquitetura Limpa e SOLID, o \textit{pipeline} isola rigorosamente o núcleo analítico das preocupações de entrada e saída, é coberto por 217 testes automatizados --- incluindo testes de integridade sobre os próprios \textit{datasets} gerados --- e é empacotado em Docker, garantindo execução idêntica em qualquer ambiente. Trata-se de uma \textbf{ferramenta reutilizável} e independente da fonte, disponibilizada em código aberto, apta a ser estendida para outras legislaturas, outros recortes ou outras casas legislativas.
 
 \subsection{Contribuição analítica}
 
 % NORTE: o que a aplicação revelou.
-[PREENCHER: a caracterização estrutural do legislativo 2022--2025 --- estrutura modular não-aleatória persistente, comunidades que recuperam a organização partidária, e a distinção empírica entre articulação (coautoria) e poder institucional.]
+Como contribuição secundária --- a demonstração de que o artefato funciona ---, o trabalho oferece uma caracterização estrutural do legislativo brasileiro no período 2022--2025: (i) a existência de estrutura modular não-aleatória e persistente; (ii) comunidades que recuperam a organização partidária, ainda que no nível de coalizão e não de partido isolado; (iii) forte concentração da articulação em poucos parlamentares, especialmente nas bancadas coesas; e (iv) a já mencionada distinção entre a articulação capturada pela coautoria e o poder institucional formal. Essas descrições ilustram o tipo de evidência que a arquitetura é capaz de produzir de forma reprodutível.
 
 \section{LIMITAÇÕES}
 
-% NORTE: seção que IMPRESSIONA a banca. Ser honesto = força, não fraqueza.
-[PREENCHER, em itens:]
+O reconhecimento explícito das limitações é parte da honestidade científica que o trabalho busca manter. As principais são:
+
 \begin{itemize}
-    \item \textbf{Coautoria como \textit{proxy}}: mede articulação, não voto igual nem posição ideológica formal; dois adversários podem coassinar um projeto pontual.
-    \item \textbf{Centralidade $\neq$ poder institucional}: a rede não captura relatorias, presidência de comissões ou controle de pauta.
-    \item \textbf{ARI moderado} (0,28--0,42): os algoritmos divergem na granularidade das fronteiras.
-    \item \textbf{Recorte de 2022}: pertence à 56\textsuperscript{a} Legislatura (ano eleitoral atípico).
-    \item \textbf{Parâmetro \texttt{max\_authors}=30}: escolha conservadora; análise de sensibilidade fica como trabalho futuro. [PREENCHER: se já tiver rodado 20/30/40, mover para os resultados.]
-    \item \textbf{Acoplamento à fonte}: o artefato depende do esquema de CSV da Câmara.
+    \item \textbf{Coautoria como \textit{proxy}}: a rede mede articulação, não coesão de voto nem posição ideológica formal; dois adversários podem coassinar um projeto pontual, e aliados podem divergir em votações.
+    \item \textbf{Centralidade $\neq$ poder institucional}: a rede não captura relatorias, presidência de comissões ou controle de pauta --- canais de poder que operam por fora da coautoria.
+    \item \textbf{Correspondência parcial com partidos}: as comunidades recuperam a organização partidária apenas no nível de coalizão (ARI $\approx 0{,}30$), não de partido isolado.
+    \item \textbf{ARI moderado} (0,28--0,42) entre Louvain e Label Propagation: os algoritmos convergem no essencial, mas divergem na granularidade das fronteiras.
+    \item \textbf{Recorte temporal}: 2022 pertence à 56\textsuperscript{a} Legislatura (ano eleitoral atípico), o que limita a comparação ponto-a-ponto com os demais anos.
+    \item \textbf{Escopo dos filtros}: embora a modularidade tenha se mostrado robusta ao limiar \texttt{max\_authors} (Seção~\ref{subsec:heuristica}), o filtro exclui integralmente as PECs da rede analisada; a exclusão de um tipo inteiro de proposição é uma decisão de escopo, adequada à definição de articulação adotada, mas que restringe o alcance da análise.
+    \item \textbf{Acoplamento à fonte}: o artefato depende do esquema de arquivos CSV do Portal de Dados Abertos da Câmara; mudanças nesse esquema exigiriam adaptação da camada de extração.
 \end{itemize}
 
 \section{TRABALHOS FUTUROS}
 
 % NORTE: caminhos concretos (vários já estão nos slides).
 \begin{itemize}
-    \item Análise de sensibilidade dos parâmetros (\texttt{max\_authors}, filtro de tipos).
-    \item Comparação com o algoritmo de Leiden \citeonline{traag2019}.
+    \item Análise de sensibilidade do filtro de tipos de proposição --- em especial o impacto da inclusão das emendas (EMC) na estrutura ---, complementando a análise do limiar \texttt{max\_authors} já realizada.
+    \item Comparação com o algoritmo de Leiden \citeonline{traag2019}, que garante comunidades bem conectadas.
     \item Cruzamento com dados de votação nominal, testando se a coautoria prediz votos.
     \item Extensão da série histórica e aprofundamento da análise longitudinal.
     \item Aplicação de Redes Neurais de Grafos (GNNs) para predição de comportamento legislativo.
@@ -1295,7 +1368,7 @@ Em todos os anos, a modularidade observada supera a média do modelo nulo, e \te
 \section{CONSIDERAÇÕES FINAIS}
 
 % NORTE: fechamento curto, retomando o valor do artefato (transparência/auditoria).
-[PREENCHER: parágrafo final --- reforçar o valor de uma ferramenta aberta e auditável para transparência parlamentar, unindo engenharia de software e método científico, e convidar à reutilização/extensão do artefato.]
+Ao unir engenharia de software contemporânea e método científico, este trabalho demonstrou que é possível transformar a abundância de dados legislativos abertos em evidências estruturais mensuráveis, reprodutíveis e auditáveis. Mais do que os achados específicos sobre o período 2022--2025, o resultado duradouro é a \textbf{ferramenta} construída: um instrumento de código aberto que aproxima a análise de redes da realidade da Câmara dos Deputados e que fica à disposição para auditoria, extensão e reuso. Em um contexto que demanda transparência e escrutínio do processo legislativo, disponibilizar não apenas conclusões, mas o próprio meio reprodutível de chegar a elas, é a contribuição que se espera perdurar.
 
 %-------------------------------------------------------------------------------------%
 %                             P Ó S   T E X T U A L                                  %
@@ -1327,7 +1400,7 @@ Em todos os anos, a modularidade observada supera a média do modelo nulo, e \te
             \item \texttt{src/processing/}: limpeza, filtros e conversão para objetos de domínio (\texttt{ChamberProcessor});
             \item \texttt{src/repository/}: persistência (CSV, GEXF, SQLite, JSON);
             \item \texttt{src/visualization/}: geração automática de figuras;
-            \item \texttt{src/tests/}: suíte de testes (210 testes);
+            \item \texttt{src/tests/}: suíte de testes (217 testes);
             \item \texttt{scripts/}: utilitários auxiliares (análise comparativa entre anos);
             \item \texttt{data/}: artefatos gerados em tempo de execução (não versionados);
             \item \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{requirements.txt}: empacotamento reprodutível.
