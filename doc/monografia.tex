@@ -281,6 +281,8 @@ A Teoria dos Grafos oferece precisamente esse instrumental. Ao modelar a coautor
 
 O presente trabalho parte da premissa de que a coautoria parlamentar não é fenômeno aleatório, mas reflexo de alinhamentos políticos, ideológicos e estratégicos. Sob essa premissa --- e na esteira de \citeonline{fowler2006} ---, a rede de coautoria é adotada como \textit{proxy} mensurável de articulação política, passível de análise quantitativa rigorosa. A cobertura estende-se deliberadamente de 2022 a 2025 --- abrangendo a transição entre a 56\textsuperscript{a} e a 57\textsuperscript{a} Legislaturas, permitindo tanto a análise da estrutura em regime estável quanto o estudo da sua persistência ao longo do tempo.
 
+Por \textbf{estruturas de influência} entende-se, neste trabalho, a organização estrutural da rede de coautoria em dois níveis complementares: as \textbf{comunidades} --- agrupamentos de deputados com colaboração densa, que revelam blocos e coalizões --- e as \textbf{posições de centralidade} --- deputados que atuam como pontes entre grupos ou como polos de articulação. O primeiro nível descreve \textit{como} a articulação se organiza; o segundo, \textit{quem} ocupa as posições estruturalmente mais influentes. A identificação dessas estruturas, em ambos os níveis, é o objeto de análise do artefato desenvolvido.
+
 \section{PROBLEMA DE PESQUISA}
 
 A despeito da disponibilidade pública dos dados e da maturidade dos métodos de análise de redes, a literatura brasileira sobre o tema apresenta ainda lacunas significativas: (i) a maioria dos estudos existentes concentra-se em períodos isolados ou em legislaturas anteriores, sem análise sistemática multi-anual recente; (ii) raros trabalhos disponibilizam código-fonte reprodutível, dificultando a verificação e a extensão dos achados; (iii) há carência de ferramentas computacionais reutilizáveis que separem com clareza a engenharia de processamento dos dados e a análise política propriamente dita.
@@ -306,9 +308,7 @@ Projetar, implementar e validar uma arquitetura de software reprodutível para a
 
 \section{HIPÓTESE}
 
-A pergunta de pesquisa central que orienta este trabalho é formulada em termos estritamente estruturais (topológicos) --- a partir de uma propriedade mensurável do grafo, a modularidade --- e sem recurso a qualquer classificação ideológica atribuída aos partidos: \textit{a estrutura de comunidades observada na rede de coautoria parlamentar é significativamente diferente do que se esperaria por acaso?}
-
-A essa pergunta associa-se uma hipótese falsificável, enunciada abaixo como predição sobre a estrutura da rede. O procedimento que a operacionaliza e a testa é descrito no Capítulo~\ref{cap:metodologia}, e o veredito correspondente --- corroboração ou refutação --- é apresentado no Capítulo~\ref{cap:resultados}.
+Este trabalho é orientado por uma \textbf{única hipótese falsificável}, formulada em termos estritamente estruturais (topológicos) --- a partir de uma propriedade mensurável do grafo, a modularidade --- e sem recurso a qualquer classificação ideológica atribuída aos partidos. O procedimento que a operacionaliza e a testa é descrito no Capítulo~\ref{cap:metodologia}, e o veredito correspondente --- corroboração ou refutação --- é apresentado no Capítulo~\ref{cap:resultados}.
 
 \begin{itemize}
     \item \textbf{H1 --- Estrutura de comunidades não-aleatória}: a modularidade $Q$ da rede de coautoria parlamentar é significativamente superior à obtida em grafos nulos que preservam a mesma sequência de graus (\textit{configuration model}). Como predição falsificável, H1 é \textbf{refutada} caso a modularidade observada não se distinga estatisticamente da distribuição nula ($p \geq \alpha$) --- situação em que a fragmentação em comunidades seria indistinguível de um arranjo aleatório de colaborações e a coautoria não refletiria organização política estruturada.
