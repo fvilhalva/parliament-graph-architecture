@@ -5,6 +5,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 import pandas as pd # type: ignore
 import seaborn as sns # type: ignore
 
@@ -231,28 +232,43 @@ def _plot_centrality_correlation_heatmap(df: pd.DataFrame, output_dir: Path) -> 
 
 
 def _plot_concentration(df: pd.DataFrame, output_dir: Path) -> None:
-    """Plot the Gini coefficient (concentration) of each centrality metric."""
-    metrics = {
-        "Eigenvector": "eigenvector_centrality",
-        "Betweenness": "betweenness_centrality",
-        "Closeness": "closeness_centrality",
-        "Weighted Degree": "weighted_degree",
-    }
-    data = pd.DataFrame(
-        {
-            "metric": list(metrics.keys()),
-            "gini": [gini_coefficient(df[column].tolist()) for column in metrics.values()],
-        }
-    ).sort_values("gini", ascending=False)
+    """Lorenz curves of the centrality distributions (visual concentration).
 
-    fig, ax = plt.subplots()
-    sns.barplot(data=data, x="gini", y="metric", color="#d94801", ax=ax)
-    ax.set_title("Concentration of Centrality (Gini coefficient)")
-    ax.set_xlabel("Gini coefficient (0 = equality, 1 = concentration)")
-    ax.set_ylabel("")
+    Each curve plots the cumulative share of centrality (y) against the
+    cumulative share of deputies (x), sorted ascending. The dashed diagonal is
+    perfect equality; the further a curve bows below it, the more concentrated
+    the metric --- the Gini coefficient is the area between the diagonal and the
+    curve. Reported in the legend for each metric.
+    """
+    metrics = {
+        "Weighted Degree": ("weighted_degree", "#2b8cbe"),
+        "Betweenness": ("betweenness_centrality", "#31a354"),
+        "Closeness": ("closeness_centrality", "#e6550d"),
+        "Eigenvector": ("eigenvector_centrality", "#756bb1"),
+    }
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1.2, label="Perfect equality")
+
+    for label, (column, color) in metrics.items():
+        values = np.sort(df[column].to_numpy(dtype=float))
+        total = values.sum()
+        if total <= 0:
+            continue
+        cumulative = np.insert(np.cumsum(values) / total, 0, 0.0)
+        population = np.linspace(0.0, 1.0, len(cumulative))
+        ax.plot(
+            population, cumulative, linewidth=2.2, color=color,
+            label=f"{label} (Gini = {gini_coefficient(values):.2f})",
+        )
+
+    ax.set_title("Lorenz Curves of Centrality Concentration")
+    ax.set_xlabel("Cumulative share of deputies")
+    ax.set_ylabel("Cumulative share of centrality")
     ax.set_xlim(0, 1)
-    for i, value in enumerate(data["gini"]):
-        ax.text(value + 0.01, i, f"{value:.2f}", va="center", fontsize=9)
+    ax.set_ylim(0, 1)
+    ax.set_aspect("equal")
+    ax.legend(loc="upper left", fontsize=9, frameon=True)
     fig.tight_layout()
     fig.savefig(output_dir / "concentration_gini.png", dpi=180)
     plt.close(fig)
