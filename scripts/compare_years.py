@@ -62,6 +62,11 @@ def _load_year(year: int, analysis_repository: AnalysisRepository) -> dict:
         "density": round(result.density * 100, 2),  # percent
         "q_louvain": round(result.louvain.modularity, 4),
         "n_communities": result.louvain.num_communities,
+        "ari": round(result.partition_agreement.adjusted_rand_index, 4),
+        "gini_eigenvector": (
+            round(result.concentration["eigenvector"].gini, 4)
+            if "eigenvector" in result.concentration else 0.0
+        ),
         "df": df,
         "result": result,
     }
@@ -155,6 +160,52 @@ def _plot_betweenness_heatmap(rows: list[dict]) -> None:
     print("  Saved: compare_top_betweenness.png")
 
 
+def _plot_temporal_trends(rows: list[dict]) -> None:
+    """Time series (2022--2025) of the key structural metrics.
+
+    Consolidates modularity, partition agreement (ARI), density and centrality
+    concentration (Gini) into a single longitudinal view, showing whether the
+    structural pattern is stable over the period.
+    """
+    data = pd.DataFrame(
+        [
+            {
+                "year": r["year"],
+                "q": r["q_louvain"],
+                "ari": r["ari"],
+                "density": r["density"],
+                "gini": r["gini_eigenvector"],
+            }
+            for r in rows
+        ]
+    )
+
+    specs = [
+        ("q", "Modularity (Q)", "#2b8cbe", (0, 1), 0.3),
+        ("ari", "ARI (Louvain vs. Label Prop.)", "#31a354", (0, 1), None),
+        ("density", "Density (%)", "#e6550d", None, None),
+        ("gini", "Concentration (Gini, eigenvector)", "#756bb1", (0, 1), None),
+    ]
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    for (column, title, color, ylim, threshold), ax in zip(specs, axes.flat):
+        sns.lineplot(data=data, x="year", y=column, marker="o", color=color, ax=ax)
+        ax.set_title(title)
+        ax.set_xlabel("Year")
+        ax.set_ylabel("")
+        ax.set_xticks(data["year"].tolist())
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+        if threshold is not None:
+            ax.axhline(threshold, linestyle="--", color="gray", linewidth=0.8)
+
+    fig.suptitle("Temporal Trends of Structural Metrics (2022--2025)", fontsize=15)
+    fig.tight_layout()
+    fig.savefig(PLOTS_DIR / "compare_temporal_trends.png", dpi=180)
+    plt.close(fig)
+    print("  Saved: compare_temporal_trends.png")
+
+
 # ── main ────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -203,8 +254,9 @@ def main() -> None:
     _plot_modularity(rows)
     if len(rows) > 1:
         _plot_betweenness_heatmap(rows)
+        _plot_temporal_trends(rows)
     else:
-        print("  [skip] heatmap requires data for 2+ years")
+        print("  [skip] heatmap/trends require data for 2+ years")
 
     print(f"\nDone. Plots saved to: {PLOTS_DIR}")
 

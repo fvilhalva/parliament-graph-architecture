@@ -9,6 +9,7 @@ import pandas as pd # type: ignore
 import seaborn as sns # type: ignore
 
 from config import Config
+from core.algorithms.metrics import gini_coefficient
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "data"
@@ -173,6 +174,90 @@ def _plot_metrics_correlation(df: pd.DataFrame, output_dir: Path) -> None:
     plt.close(fig)
 
 
+def _plot_top_deputies_eigenvector(df: pd.DataFrame, output_dir: Path, n: int = 20) -> None:
+    """Plot top N deputies by eigenvector centrality."""
+    top_df = df.nlargest(n, "eigenvector_centrality").copy().iloc[::-1]
+    top_df["label"] = top_df["name"] + " (" + top_df["party_code"] + ")"
+
+    fig, ax = plt.subplots()
+    sns.barplot(data=top_df, x="eigenvector_centrality", y="label", hue="party_code", dodge=False, ax=ax)
+    ax.set_title(f"Top {n} Deputies by Eigenvector Centrality")
+    ax.set_xlabel("Eigenvector Centrality")
+    ax.set_ylabel("Deputy")
+    ax.legend(title="Party", loc="lower right", fontsize=8)
+    fig.tight_layout()
+    fig.savefig(output_dir / "top_deputies_eigenvector.png", dpi=180)
+    plt.close(fig)
+
+
+def _plot_top_deputies_closeness(df: pd.DataFrame, output_dir: Path, n: int = 20) -> None:
+    """Plot top N deputies by closeness centrality."""
+    top_df = df.nlargest(n, "closeness_centrality").copy().iloc[::-1]
+    top_df["label"] = top_df["name"] + " (" + top_df["party_code"] + ")"
+
+    fig, ax = plt.subplots()
+    sns.barplot(data=top_df, x="closeness_centrality", y="label", hue="party_code", dodge=False, ax=ax)
+    ax.set_title(f"Top {n} Deputies by Closeness Centrality")
+    ax.set_xlabel("Closeness Centrality")
+    ax.set_ylabel("Deputy")
+    ax.legend(title="Party", loc="lower right", fontsize=8)
+    fig.tight_layout()
+    fig.savefig(output_dir / "top_deputies_closeness.png", dpi=180)
+    plt.close(fig)
+
+
+def _plot_centrality_correlation_heatmap(df: pd.DataFrame, output_dir: Path) -> None:
+    """Plot the Spearman correlation matrix between the four centrality metrics.
+
+    Spearman (rank) correlation is used because centrality distributions are
+    highly skewed. Low off-diagonal values are evidence that the four metrics
+    capture distinct dimensions of influence (i.e. they are not redundant).
+    """
+    columns = ["weighted_degree", "betweenness_centrality", "closeness_centrality", "eigenvector_centrality"]
+    labels = ["Weighted Degree", "Betweenness", "Closeness", "Eigenvector"]
+    corr = df[columns].corr(method="spearman")
+    corr.index = labels
+    corr.columns = labels
+
+    fig, ax = plt.subplots(figsize=(7, 6))
+    sns.heatmap(
+        corr, annot=True, fmt=".2f", cmap="RdBu_r", vmin=-1, vmax=1,
+        square=True, linewidths=0.5, cbar_kws={"shrink": 0.8}, ax=ax,
+    )
+    ax.set_title("Correlation between Centrality Metrics (Spearman)")
+    fig.tight_layout()
+    fig.savefig(output_dir / "centrality_correlation_heatmap.png", dpi=180)
+    plt.close(fig)
+
+
+def _plot_concentration(df: pd.DataFrame, output_dir: Path) -> None:
+    """Plot the Gini coefficient (concentration) of each centrality metric."""
+    metrics = {
+        "Eigenvector": "eigenvector_centrality",
+        "Betweenness": "betweenness_centrality",
+        "Closeness": "closeness_centrality",
+        "Weighted Degree": "weighted_degree",
+    }
+    data = pd.DataFrame(
+        {
+            "metric": list(metrics.keys()),
+            "gini": [gini_coefficient(df[column].tolist()) for column in metrics.values()],
+        }
+    ).sort_values("gini", ascending=False)
+
+    fig, ax = plt.subplots()
+    sns.barplot(data=data, x="gini", y="metric", color="#d94801", ax=ax)
+    ax.set_title("Concentration of Centrality (Gini coefficient)")
+    ax.set_xlabel("Gini coefficient (0 = equality, 1 = concentration)")
+    ax.set_ylabel("")
+    ax.set_xlim(0, 1)
+    for i, value in enumerate(data["gini"]):
+        ax.text(value + 0.01, i, f"{value:.2f}", va="center", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(output_dir / "concentration_gini.png", dpi=180)
+    plt.close(fig)
+
+
 def _plot_degree_distribution(df: pd.DataFrame, output_dir: Path) -> None:
     """Plot distribution of weighted degree across all deputies.
     
@@ -265,8 +350,12 @@ def generate_analysis_plots(year: int = 2025) -> Path:
     df = _load_metrics(year)
     _plot_top_deputies(df, year_dir)
     _plot_top_deputies_betweenness(df, year_dir)
+    _plot_top_deputies_closeness(df, year_dir)
+    _plot_top_deputies_eigenvector(df, year_dir)
     _plot_parties(df, year_dir)
     _plot_metrics_correlation(df, year_dir)
+    _plot_centrality_correlation_heatmap(df, year_dir)
+    _plot_concentration(df, year_dir)
     _plot_degree_distribution(df, year_dir)
 
     graph, stats = _analyze_graph(year)
