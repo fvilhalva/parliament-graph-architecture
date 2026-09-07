@@ -7,6 +7,7 @@
 #   ./run.sh test             # roda a suíte de testes (pytest via Docker)
 #   ./run.sh pipeline         # roda o pipeline completo 2022-2025 (gera data/)
 #   ./run.sh compare          # análise comparativa entre anos (gera PNGs em data/plots)
+#   ./run.sh sensitivity [ano] # análise de sensibilidade do filtro max_authors (padrão: 2025)
 #   ./run.sh all              # setup + pipeline + compare + test (faz tudo, na ordem certa)
 #   ./run.sh status           # mostra o que já foi gerado e o estado do Docker
 #   ./run.sh clean [-y]       # APAGA data/ gerado (destrutivo)
@@ -14,7 +15,7 @@
 #
 # O comando 'all' roda os testes POR ÚLTIMO, de propósito: com os dados já
 # gerados pelo pipeline, os 64 testes de integridade de dataset deixam de ser
-# pulados e a suíte completa (210) valida os resultados reais.
+# pulados e a suíte completa (217) valida os resultados reais.
 #
 set -euo pipefail
 
@@ -92,6 +93,15 @@ cmd_compare() {
   ok "Comparação concluída — PNGs em data/plots/."
 }
 
+cmd_sensitivity() {
+  need_docker; ensure_env; ensure_image
+  local year="${1:-2025}"
+  log "Rodando análise de sensibilidade do filtro max_authors (ano ${year})..."
+  # Reaproveita o serviço 'compare' (mesma imagem/volumes), sobrescrevendo o comando.
+  docker compose run --rm compare python scripts/sensitivity.py "${year}"
+  ok "Sensibilidade concluída — CSV em data/analysis/sensitivity_${year}.csv."
+}
+
 cmd_all() {
   need_docker; ensure_env
   log "== Passo 1/4: build =="
@@ -140,16 +150,17 @@ cmd_clean() {
 # --------------------------------------------------------------------------
 # Dispatch
 # --------------------------------------------------------------------------
-usage() { sed -n '3,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 case "${1:-help}" in
   setup)    cmd_setup ;;
   test)     cmd_test ;;
   pipeline) cmd_pipeline ;;
   compare)  cmd_compare ;;
+  sensitivity) shift; cmd_sensitivity "${1:-}" ;;
   all)      cmd_all ;;
   status)   cmd_status ;;
   clean)    shift; cmd_clean "${1:-}" ;;
   help|-h|--help) usage ;;
-  *) die "comando desconhecido: ${1:-} (use: setup|test|pipeline|compare|all|status|clean|help)" ;;
+  *) die "comando desconhecido: ${1:-} (use: setup|test|pipeline|compare|sensitivity|all|status|clean|help)" ;;
 esac

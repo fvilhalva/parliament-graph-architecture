@@ -100,7 +100,7 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 w(i,j) = Σ  1 / (n_p − 1)    for each shared proposition p (n_p = number of authors of p)
 ```
 
-**`max_authors` filter** — proposals with more than 30 deputy co-authors are excluded from edge construction. A PEC with 226 signatories generates ~25,400 pairs, pushing density to ~85% and making community detection meaningless. This filter is **active** in every run; a sensitivity analysis of the threshold is registered as future work.
+**`max_authors` filter** — proposals with more than 30 deputy co-authors are excluded from edge construction. A PEC with 226 signatories generates ~25,400 pairs, pushing density to ~85% and making community detection meaningless. This filter is **active** in every run. A sensitivity analysis of the threshold (values 20/30/40 and no filter) is reproducible via `./run.sh sensitivity [year]` (`scripts/sensitivity.py`): modularity stays stable (Q ≈ 0.60–0.70) across plausible thresholds and collapses to ≈ 0.21 without the filter.
 
 **Uniform type weights (= 1)** — all valid proposition types receive weight 1. No theoretically justified numeric scale exists for weighting PL vs. PEC; qualitative filtering (by type) already performs the relevant selection.
 

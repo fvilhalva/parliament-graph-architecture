@@ -26,6 +26,7 @@ services:
     volumes:
       - ./data:/app/data
       - ./src:/app/src
+      - ./scripts:/app/scripts
     command: python scripts/compare_years.py
 
   tests:

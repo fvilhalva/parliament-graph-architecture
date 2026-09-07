@@ -28,6 +28,7 @@ import seaborn as sns  # type: ignore
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from repository import AnalysisRepository  # noqa: E402
+from core.algorithms.analysis_result import compute_adjusted_rand_index  # noqa: E402
 
 BASE_DIR = Path(__file__).parent.parent
 METRICS_DIR = BASE_DIR / "data" / "metricas"
@@ -62,9 +63,42 @@ def _load_year(year: int, analysis_repository: AnalysisRepository) -> dict:
         "density": round(result.density * 100, 2),  # percent
         "q_louvain": round(result.louvain.modularity, 4),
         "n_communities": result.louvain.num_communities,
+        "ari": round(result.partition_agreement.adjusted_rand_index, 4),
+        "gini_eigenvector": (
+            round(result.concentration["eigenvector"].gini, 4)
+            if "eigenvector" in result.concentration else 0.0
+        ),
         "df": df,
         "result": result,
     }
+
+
+def _community_party_agreement(df: pd.DataFrame) -> tuple[float, float]:
+    """ARI and partisan purity between the Louvain partition and party labels.
+
+    Reproduces the numbers behind the community x party table (Chapter 5):
+
+      - ARI: agreement between the Louvain community partition and the party
+        partition of the same deputies (0 = chance-level, 1 = identical).
+      - Purity: mean share of deputies belonging to the dominant party of their
+        own community, weighted by community size.
+
+    Only deputies with both a community and a party are considered.
+    """
+    subset = df[["deputy_id", "party_code", "community_louvain"]].dropna()
+    if subset.empty:
+        return 0.0, 0.0
+
+    community = dict(zip(subset["deputy_id"], subset["community_louvain"]))
+    party = dict(zip(subset["deputy_id"], subset["party_code"]))
+    ari = compute_adjusted_rand_index(community, party)
+
+    # Dominant-party count per community, summed over all communities.
+    dominant = subset.groupby("community_louvain")["party_code"].agg(
+        lambda s: s.value_counts().iloc[0]
+    )
+    purity = float(dominant.sum() / len(subset))
+    return ari, purity
 
 
 # ── plots ───────────────────────────────────────────────────────────────────
@@ -74,14 +108,14 @@ def _plot_nodes_edges(rows: list[dict]) -> None:
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
     sns.barplot(data=summary, x="year", y="nodes", hue="year", palette="Blues_d", ax=ax1, legend=False)
-    ax1.set_title("Active Deputies per Year (nodes)")
-    ax1.set_xlabel("Year")
-    ax1.set_ylabel("Nodes")
+    ax1.set_title("Deputados Ativos por Ano (nós)")
+    ax1.set_xlabel("Ano")
+    ax1.set_ylabel("Nós")
 
     sns.barplot(data=summary, x="year", y="edges", hue="year", palette="Oranges_d", ax=ax2, legend=False)
-    ax2.set_title("Co-authorship Edges per Year")
-    ax2.set_xlabel("Year")
-    ax2.set_ylabel("Edges")
+    ax2.set_title("Arestas de Coautoria por Ano")
+    ax2.set_xlabel("Ano")
+    ax2.set_ylabel("Arestas")
 
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "compare_nodes_edges.png", dpi=180)
@@ -95,20 +129,20 @@ def _plot_modularity(rows: list[dict]) -> None:
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
     sns.lineplot(data=summary, x="year", y="q_louvain", marker="o", color="#2b8cbe", ax=ax1)
-    ax1.set_title("Louvain Modularity (Q) per Year")
-    ax1.set_xlabel("Year")
+    ax1.set_title("Modularidade Louvain (Q) por Ano")
+    ax1.set_xlabel("Ano")
     ax1.set_ylabel("Q")
     ax1.set_ylim(0, 1)
     ax1.set_xticks(summary["year"].tolist())
-    ax1.axhline(0.3, linestyle="--", color="gray", linewidth=0.8, label="Q=0.3 threshold")
+    ax1.axhline(0.3, linestyle="--", color="gray", linewidth=0.8, label="limiar Q=0,3")
     ax1.legend(fontsize=8)
 
     sns.barplot(
         data=summary, x="year", y="n_communities", hue="year", palette="Greens_d", ax=ax2, legend=False
     )
-    ax2.set_title("Number of Communities per Year (Louvain)")
-    ax2.set_xlabel("Year")
-    ax2.set_ylabel("Communities")
+    ax2.set_title("Número de Comunidades por Ano (Louvain)")
+    ax2.set_xlabel("Ano")
+    ax2.set_ylabel("Comunidades")
 
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "compare_modularity.png", dpi=180)
@@ -144,15 +178,61 @@ def _plot_betweenness_heatmap(rows: list[dict]) -> None:
         cmap="YlOrRd",
         linewidths=0.4,
         ax=ax,
-        cbar_kws={"label": "Betweenness Centrality"},
+        cbar_kws={"label": "Centralidade de Intermediação"},
     )
-    ax.set_title(f"Top {TOP_N} Deputies by Betweenness Centrality (2022–2025)")
-    ax.set_xlabel("Year")
-    ax.set_ylabel("Deputy")
+    ax.set_title(f"Top {TOP_N} Deputados por Centralidade de Intermediação (2022–2025)")
+    ax.set_xlabel("Ano")
+    ax.set_ylabel("Deputado")
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "compare_top_betweenness.png", dpi=180)
     plt.close(fig)
     print("  Saved: compare_top_betweenness.png")
+
+
+def _plot_temporal_trends(rows: list[dict]) -> None:
+    """Time series (2022--2025) of the key structural metrics.
+
+    Consolidates modularity, partition agreement (ARI), density and centrality
+    concentration (Gini) into a single longitudinal view, showing whether the
+    structural pattern is stable over the period.
+    """
+    data = pd.DataFrame(
+        [
+            {
+                "year": r["year"],
+                "q": r["q_louvain"],
+                "ari": r["ari"],
+                "density": r["density"],
+                "gini": r["gini_eigenvector"],
+            }
+            for r in rows
+        ]
+    )
+
+    specs = [
+        ("q", "Modularidade (Q)", "#2b8cbe", (0, 1), 0.3),
+        ("ari", "ARI (Louvain vs. Label Prop.)", "#31a354", (0, 1), None),
+        ("density", "Densidade (%)", "#e6550d", None, None),
+        ("gini", "Concentração (Gini, autovetor)", "#756bb1", (0, 1), None),
+    ]
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    for (column, title, color, ylim, threshold), ax in zip(specs, axes.flat):
+        sns.lineplot(data=data, x="year", y=column, marker="o", color=color, ax=ax)
+        ax.set_title(title)
+        ax.set_xlabel("Ano")
+        ax.set_ylabel("")
+        ax.set_xticks(data["year"].tolist())
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+        if threshold is not None:
+            ax.axhline(threshold, linestyle="--", color="gray", linewidth=0.8)
+
+    fig.suptitle("Evolução Temporal das Métricas Estruturais (2022–2025)", fontsize=15)
+    fig.tight_layout()
+    fig.savefig(PLOTS_DIR / "compare_temporal_trends.png", dpi=180)
+    plt.close(fig)
+    print("  Saved: compare_temporal_trends.png")
 
 
 # ── main ────────────────────────────────────────────────────────────────────
@@ -189,6 +269,15 @@ def main() -> None:
             f"(p={nm.p_value:.4f}, {sig}); ARI(Louvain vs LP)={ari:.3f}"
         )
 
+    # ── Community x party agreement per year (ARI + purity) ──
+    print("\n=== Community vs. Party agreement per year (ARI + purity) ===")
+    for r in rows:
+        ari_party, purity = _community_party_agreement(r["df"])
+        print(
+            f"  {r['year']}: ARI(community vs party)={ari_party:.3f}; "
+            f"partisan purity={purity:.1%}"
+        )
+
     # ── Top deputies per year ──
     print("\n=== Top 5 by Betweenness Centrality per Year ===")
     for r in rows:
@@ -203,8 +292,9 @@ def main() -> None:
     _plot_modularity(rows)
     if len(rows) > 1:
         _plot_betweenness_heatmap(rows)
+        _plot_temporal_trends(rows)
     else:
-        print("  [skip] heatmap requires data for 2+ years")
+        print("  [skip] heatmap/trends require data for 2+ years")
 
     print(f"\nDone. Plots saved to: {PLOTS_DIR}")
 

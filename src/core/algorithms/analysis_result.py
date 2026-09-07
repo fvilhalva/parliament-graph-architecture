@@ -12,7 +12,7 @@ Downstream (monograph tables, ``compare_years.py``, notebooks) code loads
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from core.algorithms.validation import NullModelResult
 
@@ -23,6 +23,19 @@ class MethodSummary:
 
     modularity: float
     num_communities: int
+
+
+@dataclass(frozen=True)
+class ConcentrationSummary:
+    """Inequality/concentration of a centrality distribution (research question a).
+
+    ``gini`` in ``[0, 1]`` (0 = perfect equality, 1 = maximum concentration);
+    ``top10_share`` is the fraction of the total held by the ten most central
+    deputies.
+    """
+
+    gini: float
+    top10_share: float
 
 
 @dataclass(frozen=True)
@@ -73,6 +86,10 @@ class AnalysisResult:
     partition_agreement: PartitionAgreement
 
     null_model: NullModelResult
+
+    # Concentration of centrality per metric (research question a). Keyed by
+    # metric name (e.g. "betweenness", "weighted_degree", "eigenvector").
+    concentration: dict[str, ConcentrationSummary] = field(default_factory=dict)
 
 
 def compute_adjusted_rand_index(
