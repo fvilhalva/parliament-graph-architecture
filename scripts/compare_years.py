@@ -108,14 +108,14 @@ def _plot_nodes_edges(rows: list[dict]) -> None:
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
     sns.barplot(data=summary, x="year", y="nodes", hue="year", palette="Blues_d", ax=ax1, legend=False)
-    ax1.set_title("Active Deputies per Year (nodes)")
-    ax1.set_xlabel("Year")
-    ax1.set_ylabel("Nodes")
+    ax1.set_title("Deputados Ativos por Ano (nós)")
+    ax1.set_xlabel("Ano")
+    ax1.set_ylabel("Nós")
 
     sns.barplot(data=summary, x="year", y="edges", hue="year", palette="Oranges_d", ax=ax2, legend=False)
-    ax2.set_title("Co-authorship Edges per Year")
-    ax2.set_xlabel("Year")
-    ax2.set_ylabel("Edges")
+    ax2.set_title("Arestas de Coautoria por Ano")
+    ax2.set_xlabel("Ano")
+    ax2.set_ylabel("Arestas")
 
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "compare_nodes_edges.png", dpi=180)
@@ -129,20 +129,20 @@ def _plot_modularity(rows: list[dict]) -> None:
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
     sns.lineplot(data=summary, x="year", y="q_louvain", marker="o", color="#2b8cbe", ax=ax1)
-    ax1.set_title("Louvain Modularity (Q) per Year")
-    ax1.set_xlabel("Year")
+    ax1.set_title("Modularidade Louvain (Q) por Ano")
+    ax1.set_xlabel("Ano")
     ax1.set_ylabel("Q")
     ax1.set_ylim(0, 1)
     ax1.set_xticks(summary["year"].tolist())
-    ax1.axhline(0.3, linestyle="--", color="gray", linewidth=0.8, label="Q=0.3 threshold")
+    ax1.axhline(0.3, linestyle="--", color="gray", linewidth=0.8, label="limiar Q=0,3")
     ax1.legend(fontsize=8)
 
     sns.barplot(
         data=summary, x="year", y="n_communities", hue="year", palette="Greens_d", ax=ax2, legend=False
     )
-    ax2.set_title("Number of Communities per Year (Louvain)")
-    ax2.set_xlabel("Year")
-    ax2.set_ylabel("Communities")
+    ax2.set_title("Número de Comunidades por Ano (Louvain)")
+    ax2.set_xlabel("Ano")
+    ax2.set_ylabel("Comunidades")
 
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "compare_modularity.png", dpi=180)
@@ -178,11 +178,11 @@ def _plot_betweenness_heatmap(rows: list[dict]) -> None:
         cmap="YlOrRd",
         linewidths=0.4,
         ax=ax,
-        cbar_kws={"label": "Betweenness Centrality"},
+        cbar_kws={"label": "Centralidade de Intermediação"},
     )
-    ax.set_title(f"Top {TOP_N} Deputies by Betweenness Centrality (2022–2025)")
-    ax.set_xlabel("Year")
-    ax.set_ylabel("Deputy")
+    ax.set_title(f"Top {TOP_N} Deputados por Centralidade de Intermediação (2022–2025)")
+    ax.set_xlabel("Ano")
+    ax.set_ylabel("Deputado")
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "compare_top_betweenness.png", dpi=180)
     plt.close(fig)
@@ -210,17 +210,17 @@ def _plot_temporal_trends(rows: list[dict]) -> None:
     )
 
     specs = [
-        ("q", "Modularity (Q)", "#2b8cbe", (0, 1), 0.3),
+        ("q", "Modularidade (Q)", "#2b8cbe", (0, 1), 0.3),
         ("ari", "ARI (Louvain vs. Label Prop.)", "#31a354", (0, 1), None),
-        ("density", "Density (%)", "#e6550d", None, None),
-        ("gini", "Concentration (Gini, eigenvector)", "#756bb1", (0, 1), None),
+        ("density", "Densidade (%)", "#e6550d", None, None),
+        ("gini", "Concentração (Gini, autovetor)", "#756bb1", (0, 1), None),
     ]
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
     for (column, title, color, ylim, threshold), ax in zip(specs, axes.flat):
         sns.lineplot(data=data, x="year", y=column, marker="o", color=color, ax=ax)
         ax.set_title(title)
-        ax.set_xlabel("Year")
+        ax.set_xlabel("Ano")
         ax.set_ylabel("")
         ax.set_xticks(data["year"].tolist())
         if ylim is not None:
@@ -228,7 +228,7 @@ def _plot_temporal_trends(rows: list[dict]) -> None:
         if threshold is not None:
             ax.axhline(threshold, linestyle="--", color="gray", linewidth=0.8)
 
-    fig.suptitle("Temporal Trends of Structural Metrics (2022--2025)", fontsize=15)
+    fig.suptitle("Evolução Temporal das Métricas Estruturais (2022–2025)", fontsize=15)
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "compare_temporal_trends.png", dpi=180)
     plt.close(fig)

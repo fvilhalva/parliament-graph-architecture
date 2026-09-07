@@ -714,6 +714,8 @@
     \end{figure}
     
     Esse grafo bipartido é transformado, por meio de uma \textbf{projeção unimodal} (ou de modo único) sobre o conjunto de deputados $D$, em uma rede de coautoria unimodal $G = (D, E', w)$ \cite{newman2010, barabasi2016}. Nessa projeção, dois deputados $i, j \in D$ são conectados por uma aresta em $E'$ se e somente se ambos assinarem pelo menos uma proposição em comum ($p \in P$), e o peso da aresta $w(i,j)$ codifica a intensidade dessa colaboração legislativa com base na relevância das matérias compartilhadas.
+
+    Explicita-se, para evitar ambiguidade, a natureza do objeto matemático analisado: a rede de coautoria $G$ é um \textbf{grafo simples} (sem laços ou arestas múltiplas --- coautorias repetidas entre o mesmo par acumulam-se no peso, não em arestas paralelas), \textbf{não-direcionado} (a coautoria é uma relação simétrica) e \textbf{ponderado} (cada aresta carrega o peso $w(i,j)$ da Equação~\ref{eq:peso_coautoria}). Cada ano é modelado como um \textit{snapshot} \textbf{estático} independente; a dimensão temporal do estudo (Seção~\ref{sec:temporal}) não decorre de um grafo dinâmico único, mas da \emph{comparação} entre os quatro grafos anuais construídos de forma idêntica.
     
     \begin{figure}[H]
         \centering
