@@ -28,6 +28,7 @@ import seaborn as sns  # type: ignore
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from repository import AnalysisRepository  # noqa: E402
+from core.algorithms.analysis_result import compute_adjusted_rand_index  # noqa: E402
 
 BASE_DIR = Path(__file__).parent.parent
 METRICS_DIR = BASE_DIR / "data" / "metricas"
@@ -70,6 +71,34 @@ def _load_year(year: int, analysis_repository: AnalysisRepository) -> dict:
         "df": df,
         "result": result,
     }
+
+
+def _community_party_agreement(df: pd.DataFrame) -> tuple[float, float]:
+    """ARI and partisan purity between the Louvain partition and party labels.
+
+    Reproduces the numbers behind the community x party table (Chapter 5):
+
+      - ARI: agreement between the Louvain community partition and the party
+        partition of the same deputies (0 = chance-level, 1 = identical).
+      - Purity: mean share of deputies belonging to the dominant party of their
+        own community, weighted by community size.
+
+    Only deputies with both a community and a party are considered.
+    """
+    subset = df[["deputy_id", "party_code", "community_louvain"]].dropna()
+    if subset.empty:
+        return 0.0, 0.0
+
+    community = dict(zip(subset["deputy_id"], subset["community_louvain"]))
+    party = dict(zip(subset["deputy_id"], subset["party_code"]))
+    ari = compute_adjusted_rand_index(community, party)
+
+    # Dominant-party count per community, summed over all communities.
+    dominant = subset.groupby("community_louvain")["party_code"].agg(
+        lambda s: s.value_counts().iloc[0]
+    )
+    purity = float(dominant.sum() / len(subset))
+    return ari, purity
 
 
 # ── plots ───────────────────────────────────────────────────────────────────
@@ -238,6 +267,15 @@ def main() -> None:
         print(
             f"  {r['year']}: Q_obs={nm.q_observed:.3f} vs Q_null={nm.q_null_mean:.3f} "
             f"(p={nm.p_value:.4f}, {sig}); ARI(Louvain vs LP)={ari:.3f}"
+        )
+
+    # ── Community x party agreement per year (ARI + purity) ──
+    print("\n=== Community vs. Party agreement per year (ARI + purity) ===")
+    for r in rows:
+        ari_party, purity = _community_party_agreement(r["df"])
+        print(
+            f"  {r['year']}: ARI(community vs party)={ari_party:.3f}; "
+            f"partisan purity={purity:.1%}"
         )
 
     # ── Top deputies per year ──

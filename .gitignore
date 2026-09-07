@@ -44,7 +44,15 @@ Thumbs.db
 Desktop.ini
 
 # ==========================================
-# 5. Variáveis de Ambiente e Segurança
+# 5. Testes e Cobertura
+# ==========================================
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# ==========================================
+# 6. Variáveis de Ambiente e Segurança
 # ==========================================
 # Nunca suba senhas ou chaves de API (mesmo que a da Câmara seja aberta, é boa prática)
 .env
