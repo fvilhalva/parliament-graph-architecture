@@ -64,7 +64,7 @@
     % folha de rosto; como este trabalho não tem subtítulo, definimos vazio
     % (deixá-lo indefinido causa "Undefined control sequence").
     \newcommand{\subtituloDoTrabalho}{}
-    \newcommand{\tipoDeTrabalho}{Trabalho de Conclusão de Curso}
+    \newcommand{\tipoDeTrabalho}{Projeto Final de Curso}
     \newcommand{\NomeDoCurso}{Bacharelado em Ciência da Computação}
     \newcommand{\GrauAcademico}{Bacharel}
     \newcommand{\dataDeDefesa}{~~~/~~~/2026}
@@ -80,17 +80,22 @@
     \newcommand{\instituicaoorientador}{Universidade Estadual de Mato Grosso do Sul}
     \newcommand{\instituicaocoorientador}{}
     
+    % Banca = 3 membros (orientador + 2), conforme Normas Complementares.
+    % Preencher nomes/titulações reais quando a banca for definida; os DOIS
+    % membros abaixo devem ficar em ORDEM ALFABÉTICA (o orientador vem primeiro).
+    % Titulações: Dr./Dra. (doutor), MSc. (mestre), Esp. (especialista).
     \newcommand{\nomeDoMembroA}{Nome Completo do Membro da Banca}
     \newcommand{\tituloDoMembroA}{Prof. Dr.}
-    \newcommand{\instituicaomembroA}{Nome da Instituição do membro 1}
-    
+    \newcommand{\instituicaomembroA}{Universidade Estadual de Mato Grosso do Sul}
+
     \newcommand{\nomeDoMembroB}{Nome Completo do Membro da Banca}
     \newcommand{\tituloDoMembroB}{Prof. Dr.}
-    \newcommand{\instituicaomembroB}{Nome da Instituição do membro 2}
-    
+    \newcommand{\instituicaomembroB}{Universidade Estadual de Mato Grosso do Sul}
+
+    % Membro C: opcional (suplente). Não entra na banca de 3; manter apenas se necessário.
     \newcommand{\nomeDoMembroC}{Nome Completo do Membro da Banca}
     \newcommand{\tituloDoMembroC}{Prof. Dr.}
-    \newcommand{\instituicaomembroC}{Nome da Instituição do membro 3}
+    \newcommand{\instituicaomembroC}{Universidade Estadual de Mato Grosso do Sul}
     
     %----------------------------------------------------------------------------------------%
     % D A D O S   D A   I N S T I T U I Ç Ã O
@@ -104,49 +109,64 @@
     \begin{document}
         \imprimircapa
         \imprimirfolhaderosto
-    
+
     %-------------------------------------------------------------------------------------%
-    % F O L H A   D E   A P R O V A Ç Ã O
+    % P Á G I N A   ii  --  F I C H A   C A T A L O G R Á F I C A
     %-------------------------------------------------------------------------------------%
+    % A ficha catalográfica é fornecida pela Biblioteca da UEMS
+    % (fichacatalografica@uems.br) SOMENTE após a versão final corrigida
+    % (pós-defesa). Até lá, não há o que inserir aqui.
+    % Na VERSÃO FINAL, descomentar o bloco abaixo e inserir a ficha recebida:
+    %
+    % \newpage
+    % \thispagestyle{empty}
+    % \vspace*{\fill}
+    % \begin{center}
+    %     \includegraphics[width=12.5cm]{ficha-catalografica.png}
+    % \end{center}
+
+    %-------------------------------------------------------------------------------------%
+    % P Á G I N A   iii  --  F O L H A   D E   A P R O V A Ç Ã O  (B A N C A)
+    %-------------------------------------------------------------------------------------%
+    % Formato do modelo UEMS ("9d - iii"): listagem sem linhas de assinatura;
+    % orientador (presidente) primeiro, demais membros em ordem alfabética;
+    % cada um com "Instituição:" e "Área:".
         \begin{folhadeaprovacao}
-    
+
             \begin{center}
-            \normalsize{\textbf{\MakeUppercase\nomeDoAutor}}\\
-            \vspace*{1cm}
-            \normalsize{\textbf{\MakeUppercase\tituloDoTrabalho}}
+                {\bfseries\nomeDoAutor}
+
+                \vspace*{\fill}\vspace*{\fill}
+
+                {\bfseries\tituloDoTrabalho}
             \end{center}
-    
-            \vspace*{2cm}
-    
-           \noindent\tipoDeTrabalho\ apresentado à Universidade Estadual de Mato Grosso do Sul (UEMS),\ \NomeDoCurso,\ \nomeDaCidade, para obtenção do título de\ \GrauAcademico{ }\em\ \nomeDoCurso.
-           \par
-           \vspace*{1cm}
-    
-           \noindent Data de defesa: \dataDeDefesa
-           \vspace*{1cm}
-    
-           \noindent{BANCA EXAMINADORA}
-    
-           \vspace*{1cm}
-    
-           \raggedright\makebox[2.5in]{\hrulefill}\\
-           \tituloDoOrientador\ \nomeDoOrientador \\ UEMS -- \NomeDoCurso\ -- Unidade Universitária de \nomeDaCidade
-    
-           \vspace*{1cm}
-    
-           \raggedright\makebox[2.5in]{\hrulefill}\\
-           \tituloDoMembroA\ \nomeDoMembroA \\ \instituicaomembroA
-    
-           \vspace*{1cm}
-    
-           \raggedright\makebox[2.5in]{\hrulefill}\\
-           \tituloDoMembroB\ \nomeDoMembroB \par \instituicaomembroB
-    
-           \vspace*{1cm}
-    
-           \raggedright\makebox[2.5in]{\hrulefill}\\
-           \tituloDoMembroC\ \nomeDoMembroC \\ \instituicaomembroC
-    
+
+            \vspace*{\fill}
+
+            \noindent\textbf{Banca Examinadora:}\par
+            \vspace*{0.8cm}
+
+            \noindent\tituloDoOrientador\ \nomeDoOrientador\ (Orientador)\\
+            Instituição: \instituicaoorientador\\
+            Área: Computação\par
+            \vspace*{0.8cm}
+
+            \noindent\tituloDoMembroA\ \nomeDoMembroA\\
+            Instituição: \instituicaomembroA\\
+            Área: Computação\par
+            \vspace*{0.8cm}
+
+            \noindent\tituloDoMembroB\ \nomeDoMembroB\\
+            Instituição: \instituicaomembroB\\
+            Área: Computação\par
+
+            \vspace*{\fill}
+
+            \begin{center}
+                \MakeUppercase\nomeDaCidade{} -- MS\par
+                \anoDeEntrega
+            \end{center}
+
         \end{folhadeaprovacao}
     
     %-------------------------------------------------------------------------------------%
