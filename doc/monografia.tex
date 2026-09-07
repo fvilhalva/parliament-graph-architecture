@@ -15,13 +15,17 @@
       english,
       french,
       spanish,
-      brazil
+      brazilian
     ]{abntex2}
     
     %----------------------------------------------------------------------------------------%
     % P A C O T E S
     %----------------------------------------------------------------------------------------%
     \usepackage{pacoteBasico}   % Pacote Básico de formatação no padrão da UEMS
+    % microtype carregado pelo pacoteBasico; o memoir/abntex2 já redefine footnote,
+    % então desativamos os "patches" (evita o warning 'Unable to apply patch footnote').
+    % Protrusion/expansion (o essencial do microtype) continuam ativos.
+    \microtypesetup{patch=none}
     \usepackage{chngcntr}
     \counterwithout{equation}{chapter}
     \usepackage{color}
