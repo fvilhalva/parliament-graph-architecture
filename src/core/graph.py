@@ -319,8 +319,11 @@ class ParliamentaryGraph:
         logger.info("Number of isolated groups: %d", num_components)
 
         if num_components == 1:
-            diameter = nx.diameter(self.graph, weight='weight')
-            logger.info("Network diameter: %.4f", diameter)
+            # Topological diameter: in this network the edge weight encodes
+            # affinity, not distance, so it must NOT be passed as a length
+            # here (same rationale that keeps betweenness/closeness topological).
+            diameter = nx.diameter(self.graph)
+            logger.info("Network diameter: %d", diameter)
 
     def identify_critical_deputies(self, query: str = "Luisa Canziani") -> None:
         """Report the network fragmentation caused by removing a target deputy."""

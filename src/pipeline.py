@@ -13,10 +13,12 @@ from config import setup_logger
 from core import ParliamentaryGraph
 from core.algorithms.analysis_result import (
     AnalysisResult,
+    ConcentrationSummary,
     MethodSummary,
     PartitionAgreement,
     compute_adjusted_rand_index,
 )
+from core.algorithms.metrics import gini_coefficient, top_k_share
 from core.algorithms.community_detection import CommunityDetector
 from core.algorithms.validation import NullModelResult, assess_community_significance
 from extraction import ChamberExtractor
@@ -137,6 +139,24 @@ def algorithms_stage(
     )
     logger.info(str(null_model))
 
+    # --- Concentration of centrality (research question a) ---
+    # Computed over the deputies present in the network (graph nodes), matching
+    # the CSV export.
+    net_deputies = [d for did, d in graph.deputies.items() if graph.graph.has_node(did)]
+
+    def _concentration(attribute: str) -> ConcentrationSummary:
+        values = [getattr(d, attribute) for d in net_deputies]
+        return ConcentrationSummary(
+            gini=gini_coefficient(values),
+            top10_share=top_k_share(values, 10),
+        )
+
+    concentration = {
+        "betweenness": _concentration("betweenness_centrality"),
+        "weighted_degree": _concentration("weighted_degree"),
+        "eigenvector": _concentration("eigenvector_centrality"),
+    }
+
     return AnalysisResult(
         year=year,
         n_nodes=graph.graph.number_of_nodes(),
@@ -149,6 +169,7 @@ def algorithms_stage(
         label_propagation=label_prop_summary,
         partition_agreement=partition_agreement,
         null_model=null_model,
+        concentration=concentration,
     )
 
 
