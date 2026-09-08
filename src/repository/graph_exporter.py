@@ -4,9 +4,11 @@ from typing import Any
 
 import networkx as nx
 
+from .interfaces import GraphRepository
 
-class GraphExporter:
-    """Exports and imports graphs in the GEXF format used by Gephi."""
+
+class GraphExporter(GraphRepository):
+    """Exports and imports graphs in the GEXF format used by Gephi (implements GraphRepository)."""
 
     def __init__(self, output_dir: Path | str) -> None:
         self.output_dir = Path(output_dir)
