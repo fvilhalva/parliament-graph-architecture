@@ -101,32 +101,28 @@
     \preambulo{\tipoDeTrabalho, apresentado à Universidade Estadual de Mato Grosso do Sul (UEMS), \nomeDoCurso, \nomeDaCidade, para obtenção do título de \GrauAcademico em \nomeDoCurso.}    
        
 % CAPA ----------------------------------------------------------------------------------
+    % Formatação conforme modelo UEMS ("9a - Capa"): Times New Roman 12,
+    % centralizado; instituição, curso, autor, cidade e ano SEM negrito;
+    % apenas o TÍTULO em negrito; instituição/curso/cidade em MAIÚSCULAS.
     \renewcommand{\imprimircapa}{
         \begin{capa}
             \center
-            {\sffamily
-                \bfseries{
-                    \large{
-                        UNIVERSIDADE ESTADUAL DE MATO GROSSO DO SUL - UEMS\par
-                        \par
-                    }
-                }
-                \nomeDoCurso -- Unidade Universitária de \nomeDaCidade
-            }
-            
+            \MakeUppercase{Universidade Estadual de Mato Grosso do Sul}\par
+            \MakeUppercase\nomeDoCurso\par
+
             \vspace*{3cm}
-            
-            {\normalsize{\bfseries{\MakeUppercase\nomeDoAutor}}}
-    
+
+            \nomeDoAutor
+
             \vfill
                 \begin{center}
-                    {\bfseries{\normalsize{\tituloDoTrabalho }}} 
+                    {\bfseries\tituloDoTrabalho}
                     \par \subtituloDoTrabalho
                 \end{center}
             \vfill
-            
-            \normalsize{\nomeDaCidade}\par
-            \normalsize{\anoDeEntrega}
+
+            \MakeUppercase\nomeDaCidade{} -- MS\par
+            \anoDeEntrega
             \vspace*{1cm}
         \end{capa}
     }
@@ -151,13 +147,14 @@
                 {\SingleSpacing\imprimirpreambulo}
                 \par
                 \vspace*{1cm}
-                Orientador: \tituloDoOrientador\nomeDoOrientador\par
-                Coorientador: \tituloDoCoorientador\NomeDoCoorientador
+                Orientador: \tituloDoOrientador\ \nomeDoOrientador\par
+                % Descomente a linha abaixo apenas se houver coorientador:
+                % Coorientador: \tituloDoCoorientador\ \NomeDoCoorientador
             \end{minipage}
             \vspace*{\fill}
 
             \vspace*{\fill}
-            \normalsize{\nomeDaCidade}
+            \normalsize{\MakeUppercase\nomeDaCidade{} -- MS}
             \par
             \normalsize{\anoDeEntrega}
             \vspace*{1cm}
