@@ -23,7 +23,7 @@ from core.algorithms.community_detection import CommunityDetector
 from core.algorithms.validation import NullModelResult, assess_community_significance
 from extraction import ChamberExtractor
 from processing import ChamberProcessor
-from repository import AnalysisRepository, CsvRepository, DB_Exporter, GraphExporter
+from repository import AnalysisStore, DatabaseRepository, GraphRepository, MetricsRepository
 from visualization import generate_analysis_plots
 
 logger = setup_logger(__name__)
@@ -35,10 +35,14 @@ class PipelineDependencies:
 
     extractor: ChamberExtractor
     processor: ChamberProcessor
-    graph_exporter: GraphExporter
-    csv_repository: CsvRepository
-    db_repository: DB_Exporter
-    analysis_repository: AnalysisRepository
+    # Persistence dependencies are declared by their ABSTRACTIONS (the Protocols
+    # in repository/interfaces), not the concrete classes: the pipeline (the
+    # high-level policy) depends on contracts, satisfying the Dependency
+    # Inversion Principle.
+    graph_exporter: GraphRepository
+    csv_repository: MetricsRepository
+    db_repository: DatabaseRepository
+    analysis_repository: AnalysisStore
     generate_plots: Callable[[int], Path] = generate_analysis_plots
 
 
@@ -178,10 +182,10 @@ def repository_stage(
     deputies: list,
     year: int,
     analysis: AnalysisResult,
-    graph_exporter: GraphExporter,
-    csv_repository: CsvRepository,
-    db_repository: DB_Exporter,
-    analysis_repository: AnalysisRepository,
+    graph_exporter: GraphRepository,
+    csv_repository: MetricsRepository,
+    db_repository: DatabaseRepository,
+    analysis_repository: AnalysisStore,
 ) -> None:
     """Stage 5: Export graph, metrics and analysis result to disk."""
     logger.info("Exporting data...")
