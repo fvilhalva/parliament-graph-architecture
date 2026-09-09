@@ -21,6 +21,8 @@ from core.algorithms.analysis_result import (
 )
 from core.algorithms.validation import NullModelResult
 
+from .interfaces import AnalysisStore
+
 # Decimal precision for on-disk values. Kept at 6 to preserve enough resolution
 # while keeping JSON files short and legible.
 _ROUND_DIGITS = 6
@@ -46,7 +48,7 @@ def _encode(obj: Any) -> Any:
     return obj
 
 
-class AnalysisRepository:
+class AnalysisRepository(AnalysisStore):
     """Persist :class:`AnalysisResult` instances to ``data/analysis/*.json``."""
 
     def __init__(self, output_dir: Path | str) -> None:

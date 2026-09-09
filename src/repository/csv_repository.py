@@ -5,9 +5,11 @@ from typing import Iterable
 
 import pandas as pd  # type: ignore
 
+from .interfaces import MetricsRepository
 
-class CsvRepository:
-    """Persists computed network metrics to CSV files."""
+
+class CsvRepository(MetricsRepository):
+    """Persists computed network metrics to CSV files (implements MetricsRepository)."""
 
     def __init__(self, output_dir: Path | str) -> None:
         self.output_dir = Path(output_dir)

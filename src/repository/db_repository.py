@@ -3,6 +3,8 @@ from dataclasses import asdict
 from pathlib import Path
 import sqlite3
 
+from .interfaces import DatabaseRepository
+
 
 # Columns that must exist on the ``deputados_metricas`` table. Kept ordered so
 # both the ``CREATE TABLE`` and the ``ALTER TABLE`` migration produce the same
@@ -17,7 +19,7 @@ _METRIC_COLUMNS: tuple[tuple[str, str], ...] = (
 )
 
 
-class DB_Exporter:
+class DB_Exporter(DatabaseRepository):
     """Repository for persisting deputy metrics into SQLite."""
 
     def __init__(self, db_path: Path | str):

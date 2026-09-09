@@ -29,11 +29,11 @@ MAX_AUTHORS_PER_PROPOSAL = 30
 # overridden via the ``proposition_weights`` constructor argument of
 # ``ParliamentaryGraph`` without changing any other code.
 PROPOSITION_TYPE_WEIGHTS: dict[str, float] = {
-    'PL':  1,    # Bill (Lei Ordinária)
-    'PLP': 1,    # Complementary Law Bill
-    'PEC': 1,    # Constitutional Amendment Proposal
-    'PDL': 1,    # Legislative Decree
-    'EMC': 1,    # Committee amendment
+    "PL": 1,  # Bill (Lei Ordinária)
+    "PLP": 1,  # Complementary Law Bill
+    "PEC": 1,  # Constitutional Amendment Proposal
+    "PDL": 1,  # Legislative Decree
+    "EMC": 1,  # Committee amendment
 }
 
 # ---------------------------------------------------------------------------
