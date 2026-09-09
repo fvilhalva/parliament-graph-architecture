@@ -61,4 +61,6 @@ htmlcov/
 # ==========================================
 # 6. Bibliografia (PDFs de artigos/livros — pesados, não versionar)
 # ==========================================
-doc/bibliografia/
+# Padrão amplo: ignora qualquer pasta "bibliografia" (independente de onde ela
+# esteja — ex.: doc/bibliografia/ ou doc/PFC/bibliografia/).
+bibliografia/
