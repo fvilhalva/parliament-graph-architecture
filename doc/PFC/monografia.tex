@@ -650,7 +650,7 @@
     \begin{enumerate}[label=\alph*)]
         \item \textbf{Identificação do problema}: constatação da lacuna entre a abundância de dados legislativos abertos da Câmara dos Deputados e a escassez de ferramentas analíticas reprodutíveis capazes de extrair, desses dados, evidências mensuráveis sobre estruturas de influência política;
     
-        \item \textbf{Definição de objetivos}: estabelecimento dos requisitos do artefato --- modularidade, reprodutibilidade, cobertura por testes, interoperabilidade com ferramentas externas (Gephi) e independência da fonte de dados;
+        \item \textbf{Definição de objetivos}: estabelecimento dos requisitos do artefato --- modularidade, reprodutibilidade, cobertura por testes, interoperabilidade com ferramentas externas (Gephi), independência da fonte de dados e independência do formato de persistência, esta última assegurada por interfaces (contratos) que desacoplam o núcleo analítico dos detalhes de exportação;
     
         \item \textbf{Projeto e desenvolvimento}: construção iterativa do software seguindo Arquitetura Limpa \cite{martin2017} e princípios SOLID, com cobertura por testes automatizados desde o início (TDD parcial);
     
@@ -1177,7 +1177,20 @@ class AnalysisStore(Protocol):
     
     % NORTE: listar os formatos exportados e por que importam (auditabilidade, Gephi).
     Cada execução persiste os resultados em formatos abertos e interoperáveis: CSV (métricas por deputado), GEXF (grafo, compatível com o Gephi), SQLite (persistência consultável) e JSON (\texttt{AnalysisResult} auditável). O formato GEXF cumpre um papel adicional de \emph{validação cruzada independente}: ao importar o grafo no Gephi e recalcular a modularidade com a implementação própria da ferramenta, obtêm-se valores de $Q$ compatíveis com os produzidos pelo \textit{pipeline}, o que confirma que os resultados não são artefato de uma única implementação. A pluralidade de formatos assegura, ainda, que os dados possam ser auditados e reanalisados por terceiros sem depender do código-fonte original.
-    
+
+    \subsection{Avaliação da Arquitetura: Desacoplamento e Extensibilidade}
+
+    % NORTE: avaliar as QUALIDADES DE PROJETO do artefato (contribuição DSR), não só que "roda".
+    Coerentemente com o paradigma DSR --- em que o artefato é a própria contribuição ---, avaliam-se aqui as qualidades estruturais do projeto, e não apenas seu desempenho. Três propriedades da arquitetura, afirmadas no Capítulo~\ref{cap:desenvolvimento}, confirmam-se de forma objetiva.
+
+    Primeiro, o \emph{desacoplamento} é verificável no próprio código: o núcleo analítico (\texttt{core/}) não importa nenhuma das camadas externas (extração, processamento, repositório ou visualização), respeitando estritamente a Regra da Dependência. Esse isolamento não é um detalhe estético --- é o que torna o núcleo \emph{testável de forma independente} de banco de dados, arquivos ou rede, e explica por que a cobertura de testes do \texttt{core/} atinge $\geq 93\%$: a alta testabilidade é consequência direta do design, e não um esforço acidental.
+
+    Segundo, a \emph{extensibilidade} decorre da inversão de dependência (Seção~\ref{subsec:solid}), materializada pelos contratos da camada de persistência (Listagem~\ref{lst:interfaces}). Como o \textit{pipeline} depende das abstrações, e não das implementações concretas, substituir um formato de saída --- por exemplo, trocar o CSV por Parquet, ou o SQLite por outro banco --- exige apenas fornecer uma nova classe que satisfaça o mesmo contrato, sem qualquer alteração no núcleo analítico. O artefato é, portanto, extensível por construção, e não apenas em intenção.
+
+    Terceiro, a \emph{corretude é reimposta automaticamente}: a integração contínua (Seção~\ref{subsec:ci}) executa a suíte de testes a cada alteração, e a proteção do ramo principal impede a integração de código que não passe nessa verificação. A garantia de qualidade deixa de depender de disciplina manual e passa a ser assegurada pelo próprio fluxo de desenvolvimento.
+
+    Em conjunto, essas três evidências demonstram que a arquitetura não é apenas descrita, mas \emph{avaliada}: o artefato realiza os requisitos de modularidade, testabilidade e extensibilidade que motivaram seu projeto --- o que constitui, no paradigma DSR, a demonstração de sua eficácia.
+
     \section{ANÁLISE DE CENTRALIDADE E INFLUÊNCIA PARLAMENTAR}
     
     \subsection{O Grafo Resultante}
@@ -1460,7 +1473,7 @@ class AnalysisStore(Protocol):
     \subsection{Contribuição técnica}
     
     % NORTE: o artefato em si.
-    A contribuição central e primária do trabalho, coerente com o paradigma DSR, é o \emph{próprio artefato}: uma arquitetura de software modular, reprodutível e auditável para análise de redes parlamentares. Seguindo os princípios de Arquitetura Limpa e SOLID, o \textit{pipeline} isola rigorosamente o núcleo analítico das preocupações de entrada e saída, é coberto por 217 testes automatizados --- incluindo testes de integridade sobre os próprios \textit{datasets} gerados --- e é empacotado em Docker, garantindo execução idêntica em qualquer ambiente. Trata-se de uma \emph{ferramenta reutilizável} e independente da fonte, disponibilizada em código aberto, apta a ser estendida para outras legislaturas, outros recortes ou outras casas legislativas.
+    A contribuição central e primária do trabalho, coerente com o paradigma DSR, é o \emph{próprio artefato}: uma arquitetura de software modular, reprodutível e auditável para análise de redes parlamentares. Seguindo os princípios de Arquitetura Limpa e SOLID, o \textit{pipeline} isola rigorosamente o núcleo analítico das preocupações de entrada e saída, é coberto por 217 testes automatizados --- incluindo testes de integridade sobre os próprios \textit{datasets} gerados --- e é empacotado em Docker, garantindo execução idêntica em qualquer ambiente. O desacoplamento é reforçado por interfaces (contratos) na camada de persistência, que aplicam a inversão de dependência e tornam o artefato extensível a novos formatos sem alterar o núcleo; e sua corretude é reimposta automaticamente por integração contínua a cada alteração do código. Trata-se de uma \emph{ferramenta reutilizável} e independente da fonte, disponibilizada em código aberto, apta a ser estendida para outras legislaturas, outros recortes ou outras casas legislativas.
     
     \subsection{Contribuição analítica}
     
