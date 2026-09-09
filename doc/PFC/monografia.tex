@@ -395,6 +395,7 @@
     \end{figure}
     
     \subsection{Princípios SOLID}
+    \label{subsec:solid}
     
     A base para a criação de componentes de nível médio bem projetados, tolerantes a mudanças e fáceis de compreender é o conjunto de princípios SOLID \cite{martin2017}. Estes princípios orientam a organização de funções e estruturas de dados em classes e módulos isolados:
     
@@ -969,7 +970,27 @@
         \item \texttt{DB\_Exporter}: persiste métricas em banco SQLite, com operação \textit{upsert} (insere ou atualiza por chave composta ano $+$ ID) e migração idempotente de esquema via \texttt{ALTER TABLE};
         \item \texttt{AnalysisRepository}: serializa o resultado analítico agregado do ano (\texttt{AnalysisResult}) em arquivo JSON legível e auditável, e o recarrega de forma tipada quando necessário.
     \end{itemize}
-    
+
+    Para concretizar o Princípio da Inversão de Dependência (Seção~\ref{subsec:solid}), esses adaptadores não são referenciados diretamente pelas camadas superiores: cada um implementa um \emph{contrato} (interface) declarado no módulo \texttt{repository/interfaces.py} por meio de \textit{protocolos} (\texttt{typing.Protocol}). A Listagem~\ref{lst:interfaces} apresenta os contratos definidos.
+
+\begin{lstlisting}[language=Python, caption={Contratos da camada de persistência (\texttt{repository/interfaces.py}).}, label={lst:interfaces}]
+class MetricsRepository(Protocol):
+    def export_deputy_metrics(self, deputies, year) -> Path: ...
+    def export_coauthorship_metrics(self, coauthorships, year) -> Path: ...
+
+class DatabaseRepository(Protocol):
+    def export_deputy_metrics(self, deputies, year) -> Path: ...
+
+class GraphRepository(Protocol):
+    def export_gexf(self, graph, year=None) -> Path: ...
+
+class AnalysisStore(Protocol):
+    def save(self, result) -> Path: ...
+    def load(self, year): ...
+\end{lstlisting}
+
+    A orquestração do \textit{pipeline} depende dessas abstrações, e não das classes concretas: a estrutura \texttt{PipelineDependencies} declara seus colaboradores de persistência pelos tipos dos protocolos, e a instanciação das implementações concretas ocorre em um único ponto de composição (\texttt{main.py}). Como consequência, trocar o formato de exportação (por exemplo, substituir o CSV por Parquet, ou o SQLite por outro banco) exige apenas fornecer uma nova classe que satisfaça o mesmo contrato, sem qualquer alteração no núcleo analítico. Trata-se de \emph{injeção de dependências} no ponto de composição, técnica que operacionaliza a inversão de controle e mantém o núcleo (\texttt{core/}) independente de detalhes de I/O --- coerente com a Regra da Dependência, verificável no código: o pacote \texttt{core/} não importa nenhuma das camadas externas.
+
     Adicionalmente, a camada \texttt{visualization/} consome os dados gerados e produz figuras (PNG) e relatório textual (TXT) por ano, organizados em subdiretórios \texttt{data/plots/\{ano\}/}.
     
     \section{MODELAGEM DO GRAFO PARLAMENTAR E HEURÍSTICA DE PONDERAÇÃO}
@@ -1048,6 +1069,7 @@
     A confiabilidade do artefato --- requisito central no paradigma DSR --- é sustentada por três pilares descritos nesta seção: uma suíte de testes automatizados que valida tanto o código quanto os dados por ele gerados; o empacotamento do ambiente de execução em contêiner Docker, que assegura replicação exata; e a disponibilização do código-fonte em repositório aberto, condição para a auditabilidade e o reuso do trabalho por terceiros.
 
     \subsection{Suíte de testes}
+    \label{subsec:suite}
     
     O sistema é coberto por 217 testes automatizados, distribuídos em módulos que
     cobrem entidades de domínio, construção e análise do grafo, algoritmos de
@@ -1099,6 +1121,35 @@
     código não é um adendo, mas parte constitutiva da contribuição: é o que torna os
     resultados auditáveis, verificáveis e extensíveis por terceiros, fechando o ciclo
     de reprodutibilidade proposto pelo trabalho.
+
+    \subsection{Integração Contínua e Controle de Versão}
+    \label{subsec:ci}
+
+    A garantia de qualidade não se restringe à existência da suíte de testes: ela é
+    aplicada automaticamente a cada alteração do código, por meio de \textit{Integração
+    Contínua} (CI). O repositório define um fluxo de trabalho do \textit{GitHub Actions}
+    (\texttt{.github/workflows/ci.yml}) que, a cada \textit{push} ou \textit{pull
+    request} destinado aos ramos \texttt{main} e \texttt{develop}, provisiona um
+    ambiente limpo com Python 3.11, instala as dependências com versões fixadas
+    (\texttt{requirements.txt}), prepara o arquivo de configuração e executa a suíte de
+    testes com medição de cobertura, publicando o relatório (\texttt{coverage.xml}) como
+    artefato. Cabe uma nota de transparência coerente com a Seção~\ref{subsec:suite}: por
+    executar em um \textit{checkout} limpo, sem os artefatos de dados, a CI roda o
+    subconjunto de testes independentes de \texttt{data/} (os 153 que não dependem do
+    \textit{pipeline}); a suíte completa, com os testes de integridade de \textit{dataset},
+    é exercida quando os dados já foram gerados.
+
+    O desenvolvimento seguiu, ainda, um fluxo de ramificação disciplinado ---
+    \texttt{main} $\rightarrow$ \texttt{develop} $\rightarrow$ \texttt{feat/*} ---, com a
+    integração de cada funcionalidade mediada por \textit{pull requests}. Esse fluxo é
+    reforçado por regras de proteção configuradas no repositório (\textit{rulesets}): o
+    ramo \texttt{main} não aceita envio direto --- toda integração exige um \textit{pull
+    request} cuja verificação de CI (o \textit{status check} da suíte de testes) tenha
+    sido bem-sucedida ---, além de bloquear reescrita de histórico (\textit{force-push})
+    e exclusão do ramo. Em conjunto, CI e proteção de ramo asseguram, por construção, que
+    não seja possível integrar ao ramo principal código que não passe na verificação
+    automatizada --- uma evidência concreta do compromisso com a reprodutibilidade e a
+    integridade do artefato.
 
     %-------------------------------------------------------------------------------------%
     \chapter{Resultados e Discussões}
