@@ -1,16 +1,16 @@
-"""Contratos (interfaces) da camada de persistência.
+"""Contracts (interfaces) for the persistence layer.
 
-Define, via ``typing.Protocol``, os *contratos* que a camada de repositório
-oferece às camadas superiores. O pipeline (política de alto nível) passa a
-depender destas abstrações --- e não das implementações concretas ---,
-materializando o Princípio da Inversão de Dependência (DIP): trocar CSV por
-outro formato tabular, ou SQLite por outro banco, não exige alterar o núcleo,
-apenas fornecer outra implementação que satisfaça o mesmo contrato.
+Defines, via ``typing.Protocol``, the contracts that the repository layer
+offers to the layers above it. The pipeline (high-level policy) depends on
+these abstractions -- not on the concrete implementations -- realising the
+Dependency Inversion Principle (DIP): swapping CSV for another tabular format,
+or SQLite for another database, requires no change to the core, only a new
+implementation that satisfies the same contract.
 
-Os Protocols são estruturais: qualquer classe com métodos compatíveis satisfaz
-o contrato. As implementações concretas ainda assim herdam explicitamente o
-respectivo Protocol, tornando a relação "implementa a interface" visível no
-código. Todos são ``runtime_checkable`` para permitir ``isinstance``.
+Protocols are structural: any class with compatible methods satisfies the
+contract. The concrete implementations still inherit their Protocol explicitly,
+so the "implements the interface" relationship is visible in the code. All are
+``runtime_checkable`` to allow ``isinstance`` checks.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from core.algorithms.analysis_result import AnalysisResult
 
 @runtime_checkable
 class MetricsRepository(Protocol):
-    """Exporta métricas por deputado e por aresta para um formato tabular."""
+    """Exports per-deputy and per-edge metrics to a tabular format."""
 
     def export_deputy_metrics(self, deputies: list, year: int) -> Path: ...
 
@@ -31,21 +31,21 @@ class MetricsRepository(Protocol):
 
 @runtime_checkable
 class DatabaseRepository(Protocol):
-    """Persiste métricas por deputado em um banco consultável."""
+    """Persists per-deputy metrics in a queryable database."""
 
     def export_deputy_metrics(self, deputies: list, year: int) -> Path: ...
 
 
 @runtime_checkable
 class GraphRepository(Protocol):
-    """Exporta o grafo para um formato interoperável (ex.: GEXF, lido pelo Gephi)."""
+    """Exports the graph to an interoperable format (e.g. GEXF, read by Gephi)."""
 
     def export_gexf(self, graph: Any, year: int | None = None) -> Path: ...
 
 
 @runtime_checkable
 class AnalysisStore(Protocol):
-    """Persiste e recarrega o resultado analítico agregado de um ano."""
+    """Persists and reloads the aggregated analysis result for a year."""
 
     def save(self, result: AnalysisResult) -> Path: ...
 

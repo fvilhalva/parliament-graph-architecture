@@ -35,9 +35,10 @@ class PipelineDependencies:
 
     extractor: ChamberExtractor
     processor: ChamberProcessor
-    # As dependências de persistência são declaradas por suas ABSTRAÇÕES
-    # (Protocols em repository/interfaces), não pelas classes concretas: o
-    # pipeline (alto nível) depende de contratos, cumprindo o DIP.
+    # Persistence dependencies are declared by their ABSTRACTIONS (the Protocols
+    # in repository/interfaces), not the concrete classes: the pipeline (the
+    # high-level policy) depends on contracts, satisfying the Dependency
+    # Inversion Principle.
     graph_exporter: GraphRepository
     csv_repository: MetricsRepository
     db_repository: DatabaseRepository
