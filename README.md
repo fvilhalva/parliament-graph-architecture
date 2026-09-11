@@ -9,7 +9,7 @@
 <br/>
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/Tests-210%20passing-2ea44f?style=flat-square&logo=pytest&logoColor=white)](./src/tests/)
+[![Tests](https://img.shields.io/badge/Tests-217%20passing-2ea44f?style=flat-square&logo=pytest&logoColor=white)](./src/tests/)
 [![Coverage](https://img.shields.io/badge/Coverage-83%25-2ea44f?style=flat-square)](./src/tests/)
 [![Core Coverage](https://img.shields.io/badge/Core%20Coverage-≥93%25-2ea44f?style=flat-square)](./src/tests/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](./Dockerfile)
@@ -87,7 +87,7 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 | **repository/** | Export to CSV, GEXF (Gephi), SQLite, and `AnalysisResult` ↔ JSON |
 | **visualization/** | Automated per-year plots |
 | **scripts/** | Cross-year comparative analysis and data-maintenance utilities |
-| **tests/** | 210 tests, 83% overall coverage (core ≥ 93%) |
+| **tests/** | 217 tests, 83% overall coverage (core ≥ 93%) |
 
 ---
 
@@ -219,9 +219,9 @@ Per-deputy metrics are exported to `data/metricas/deputados_metricas_{year}.csv`
 
 ## 🧪 Test Suite
 
-**210 tests**, **83% overall coverage**, **core ≥ 93%** (reported in the monograph).
+**217 tests**, **83% overall coverage**, **core ≥ 93%** (reported in the monograph).
 
-> The `test_dataset_integrity` cases validate the per-year datasets and are **skipped gracefully** until the pipeline has generated them. After running the pipeline all 210 pass.
+> The `test_dataset_integrity` cases validate the per-year datasets and are **skipped gracefully** until the pipeline has generated them. After running the pipeline all 217 pass.
 
 Test categories: unit tests (domain entities and algorithms), integration tests (end-to-end pipeline), and dataset-integrity tests (schema, plausible value ranges, CSV ↔ GEXF coherence).
 
