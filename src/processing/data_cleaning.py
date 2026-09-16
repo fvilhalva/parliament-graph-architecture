@@ -75,7 +75,7 @@ class ChamberProcessor:
 
         return deputy_map, groups, coauthorships, type_map
 
-    def process_raw_data_unfiltered(
+    def process_raw_data_unfiltered(  # pragma: no cover — reproducibility utility, see note below
         self,
         raw_df: pd.DataFrame,
         propositions_df: pd.DataFrame,
@@ -89,9 +89,12 @@ class ChamberProcessor:
         (``deputy_map, groups, coauthorships, type_map``), so its output feeds
         :meth:`convert_to_domain_objects` unchanged.
 
-        NOTE: this method is NOT used by the current pipeline. It is kept as a
-        ready-to-use baseline for a future sensitivity analysis of the filters;
-        wire it into the pipeline only when that study is actually run.
+        NOTE: this is a standalone reproducibility utility invoked only by
+        ``scripts/sensitivity.py`` (never by the production pipeline in
+        ``pipeline.py``), analogous to the other top-level ``scripts/``, which
+        also sit outside the pytest coverage scope. It is intentionally excluded
+        from coverage (``pragma: no cover``) rather than unit-tested, since its
+        correctness is exercised end-to-end whenever the sensitivity script runs.
 
         Returns:
             Tuple of (deputy_map, groups, coauthorships, type_map).
