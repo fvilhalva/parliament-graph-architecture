@@ -310,7 +310,7 @@
     
     A Teoria dos Grafos oferece precisamente esse instrumental. Ao modelar a coautoria legislativa como uma rede ponderada, na qual deputados são vértices e colaborações em proposições são arestas, torna-se possível aplicar métricas consolidadas de centralidade, algoritmos de detecção de comunidades e testes estatísticos de significância. Essa abordagem, inaugurada no contexto legislativo por \citeonline{fowler2006} no estudo do Congresso dos Estados Unidos, transforma assinaturas em documentos oficiais em um objeto matemático tratável, do qual se podem extrair evidências mensuráveis sobre poder informal, coalizões e mediação política.
     
-    O presente trabalho parte da premissa de que a coautoria parlamentar não é fenômeno aleatório, mas reflexo de alinhamentos políticos, ideológicos e estratégicos. Sob essa premissa --- e na esteira de \citeonline{fowler2006} ---, a rede de coautoria é adotada como \textit{proxy} mensurável de articulação política, passível de análise quantitativa rigorosa. A cobertura estende-se deliberadamente de 2022 a 2025 --- abrangendo a transição entre a 56\textsuperscript{a} e a 57\textsuperscript{a} Legislaturas, permitindo tanto a análise da estrutura em regime estável quanto o estudo da sua persistência ao longo do tempo.
+    O presente trabalho parte da premissa de que a coautoria parlamentar não é fenômeno aleatório, mas reflexo de alinhamentos políticos, ideológicos e estratégicos. Sob essa premissa --- e na esteira de \citeonline{fowler2006}, a rede de coautoria é adotada como \textit{proxy} mensurável de articulação política, passível de análise quantitativa. A cobertura estende-se deliberadamente de 2022 a 2025 --- abrangendo a transição entre a 56\textsuperscript{a} e a 57\textsuperscript{a} Legislaturas, permitindo tanto a análise da estrutura em regime estável quanto o estudo da sua persistência ao longo do tempo.
     
     Por \emph{estruturas de influência} entende-se, neste trabalho, a organização estrutural da rede de coautoria em dois níveis complementares: as \emph{comunidades} --- agrupamentos de deputados com colaboração densa, que revelam blocos e coalizões --- e as \emph{posições de centralidade} --- deputados que atuam como pontes entre grupos ou como polos de articulação. O primeiro nível descreve \textit{como} a articulação se organiza; o segundo, \textit{quem} ocupa as posições estruturalmente mais influentes. A identificação dessas estruturas, em ambos os níveis, é o objeto de análise do artefato desenvolvido.
     
@@ -331,7 +331,7 @@
     
     \begin{enumerate}[label=\alph*)]
         \item Modelar matematicamente a rede de coautoria legislativa como projeção unimodal de um grafo bipartido, com fórmula de ponderação justificada teoricamente;
-        \item Implementar pipeline computacional em camadas independentes, seguindo princípios de Arquitetura Limpa e SOLID, com cobertura por testes automatizados;
+         \item Implementar pipeline computacional em camadas independentes, seguindo princípios de Arquitetura Limpa e SOLID, com cobertura por testes automatizados;
         \item Aplicar métricas de centralidade (grau, intermediação, proximidade, autovetor) e algoritmos de detecção de comunidades (Louvain e Label Propagation) sobre os dados dos anos 2022 a 2025;
         \item Validar estatisticamente a significância da estrutura comunitária por meio de teste de permutação contra modelo nulo preservando a sequência de graus;
         \item Discutir os achados à luz da literatura sobre comportamento legislativo brasileiro, testando a hipótese central sobre a estrutura da rede.
@@ -548,7 +548,7 @@
     
     \subsection{Algoritmo de Louvain}
     
-    O algoritmo de Louvain, proposto por \cite{blondel2008}, é um método heurístico de otimização gulosa que busca maximizar a modularidade $Q$ por meio de duas fases iterativas. Na primeira fase, cada vértice é inicialmente atribuído à sua própria comunidade. Em seguida, para cada vértice $i$, considera-se a remoção de $i$ de sua comunidade atual e sua inserção em cada uma das comunidades de seus vizinhos, escolhendo o movimento que produz o maior ganho positivo em $Q$. A fase termina quando nenhum movimento produz ganho. Na segunda fase, as comunidades resultantes são contraídas em supernodos e o processo recomeça. As iterações continuam até que nenhuma mudança aumente a modularidade.
+    O algoritmo de Louvain, proposto por \citeonline{blondel2008}, é um método heurístico de otimização gulosa que busca maximizar a modularidade $Q$ por meio de duas fases iterativas. Na primeira fase, cada vértice é inicialmente atribuído à sua própria comunidade. Em seguida, para cada vértice $i$, considera-se a remoção de $i$ de sua comunidade atual e sua inserção em cada uma das comunidades de seus vizinhos, escolhendo o movimento que produz o maior ganho positivo em $Q$. A fase termina quando nenhum movimento produz ganho. Na segunda fase, as comunidades resultantes são contraídas em supernodos e o processo recomeça. As iterações continuam até que nenhuma mudança aumente a modularidade.
     
     Sua popularidade decorre de três propriedades práticas: (i) complexidade computacional aproximadamente linear no número de arestas para grafos esparsos, viabilizando aplicação a redes com milhares de nós; (ii) qualidade comparável a algoritmos exatos em benchmarks como o de \cite{lancichinetti2008}; e (iii) implementações maduras na biblioteca NetworkX, garantindo reprodutibilidade.
     
@@ -607,7 +607,7 @@
     
     No cenário brasileiro, a literatura sobre comportamento legislativo tradicionalmente privilegia a análise de votações nominais como indicador de coesão e disciplina partidária. \citeonline{figueiredo1998} constituem referência central ao evidenciar que o presidencialismo de coalizão brasileiro produz padrões de comportamento agregado por blocos, enquanto \citeonline{zucco2009} discute a heterogeneidade interna dos partidos e os limites da filiação como preditor de alinhamento. Este trabalho dialoga com essa tradição, mas dela se distingue ao adotar a coautoria --- e não a votação --- como substrato relacional, e ao priorizar a construção de um artefato de software reprodutível.
     
-    É justamente nesse cruzamento que reside a lacuna endereçada: são raros, no contexto brasileiro, os estudos que combinam análise formal de redes de coautoria, cobertura multi-anual recente e disponibilização de código-fonte auditável. O presente trabalho posiciona-se nessa interseção, aproximando o instrumental consolidado por \cite{fowler2006} da realidade da Câmara dos Deputados do Brasil, com ênfase em reprodutibilidade computacional.
+    É justamente nesse cruzamento que reside a lacuna endereçada: são raros, no contexto brasileiro, os estudos que combinam análise formal de redes de coautoria, cobertura multi-anual recente e disponibilização de código-fonte auditável. O presente trabalho posiciona-se nessa interseção, aproximando o instrumental consolidado por \citeonline{fowler2006} da realidade da Câmara dos Deputados do Brasil, com ênfase em reprodutibilidade computacional.
     
     %-------------------------------------------------------------------------------------%
     \chapter{Metodologia}
@@ -624,9 +624,9 @@
     
     \subsection{O Método DSR (Design Science Research)}
     
-    O paradigma metodológico adotado neste trabalho é o \textit{Design Science Research} (DSR), conforme formalizado por \citeonline{hevner2004} e \citeonline{wieringa2014}. Diferentemente das ciências naturais, que explicam fenômenos existentes, e das ciências sociais empíricas, que descrevem comportamentos observáveis, o DSR é orientado à \emph{produção de artefatos} (constructos, modelos, métodos ou instanciações de software) projetados para solucionar problemas práticos identificados em um contexto real \cite{hevner2004, wieringa2014}.
+    O paradigma metodológico adotado neste trabalho é o \textit{Design Science Research} (DSR), conforme formalizado por \citeonline{hevner2004} e \citeonline{wieringa2014}. Diferentemente das ciências naturais, que explicam fenômenos existentes, e das ciências sociais empíricas, que descrevem comportamentos observáveis, o DSR é orientado à \emph{produção de artefatos} (constructos, modelos, métodos ou instanciações de software) projetados para solucionar problemas práticos identificados em um contexto real.
     
-    Como ilustrado no framework clássico de \citeonline{hevner2004} (Figura~\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia rigorosa entre três domínios fundamentais:
+    Como ilustrado no framework clássico de \citeonline{hevner2004} (~\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia entre três domínios fundamentais:
     \begin{itemize}
         \item O \textbf{Ambiente} prático da Câmara dos Deputados, que define as necessidades analíticas e fornece os dados brutos de proposições e coautorias;
         \item A \textbf{Base de Conhecimento} científico, que fornece as fundações teóricas (ciência de redes e teoria dos grafos) e as metodologias de desenvolvimento (princípios arquiteturais de software e testes);
@@ -641,7 +641,7 @@
         \fonte{Adaptado de Hevner et al. \cite[p. 80]{hevner2004}.}
     \end{figure}
     
-    Para orquestrar essas frentes, a investigação estrutura-se em torno de três ciclos dinâmicos propostos na literatura de DSR \cite{hevner2004}: o \textit{ciclo de relevância}, que conecta o ambiente do problema às exigências do artefato; o \textit{ciclo de rigor}, que fundamenta o desenvolvimento na base de conhecimento existente; e o \textit{ciclo de design} propriamente dito, que executa iterativamente as fases de construção e avaliação até que o artefato atinja a maturidade necessária para responder ao problema analítico mapeado.
+    Para orquestrar essas frentes, a investigação estrutura-se em torno de três ciclos dinâmicos propostos na literatura de DSR \citeonline{hevner2004}: o \textit{ciclo de relevância}, que conecta o ambiente do problema às exigências do artefato; o \textit{ciclo de rigor}, que fundamenta o desenvolvimento na base de conhecimento existente; e o \textit{ciclo de design} propriamente dito, que executa iterativamente as fases de construção e avaliação até que o artefato atinja a maturidade necessária para responder ao problema analítico mapeado.
     
     \subsection{Fases do Método}
     
@@ -652,7 +652,7 @@
     
         \item \textbf{Definição de objetivos}: estabelecimento dos requisitos do artefato --- modularidade, reprodutibilidade, cobertura por testes, interoperabilidade com ferramentas externas (Gephi), independência da fonte de dados e independência do formato de persistência, esta última assegurada por interfaces (contratos) que desacoplam o núcleo analítico dos detalhes de exportação;
     
-        \item \textbf{Projeto e desenvolvimento}: construção iterativa do software seguindo Arquitetura Limpa \cite{martin2017} e princípios SOLID, com cobertura por testes automatizados desde o início (TDD parcial);
+        \item \textbf{Projeto e desenvolvimento}: construção iterativa do software seguindo Arquitetura Limpa \citeonline{martin2017} e princípios SOLID, com cobertura por testes automatizados desde o início;
     
         \item \textbf{Demonstração}: execução do pipeline completo para os anos 2022, 2023, 2024 e 2025, gerando os artefatos de dados (CSV, GEXF, SQLite e JSON);
     
@@ -685,7 +685,7 @@
     
     \subsection{Recorte Temporal}
     
-    A delimitação do período em 2022--2025 resulta de critérios técnicos, e não de conveniência. Primeiro, \emph{estabilidade e homogeneidade do esquema de dados}: os arquivos CSV anuais do Portal de Dados Abertos mantêm formato e cobertura consistentes no período recente, evitando a heterogeneidade de esquema e a degradação de completude observadas em séries mais antigas. Segundo, \emph{coerência institucional}: o intervalo abrange uma legislatura completa (a 57\textsuperscript{a}, iniciada em 2023) somada ao ano de transição (2022, encerramento da 56\textsuperscript{a}), permitindo testar a \textit{persistência} da estrutura sob um regime legislativo estável, sem o confundimento de múltiplas mudanças de regras eleitorais e de composição partidária que um intervalo mais amplo (por exemplo, 2010--2025) introduziria. Terceiro, \emph{viabilidade computacional e de auditoria}: quatro \textit{snapshots} anuais completos são suficientes para avaliar a estabilidade do padrão estrutural (H1) mantendo cada grafo integralmente reproduzível e inspecionável. A ampliação da série temporal é registrada como trabalho futuro.
+    A delimitação do período em 2022 a 2025 resulta de critérios técnicos, e não de conveniência. Primeiro, \emph{estabilidade e homogeneidade do esquema de dados}: os arquivos CSV anuais do Portal de Dados Abertos mantêm formato e cobertura consistentes no período recente, evitando a heterogeneidade de esquema e a degradação de completude observadas em séries mais antigas. Segundo, \emph{coerência institucional}: o intervalo abrange uma legislatura quase completa (a 57\textsuperscript{a}, iniciada em 2023) somada ao ano de transição (2022, encerramento da 56\textsuperscript{a}), permitindo testar a \textit{persistência} da estrutura sob um regime legislativo estável, sem o confundimento de múltiplas mudanças de regras eleitorais e de composição partidária que um intervalo mais amplo (por exemplo, 2010 a 2025) introduziria. Terceiro, \emph{viabilidade computacional e de auditoria}: quatro \textit{snapshots} anuais completos são suficientes para avaliar a estabilidade do padrão estrutural (H1) mantendo cada grafo integralmente reproduzível e inspecionável. A ampliação da série temporal é registrada como trabalho futuro.
     
     
     
@@ -695,7 +695,8 @@
     
     \begin{itemize}
         \item \textbf{Python 3.11}: linguagem principal;
-        \item \textbf{NetworkX 3.2} \cite{networkx}: representação, algoritmos de grafos e detecção de comunidades (Louvain e Label Propagation nativos);
+        \item \textbf{NetworkX 3.2} \cite
+        {networkx}: representação, algoritmos de grafos e detecção de comunidades (Louvain e Label Propagation nativos);
         \item \textbf{pandas 2.2}: manipulação tabular e leitura dos CSVs;
         \item \textbf{pydantic} e \textbf{pydantic-settings}: configuração tipada e validada a partir do arquivo \texttt{.env};
         \item \textbf{matplotlib} e \textbf{seaborn}: visualização e geração de figuras;
@@ -717,7 +718,7 @@
     \label{subsec:def_topologica}
     
     
-    O ecossistema legislativo da Câmara dos Deputados forma naturalmente um \emph{grafo bipartido} (ou rede de dois modos) $B = (V_B, E_B)$ \cite{barabasi2016, newman2010}, onde o conjunto de vértices é particionado em dois subconjuntos disjuntos, $V_B = D \cup P$ com $D \cap P = \emptyset$ \cite{diestel2017}:
+    O ecossistema legislativo da Câmara dos Deputados forma naturalmente um \emph{grafo bipartido} $B = (V_B, E_B)$ \cite{barabasi2016, newman2010}, onde o conjunto de vértices é particionado em dois subconjuntos disjuntos, $V_B = D \cup P$ com $D \cap P = \emptyset$ \cite{diestel2017}:
     
     \begin{itemize}
         \item $D$ é o conjunto de deputados federais ativos no período analisado;
@@ -734,13 +735,13 @@
         \fonte{Elaborado pelo autor usando Graphviz Online (2026).}
     \end{figure}
     
-    Esse grafo bipartido é transformado, por meio de uma \emph{projeção unimodal} (ou de modo único) sobre o conjunto de deputados $D$, em uma rede de coautoria unimodal $G = (D, E', w)$ \cite{newman2010, barabasi2016}. Nessa projeção, dois deputados $i, j \in D$ são conectados por uma aresta em $E'$ se e somente se ambos assinarem pelo menos uma proposição em comum ($p \in P$), e o peso da aresta $w(i,j)$ codifica a intensidade dessa colaboração legislativa com base na relevância das matérias compartilhadas.
+    Esse grafo bipartido é transformado, por meio de uma \emph{projeção unimodal} (ou de modo único) sobre o conjunto de deputados $D$, em uma rede de coautoria unimodal $G = (D, E', w)$ \cite{newman2010, barabasi2016}. Nessa projeção, dois deputados $i, j \in D$ são conectados por uma aresta em $E'$ se e somente se ambos assinarem pelo menos uma proposição em comum ($p \in P$), e o peso da aresta $w(i,j)$ demonstra a intensidade dessa colaboração legislativa com base na relevância das matérias compartilhadas.
 
     Explicita-se, para evitar ambiguidade, a natureza do objeto matemático analisado: a rede de coautoria $G$ é um \emph{grafo simples} (sem laços ou arestas múltiplas --- coautorias repetidas entre o mesmo par acumulam-se no peso, não em arestas paralelas), \emph{não-direcionado} (a coautoria é uma relação simétrica) e \emph{ponderado} (cada aresta carrega o peso $w(i,j)$ da Equação~\ref{eq:peso_coautoria}). Cada ano é modelado como um \textit{snapshot} \emph{estático} independente; a dimensão temporal do estudo (Seção~\ref{sec:temporal}) não decorre de um grafo dinâmico único, mas da \emph{comparação} entre os quatro grafos anuais construídos de forma idêntica.
     
     \begin{figure}[H]
         \centering
-        \caption{Projeção unimodal do grafo bipartido da Figura~\ref{fig:bipartid_coautoria}
+        \caption{Projeção unimodal do grafo bipartido da~\ref{fig:bipartid_coautoria}
          sobre o conjunto $D$, com os pesos calculados pela
          Equação~\ref{eq:peso_coautoria}.}
         \label{fig:bipartid_projecao_unimodal}
@@ -748,8 +749,8 @@
         \fonte{Elaborado pelo autor usando Graphviz Online (2026).}
     \end{figure}
     
-    A Figura~\ref{fig:bipartid_projecao_unimodal} materializa essa operação sobre o
-    exemplo da Figura~\ref{fig:bipartid_coautoria}. Como os deputados A e B assinam
+    A~\ref{fig:bipartid_projecao_unimodal} ilustra essa operação sobre o
+    exemplo da~\ref{fig:bipartid_coautoria}. Como os deputados A e B assinam
     em conjunto tanto o PL 2 ($n_p = 2$) quanto a PEC 1 ($n_p = 3$), a aresta que os
     conecta acumula as duas contribuições. Já os pares A--C e B--C compartilham
     apenas a PEC 1, recebendo uma única contribuição atenuada pelo número de
@@ -762,7 +763,7 @@
     
     A definição do peso $w(i,j)$ das arestas na projeção unimodal é uma decisão metodológica crítica deste trabalho. Uma soma ingênua do número de coautorias simples mostra-se inadequada para o contexto legislativo: uma única Proposta de Emenda à Constituição (PEC), que frequentemente conta com mais de 200 signatários para atingir o quórum de apresentação, geraria, sozinha, um clique completo de $\binom{200}{2} = 19.900$ arestas com peso 1, distorcendo e dominando toda a estrutura topológica subsequente. 
     
-    Para mitigar esse viés de escala e capturar a verdadeira intensidade da colaboração política, adota-se a metodologia de projeção ponderada proposta por \citeonline{newman2010}:
+    Para mitigar esse viés de escala e capturar a verdadeira intensidade da colaboração política, adota-se a metodologia de projeção ponderada proposta por \citeonline{newman2001,newman2010}:
     
     \begin{equation}
     w(i,j) = \sum_{p \in P_{ij}} \frac{1}{n_p - 1}
@@ -779,7 +780,7 @@
         \fonte{Elaborado pelo autor usando Graphviz Online (2026).}
     \end{figure}
     
-    A Figura~\ref{fig:bipartid_projecao_unimodal2} ilustra o efeito prático da
+    A~\ref{fig:bipartid_projecao_unimodal2} ilustra o efeito prático da
     Equação~\ref{eq:peso_coautoria}. Considere uma PEC assinada pelos cinco
     deputados do exemplo ($n_p = 5$) e um Projeto de Lei assinado exclusivamente
     por A e B ($n_p = 2$). A PEC de massa conecta todos os $\binom{5}{2} = 10$
@@ -797,7 +798,7 @@
         
         \item \textbf{Filtro de massa de signatários}: Proposições com mais de 30 deputados coautores são excluídas da construção de arestas. Empiricamente, a inclusão dessas matérias --- a maior delas uma PEC com 226 signatários --- eleva a densidade da rede de 9{,}9\% para 85{,}4\% em 2025, transformando-a em um grafo quase-completo e inviabilizando a detecção de comunidades (demonstração no Capítulo~\ref{cap:resultados}). Como consequência direta, \textbf{nenhuma PEC integra a rede de coautoria analisada}, pois todas superam o limiar de 30 --- resultado intencional, e não uma perda: a co-assinatura em massa reflete adesão agregada, não articulação coordenada, e sua exclusão é coerente com a definição de influência adotada. Cabe notar que a heurística de ponderação $1/(n_p-1)$ e este filtro são \textbf{complementares}: a primeira trata a distorção de \emph{peso} (cada par de uma PEC de massa contribui apenas $1/225$), enquanto o filtro trata a distorção \emph{topológica} --- a mera \emph{existência} das $\binom{226}{2} \approx 25\,\text{mil}$ arestas, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar. O limite de 30 é uma decisão conservadora, declarada como parâmetro sensível para análise de sensibilidade em trabalhos futuros.
     
-        \item \textbf{Pesos uniformes por tipo de proposição}: Embora alguns trabalhos anteriores tenham experimentado pesos diferenciados por tipo (por exemplo, PEC com peso maior que PL), não existe na literatura uma escala teoricamente justificada para tal ponderação. Adota-se, portanto, peso igual a 1 para todos os tipos, sendo a seleção qualitativa realizada pelo filtro de tipos descrito acima.
+        \item \textbf{Pesos uniformes por tipo de proposição}: Embora que durante o desenvolvimento desse trabalho tenha-se experimentado pesos diferenciados por tipo (por exemplo, PEC com peso maior que PL), não existe na literatura uma escala teoricamente justificada para tal ponderação. Adota-se, portanto, peso igual a 1 para todos os tipos, sendo a seleção qualitativa realizada pelo filtro de tipos descrito acima.
     \end{enumerate}
     
     \section{SELEÇÃO DE ALGORITMOS E MÉTRICAS ANALÍTICAS}
@@ -861,7 +862,7 @@
     
     \begin{enumerate}[label=\alph*)]
         \item \textbf{Teste de permutação contra modelo nulo}: 
-        Para verificar se a modularidade $Q_{\text{obs}}$ observada é estatisticamente significativa, são gerados 200 grafos aleatórios por meio do procedimento \textit{double-edge-swap}, que preserva exatamente a sequência de graus do grafo original mas randomiza a topologia. Como o \textit{double-edge-swap} redistribui as arestas sem seus pesos, o conjunto (\textit{multiset}) de pesos originais é reatribuído às arestas reconfiguradas, preservando a distribuição de pesos da rede real e assegurando que a comparação seja ponderada e homogênea com $Q_{\text{obs}}$. O $p$-value é estimado pelo estimador aditivo $p = (r+1)/(m+1)$, em que $r$ é o número de grafos nulos com $Q_{\text{nulo}} \geq Q_{\text{obs}}$ e $m$ é o número de permutações --- evitando que seja exatamente nulo, o que seria estatisticamente inválido em uma amostra finita. Adota-se nível de significância $\alpha = 0{,}05$.
+        Para verificar se a modularidade $Q_{\text{obs}}$ observada é estatisticamente significativa, são gerados 200 grafos aleatórios por meio do procedimento \textit{double-edge-swap}, que preserva exatamente a sequência de graus do grafo original mas randomiza a topologia. Como o \textit{double-edge-swap} redistribui as arestas sem seus pesos, o conjunto (\textit{multiset}) de pesos originais é reatribuído às arestas reconfiguradas, preservando a distribuição de pesos da rede real e assegurando que a comparação seja ponderada e homogênea com $Q_{\text{obs}}$. O $p$-value é estimado pelo estimador aditivo $p = (r+1)/(m+1)$, recomendado por \citeonline{north2002}, em que $r$ é o número de grafos nulos com $Q_{\text{nulo}} \geq Q_{\text{obs}}$ e $m$ é o número de permutações --- evitando que seja exatamente nulo, o que seria estatisticamente inválido em uma amostra finita. Adota-se nível de significância $\alpha = 0{,}05$.
         
         \item \textbf{Suíte de testes automatizados}:
         O artefato de software é validado por 217 testes automatizados (cobertura total 81\%, núcleo analítico $\geq$ 93\%), incluindo: (i) testes unitários sobre entidades de domínio e algoritmos; (ii) testes de integração que validam a saída consolidada do \textit{pipeline}; (iii) testes de integridade sobre os datasets gerados, parametrizados por ano (verificação de esquema, faixas de valores plausíveis, coerência CSV $\leftrightarrow$ GEXF).
@@ -1080,7 +1081,7 @@ class AnalysisStore(Protocol):
     nulos críticos, coerência CSV $\leftrightarrow$ GEXF e plausibilidade estatística
     (densidade, modularidade, componente principal).
     
-    A cobertura total é de 81\%, com o núcleo analítico (\texttt{core/}) atingindo
+    A cobertura total é de 83\%, com o núcleo analítico (\texttt{core/}) atingindo
     $\geq$ 93\% em todos os submódulos. Os testes de integridade de datasets
     representam contribuição metodológica relevante: além de validar o código,
     validam empiricamente as características dos dados produzidos, capturando
@@ -1089,7 +1090,7 @@ class AnalysisStore(Protocol):
     Cabe uma ressalva de transparência sobre esses números. Dos 217 testes, os 64 de
     integridade dependem dos artefatos de dados: só executam após o pipeline gerar o
     diretório \texttt{data/}. Em um \textit{checkout} limpo, sem essa geração prévia,
-    executam os 153 testes restantes; a cobertura de 81\% pressupõe, portanto, os
+    executam os 153 testes restantes; a cobertura de 83\% pressupõe, portanto, os
     artefatos de dados já produzidos. Trata-se de uma decisão consciente --- validar
     também os dados, e não apenas o código ---, cujo custo é essa dependência de
     ambiente, mitigada pela reprodutibilidade containerizada.
@@ -1171,7 +1172,7 @@ class AnalysisStore(Protocol):
     \subsection{Desempenho Computacional}
     
     % NORTE: tempo de execução, hardware, determinismo (seed=42), cobertura de testes.
-    O \textit{pipeline} completo (quatro anos) executa em 15 a 25 minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 217 testes automatizados (cobertura total de 81\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. O empacotamento em imagem Docker replica o ambiente de execução de forma exata --- mesma versão de Python, das bibliotecas e do sistema base ---, de modo que qualquer máquina com Docker reproduz integralmente os números reportados neste capítulo, satisfazendo o requisito de reprodutibilidade estrita do artefato.
+    O \textit{pipeline} completo (quatro anos) executa em 15 a 25 minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 217 testes automatizados (cobertura total de 83\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. O empacotamento em imagem Docker replica o ambiente de execução de forma exata --- mesma versão de Python, das bibliotecas e do sistema base ---, de modo que qualquer máquina com Docker reproduz integralmente os números reportados neste capítulo, satisfazendo o requisito de reprodutibilidade estrita do artefato.
     
     \subsection{Geração de Artefatos (Interoperabilidade)}
     
