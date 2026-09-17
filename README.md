@@ -223,7 +223,7 @@ Per-deputy metrics are exported to `data/metricas/deputados_metricas_{year}.csv`
 
 > The `test_dataset_integrity` cases validate the per-year datasets and are **skipped gracefully** until the pipeline has generated them. After running the pipeline all 217 pass.
 
-Test categories: unit tests (domain entities and algorithms), integration tests (end-to-end pipeline), and dataset-integrity tests (schema, plausible value ranges, CSV ↔ GEXF coherence).
+Test categories: unit tests (domain entities and algorithms), integration tests (multi-component flows: data-processing chain, graph build/analysis, and persistence round-trip), and dataset-integrity tests (schema, plausible value ranges, CSV ↔ GEXF coherence).
 
 ```bash
 docker compose run --rm tests

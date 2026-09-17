@@ -223,7 +223,7 @@ As métricas por deputado são exportadas em `data/metricas/deputados_metricas_{
 
 > Os testes de `test_dataset_integrity` validam os datasets por ano e são **pulados graciosamente** até o pipeline gerá-los. Após rodar o pipeline, os 217 passam.
 
-Categorias: testes unitários (entidades de domínio e algoritmos), testes de integração (pipeline ponta a ponta) e testes de integridade de dataset (esquema, faixas de valores plausíveis, coerência CSV ↔ GEXF).
+Categorias: testes unitários (entidades de domínio e algoritmos), testes de integração (fluxos multi-componente: cadeia de processamento, construção/análise do grafo e persistência com ida-e-volta) e testes de integridade de dataset (esquema, faixas de valores plausíveis, coerência CSV ↔ GEXF).
 
 ```bash
 docker compose run --rm tests
