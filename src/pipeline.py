@@ -159,6 +159,7 @@ def algorithms_stage(
         "betweenness": _concentration("betweenness_centrality"),
         "weighted_degree": _concentration("weighted_degree"),
         "eigenvector": _concentration("eigenvector_centrality"),
+        "closeness": _concentration("closeness_centrality"),
     }
 
     return AnalysisResult(

@@ -1305,6 +1305,7 @@ class AnalysisStore(Protocol):
     Autovetor       & 0,951 & 82\% \\
     Intermediação   & 0,740 & 26\% \\
     Grau ponderado  & 0,566 & 21\% \\
+    Proximidade     & 0,113 & 4\% \\
     \bottomrule
     \end{tabular}
     \fonte{Elaborado pelo autor.}
@@ -1318,7 +1319,7 @@ class AnalysisStore(Protocol):
         \fonte{Elaborado pelo autor.}
     \end{figure}
     
-    Os valores respondem afirmativamente à primeira pergunta norteadora: há forte concentração da articulação em poucos parlamentares, com intensidade que \emph{varia} conforme a dimensão medida. A concentração é \emph{extrema no autovetor} (Gini $0{,}951$; os dez deputados mais centrais concentram 82\% da métrica) --- reflexo direto das bancadas coesas que coassinam quase exclusivamente entre si, formando câmaras de eco; \emph{alta na intermediação} ($0{,}740$), pois o papel de ponte é raro; e \emph{moderada no grau ponderado} ($0{,}566$), a mais distribuída das quatro. Cabe a ressalva já discutida: trata-se de concentração da \emph{articulação} (coautoria), não de poder institucional. O padrão é estável ao longo do período (o Gini do autovetor permanece entre $0{,}87$ e $0{,}98$ nos quatro anos). Por fim, a própria divergência entre os coeficientes ($0{,}57$, $0{,}74$ e $0{,}95$) confirma que as quatro métricas de centralidade capturam dimensões distintas de influência --- não são redundantes ---, o que justifica reportá-las em conjunto. A~\ref{fig:concentracao_gini} representa graficamente essa concentração por meio das curvas de Lorenz das quatro centralidades: quanto mais distante da diagonal de igualdade, mais concentrada a métrica.
+    Os valores respondem afirmativamente à primeira pergunta norteadora: há forte concentração da articulação em poucos parlamentares, com intensidade que \emph{varia} conforme a dimensão medida. A concentração é \emph{extrema no autovetor} (Gini $0{,}951$; os dez deputados mais centrais concentram 82\% da métrica) --- reflexo direto das bancadas coesas que coassinam quase exclusivamente entre si, formando câmaras de eco; \emph{alta na intermediação} ($0{,}740$), pois o papel de ponte é raro; e \emph{moderada no grau ponderado} ($0{,}566$). A proximidade, por sua vez, é quase igualitária ($0{,}113$) --- comportamento esperado da métrica, cujos valores são naturalmente comprimidos em redes conexas, nas quais todo vértice está a poucas arestas dos demais. Cabe a ressalva já discutida: trata-se de concentração da \emph{articulação} (coautoria), não de poder institucional. O padrão é estável ao longo do período (o Gini do autovetor permanece entre $0{,}87$ e $0{,}98$ nos quatro anos). Por fim, a própria divergência entre os coeficientes ($0{,}11$, $0{,}57$, $0{,}74$ e $0{,}95$) confirma que as quatro métricas de centralidade capturam dimensões distintas de influência --- não são redundantes ---, o que justifica reportá-las em conjunto. A~\ref{fig:concentracao_gini} representa graficamente essa concentração por meio das curvas de Lorenz das quatro centralidades: quanto mais distante da diagonal de igualdade, mais concentrada a métrica.
     
     \section{DETECÇÃO DE COMUNIDADES E TESTE DA HIPÓTESE CENTRAL}
 
