@@ -951,7 +951,7 @@
         \fonte{Elaborado pelo autor usando Graphviz Online (2026).}
     \end{figure}
     
-    A Figura~\ref{fig:juncao_dados} ilustra as fases das operações. O cruzamento
+    A~\ref{fig:juncao_dados} ilustra as fases das operações. O cruzamento
     entre os dois arquivos é realizado por um \textit{inner join} sobre a chave
     comum --- o identificador da proposição, nomeado \texttt{idproposicao} no
     arquivo de autores e \texttt{id} no de metadados. Essa operação atua como
@@ -1026,7 +1026,7 @@ class AnalysisStore(Protocol):
     \begin{itemize}
         \item Grau ponderado: \texttt{graph.degree(weight="weight")};
         \item Intermediação: algoritmo de \cite{brandes2001}, complexidade $O(|V| \cdot |E|)$ em grafos esparsos;
-        \item Proximidade: implementação \textit{Dijkstra-based} para grafos ponderados;
+        \item Proximidade: implementação para grafos ponderados;
         \item Autovetor: método de potência iterativo até convergência.
     \end{itemize}
     
@@ -1081,7 +1081,7 @@ class AnalysisStore(Protocol):
     nulos críticos, coerência CSV $\leftrightarrow$ GEXF e plausibilidade estatística
     (densidade, modularidade, componente principal).
     
-    A cobertura total é de 83\%, com o núcleo analítico (\texttt{core/}) atingindo
+    A cobertura total é de 81\%, com o núcleo analítico (\texttt{core/}) atingindo
     $\geq$ 93\% em todos os submódulos. Os testes de integridade de datasets
     representam contribuição metodológica relevante: além de validar o código,
     validam empiricamente as características dos dados produzidos, capturando
@@ -1090,7 +1090,7 @@ class AnalysisStore(Protocol):
     Cabe uma ressalva de transparência sobre esses números. Dos 217 testes, os 64 de
     integridade dependem dos artefatos de dados: só executam após o pipeline gerar o
     diretório \texttt{data/}. Em um \textit{checkout} limpo, sem essa geração prévia,
-    executam os 153 testes restantes; a cobertura de 83\% pressupõe, portanto, os
+    executam os 153 testes restantes; a cobertura de 81\% pressupõe, portanto, os
     artefatos de dados já produzidos. Trata-se de uma decisão consciente --- validar
     também os dados, e não apenas o código ---, cujo custo é essa dependência de
     ambiente, mitigada pela reprodutibilidade containerizada.
@@ -1167,12 +1167,14 @@ class AnalysisStore(Protocol):
     Este capítulo apresenta os resultados produzidos pelo artefato para o período 2022--2025 e discute seu significado. Primeiro valida-se a arquitetura e sua reprodutibilidade; em seguida, caracterizam-se a rede e os deputados mais centrais; então testa-se a hipótese central (H1) por meio da detecção de comunidades e do modelo nulo; por fim, avalia-se a estabilidade do padrão ao longo dos quatro anos.
     
     \section{VALIDAÇÃO DA ARQUITETURA E REPRODUTIBILIDADE}
+
+    Esta seção detalha a validação da arquitetura e a reprodutibilidade do artefato de software.
     
     % NORTE: mostrar que o artefato "roda" e é confiável, antes de interpretar dados.
     \subsection{Desempenho Computacional}
     
     % NORTE: tempo de execução, hardware, determinismo (seed=42), cobertura de testes.
-    O \textit{pipeline} completo (quatro anos) executa em 15 a 25 minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 217 testes automatizados (cobertura total de 83\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. O empacotamento em imagem Docker replica o ambiente de execução de forma exata --- mesma versão de Python, das bibliotecas e do sistema base ---, de modo que qualquer máquina com Docker reproduz integralmente os números reportados neste capítulo, satisfazendo o requisito de reprodutibilidade estrita do artefato.
+    O \textit{pipeline} completo (quatro anos) executa em 15 a 25 minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 217 testes automatizados (cobertura total de 81\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. O empacotamento em imagem Docker replica o ambiente de execução de forma exata --- mesma versão de Python, das bibliotecas e do sistema base ---, de modo que qualquer máquina com Docker reproduz integralmente os números reportados neste capítulo, satisfazendo o requisito de reprodutibilidade estrita do artefato.
     
     \subsection{Geração de Artefatos (Interoperabilidade)}
     
