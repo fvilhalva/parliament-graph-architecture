@@ -31,7 +31,7 @@
 
 ## Estado atual (set/2026)
 
-- **Código:** completo, **217 testes** (153 num checkout limpo; 64 são de integridade e só rodam após o pipeline gerar `data/`), 83% cobertura (core ≥93%), Docker, determinístico.
+- **Código:** completo, **217 testes** (153 num checkout limpo; 64 são de integridade e só rodam após o pipeline gerar `data/`), 81% cobertura (core ≥93%), Docker, determinístico.
 - **Monografia (`doc/monografia.tex`):** Caps. 1–6 **escritos e revisados**. Resumo (PT) e Abstract (EN) preenchidos; placeholders (`escrever algo...`) e `\usepackage{lipsum}` removidos; refs de figura/capítulo usando `\ref`+`\label`. Fonte no Overleaf é a canônica (o Felipe edita lá e sobrescreve `doc/`).
 - **Reprodutibilidade das tabelas:** Tabelas 2/3 (filtro/sensibilidade) → `scripts/sensitivity.py` (`./run.sh sensitivity [ano]`, usa `process_raw_data_unfiltered`); Tabela 5 (ARI comunidade×partido + pureza) → `scripts/compare_years.py`.
 - **Analiticamente ACABOU:** todas as tabelas, plots, sensibilidade, séries temporais, Gephi.

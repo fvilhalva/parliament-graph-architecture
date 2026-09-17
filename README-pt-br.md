@@ -10,7 +10,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/Tests-217%20passing-2ea44f?style=flat-square&logo=pytest&logoColor=white)](./src/tests/)
-[![Coverage](https://img.shields.io/badge/Coverage-83%25-2ea44f?style=flat-square)](./src/tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-81%25-2ea44f?style=flat-square)](./src/tests/)
 [![Core Coverage](https://img.shields.io/badge/Core%20Coverage-≥93%25-2ea44f?style=flat-square)](./src/tests/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](./Dockerfile)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)](./LICENSE)
@@ -87,7 +87,7 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 | **repository/** | Exportação para CSV, GEXF (Gephi), SQLite e `AnalysisResult` ↔ JSON |
 | **visualization/** | Gráficos automáticos por ano |
 | **scripts/** | Análise comparativa entre anos e utilitários de manutenção de dados |
-| **tests/** | 217 testes, 83% de cobertura total (core ≥ 93%) |
+| **tests/** | 217 testes, 81% de cobertura total (core ≥ 93%) |
 
 ---
 
@@ -219,11 +219,11 @@ As métricas por deputado são exportadas em `data/metricas/deputados_metricas_{
 
 ## 🧪 Suíte de Testes
 
-**217 testes**, **83% de cobertura total**, **core ≥ 93%** (reportado na monografia).
+**217 testes**, **81% de cobertura total**, **core ≥ 93%** (reportado na monografia).
 
 > Os testes de `test_dataset_integrity` validam os datasets por ano e são **pulados graciosamente** até o pipeline gerá-los. Após rodar o pipeline, os 217 passam.
 
-Categorias: testes unitários (entidades de domínio e algoritmos), testes de integração (pipeline ponta a ponta) e testes de integridade de dataset (esquema, faixas de valores plausíveis, coerência CSV ↔ GEXF).
+Categorias: testes unitários (entidades de domínio e algoritmos), testes de integração (fluxos multi-componente: cadeia de processamento, construção/análise do grafo e persistência com ida-e-volta) e testes de integridade de dataset (esquema, faixas de valores plausíveis, coerência CSV ↔ GEXF).
 
 ```bash
 docker compose run --rm tests
