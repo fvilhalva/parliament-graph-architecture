@@ -626,7 +626,7 @@
     
     O paradigma metodológico adotado neste trabalho é o \textit{Design Science Research} (DSR), conforme formalizado por \citeonline{hevner2004} e \citeonline{wieringa2014}. Diferentemente das ciências naturais, que explicam fenômenos existentes, e das ciências sociais empíricas, que descrevem comportamentos observáveis, o DSR é orientado à \emph{produção de artefatos} (constructos, modelos, métodos ou instanciações de software) projetados para solucionar problemas práticos identificados em um contexto real.
     
-    Como ilustrado no framework clássico de \citeonline{hevner2004} (~\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia entre três domínios fundamentais:
+    Como ilustrado no framework clássico de \citeonline{hevner2004} (Figura~\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia entre três domínios fundamentais:
     \begin{itemize}
         \item O \textbf{Ambiente} prático da Câmara dos Deputados, que define as necessidades analíticas e fornece os dados brutos de proposições e coautorias;
         \item A \textbf{Base de Conhecimento} científico, que fornece as fundações teóricas (ciência de redes e teoria dos grafos) e as metodologias de desenvolvimento (princípios arquiteturais de software e testes);
@@ -1195,7 +1195,9 @@ class AnalysisStore(Protocol):
     Em conjunto, essas três evidências demonstram que a arquitetura não é apenas descrita, mas \emph{avaliada}: o artefato realiza os requisitos de modularidade, testabilidade e extensibilidade que motivaram seu projeto --- o que constitui, no paradigma DSR, a demonstração de sua eficácia.
 
     \section{ANÁLISE DE CENTRALIDADE E INFLUÊNCIA PARLAMENTAR}
-    
+
+    Esta seção caracteriza a rede de coautoria produzida pelo artefato em dois planos. Primeiro, descreve-se a estrutura global do grafo em cada ano e o efeito empírico dos filtros de modelagem; em seguida, identificam-se os deputados que ocupam as posições estruturalmente mais centrais e discute-se o que essas posições revelam --- e o que \emph{não} revelam --- sobre a articulação legislativa.
+
     \subsection{O Grafo Resultante}
     
     % NORTE: apresentar a Tabela 1 (estrutura da rede) e a Tabela 2 (efeito dos filtros).
@@ -1319,7 +1321,9 @@ class AnalysisStore(Protocol):
     Os valores respondem afirmativamente à primeira pergunta norteadora: há forte concentração da articulação em poucos parlamentares, com intensidade que \emph{varia} conforme a dimensão medida. A concentração é \emph{extrema no autovetor} (Gini $0{,}951$; os dez deputados mais centrais concentram 82\% da métrica) --- reflexo direto das bancadas coesas que coassinam quase exclusivamente entre si, formando câmaras de eco; \emph{alta na intermediação} ($0{,}740$), pois o papel de ponte é raro; e \emph{moderada no grau ponderado} ($0{,}566$), a mais distribuída das quatro. Cabe a ressalva já discutida: trata-se de concentração da \emph{articulação} (coautoria), não de poder institucional. O padrão é estável ao longo do período (o Gini do autovetor permanece entre $0{,}87$ e $0{,}98$ nos quatro anos). Por fim, a própria divergência entre os coeficientes ($0{,}57$, $0{,}74$ e $0{,}95$) confirma que as quatro métricas de centralidade capturam dimensões distintas de influência --- não são redundantes ---, o que justifica reportá-las em conjunto. A Figura~\ref{fig:concentracao_gini} representa graficamente essa concentração por meio das curvas de Lorenz das quatro centralidades: quanto mais distante da diagonal de igualdade, mais concentrada a métrica.
     
     \section{DETECÇÃO DE COMUNIDADES E TESTE DA HIPÓTESE CENTRAL}
-    
+
+    Esta seção examina a organização da rede em comunidades e submete a hipótese central (H1) ao teste estatístico. Avalia-se primeiro a robustez das partições, confrontando os dois algoritmos de detecção; em seguida, testa-se a significância da estrutura comunitária contra o modelo nulo ponderado e verifica-se sua correspondência com a filiação partidária.
+
     \subsection{Comparação Louvain vs.\ Label Propagation}
     
     % NORTE: Tabela do ARI (4 anos) + discussão honesta sobre ARI moderado.
@@ -1424,7 +1428,9 @@ class AnalysisStore(Protocol):
     
     \section{ANÁLISE TEMPORAL (2022--2025)}
     \label{sec:temporal}
-    
+
+    Tendo caracterizado a rede em detalhe para 2025, esta seção avalia se o padrão observado se sustenta ao longo dos quatro anos analisados. Discute-se primeiro a estabilidade das métricas estruturais e, na sequência, a leitura longitudinal do período, com as ressalvas metodológicas que o recorte impõe.
+
     \subsection{Estabilidade do Padrão Estrutural}
     
     % NORTE: mostrar que Q e o veredito de H1 se mantêm nos 4 anos (persistência).
@@ -1455,14 +1461,18 @@ class AnalysisStore(Protocol):
     % limitações com honestidade e apontar trabalhos futuros. Manter o fio DSR:
     % a contribuição é a ARQUITETURA; a análise é a demonstração de que funciona.
     % ═══════════════════════════════════════════════════════════════════════
-    
+
+    Este capítulo encerra o trabalho. Retoma-se o problema de pesquisa e sintetizam-se os achados; sistematizam-se, então, as contribuições técnica e analítica do artefato; e, por fim, reconhecem-se com honestidade as limitações do estudo e apontam-se caminhos para trabalhos futuros.
+
     \section{SÍNTESE DOS ACHADOS}
     
     % NORTE: 1 parágrafo respondendo ao problema de pesquisa.
     O objetivo geral deste trabalho --- projetar, implementar e validar uma arquitetura de software reprodutível para análise de redes parlamentares --- foi cumprido. Construiu-se um artefato modular e auditável que transforma dados legislativos brutos da Câmara dos Deputados em evidências analíticas mensuráveis, e sua eficácia foi demonstrada sobre o período 2022--2025. A hipótese central (H1) foi \emph{corroborada nos quatro anos} ($p<0{,}005$): a estrutura de comunidades da rede de coautoria é estatisticamente não-aleatória, propriedade que se mostrou persistente. Sobre essa base, as centralidades e as comunidades caracterizaram as \emph{estruturas de influência} em seus dois níveis --- os blocos (comunidades, correspondentes a coalizões partidárias) e os atores centrais (pontes e polos de articulação). O achado analítico mais relevante é a \emph{distinção empírica entre articulação e poder institucional}: a centralidade de coautoria mede a intensidade da colaboração, não o controle das decisões, e essa fronteira foi tornada explícita pelos dados.
     
     \section{CONTRIBUIÇÕES}
-    
+
+    As contribuições do trabalho organizam-se em duas frentes complementares, coerentes com o paradigma DSR: a contribuição \emph{técnica} --- o artefato em si --- e a contribuição \emph{analítica} --- o que sua aplicação ao período 2022--2025 revelou.
+
     \subsection{Contribuição técnica}
     
     % NORTE: o artefato em si.
