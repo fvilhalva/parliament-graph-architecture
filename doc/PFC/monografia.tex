@@ -1003,17 +1003,17 @@ class AnalysisStore(Protocol):
         \item Para cada par, adiciona-se $1/(n_p - 1)$ ao peso acumulado da aresta no grafo.
     \end{enumerate}
     
-    \subsection{Projetos de Lei (PL)}
-    
-    Os Projetos de Lei são a categoria mais numerosa e diversa de proposições no dataset analisado. Caracterizam-se por ampla variabilidade no número de coautores --- de proposições individuais a iniciativas com dezenas de signatários. Sob a heurística adotada, PLs com poucos coautores contribuem mais fortemente para as arestas, refletindo coordenação política mais específica.
-    
-    \subsection{Projetos de Lei Complementar (PLP)}
-    
-    Os Projetos de Lei Complementar, por exigirem maioria absoluta para aprovação e tratarem de matérias constitucionalmente reservadas, tendem a apresentar coautorias mais selecionadas. No dataset analisado, sua presença numérica é menor que a de PLs, mas sua contribuição estrutural à rede é comparativamente densa.
-    
-    \subsection{Propostas de Emenda à Constituição (PEC)}
-    
-    PECs são, simultaneamente, os instrumentos legislativos de maior peso simbólico e os principais responsáveis pelo viés de massa de signatários. Por exigirem 171 assinaturas para apresentação (um terço da Câmara), PECs frequentemente acumulam centenas de coautores. A heurística de ponderação $1/(n_p - 1)$ reduz essa distorção, e o filtro \texttt{max\_authors=30} elimina o efeito catastrófico de PECs de massa sobre a topologia da rede.
+    \subsection{Tipos de Proposição Considerados}
+
+    Os cinco tipos admitidos pelo filtro qualitativo (Seção~\ref{subsec:heuristica}) têm perfis distintos de coautoria, o que justifica tratá-los individualmente:
+
+    \begin{enumerate}[label=\alph*)]
+        \item \textbf{Projetos de Lei (PL)}: a categoria mais numerosa e diversa do \textit{dataset}, com ampla variabilidade no número de coautores --- de proposições individuais a iniciativas com dezenas de signatários. Sob a heurística adotada, PLs com poucos coautores contribuem mais fortemente para as arestas, refletindo coordenação política mais específica;
+        \item \textbf{Projetos de Lei Complementar (PLP)}: por exigirem maioria absoluta para aprovação e tratarem de matérias constitucionalmente reservadas, tendem a apresentar coautorias mais selecionadas; numericamente menos frequentes que os PLs, mas com contribuição estrutural comparativamente densa;
+        \item \textbf{Propostas de Emenda à Constituição (PEC)}: os instrumentos de maior peso simbólico e os principais responsáveis pelo viés de massa de signatários, por exigirem 171 assinaturas (um terço da Câmara) para apresentação; a heurística de ponderação e o filtro de massa (Seção~\ref{subsec:heuristica}) mitigam e eliminam, respectivamente, esse efeito distorcivo sobre a topologia da rede;
+        \item \textbf{Projetos de Decreto Legislativo (PDL)}: tratam de matérias de competência exclusiva do Congresso Nacional que dispensam sanção presidencial --- por exemplo, a aprovação de tratados internacionais e a sustação de atos normativos do Poder Executivo. Apresentam volume reduzido frente aos PLs, com padrão de coautoria mais institucional e menos numeroso;
+        \item \textbf{Emendas (EMC)}: modificações propostas a uma proposição já em tramitação, tipicamente na fase de comissão. Por incidirem sobre um texto específico e não constituírem matéria autônoma, concentram-se predominantemente em poucos autores.
+    \end{enumerate}
     
     \section{IMPLEMENTAÇÃO DO NÚCLEO ANALÍTICO COMPUTACIONAL}
 
