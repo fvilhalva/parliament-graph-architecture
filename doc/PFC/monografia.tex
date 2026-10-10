@@ -762,7 +762,7 @@
     \subsection{Heurística de Ponderação e Normalização do Grafo}
     \label{subsec:heuristica}
     
-    A definição do peso $w(i,j)$ das arestas na projeção unimodal é uma decisão metodológica crítica deste trabalho. Uma soma ingênua do número de coautorias simples mostra-se inadequada para o contexto legislativo: uma única Proposta de Emenda à Constituição (PEC), que frequentemente reúne mais de 200 signatários --- bem acima do quórum de 171 assinaturas (um terço da Câmara) exigido para apresentação ---, geraria, sozinha, um clique completo de $\binom{200}{2} = 19.900$ arestas com peso 1, distorcendo e dominando toda a estrutura topológica subsequente. 
+    A definição do peso $w(i,j)$ das arestas na projeção unimodal é uma decisão metodológica crítica deste trabalho. Uma soma ingênua do número de coautorias simples mostra-se inadequada para o contexto legislativo: uma única Proposta de Emenda à Constituição (PEC), que frequentemente reúne mais de 200 signatários --- bem acima do quórum de 171 assinaturas (um terço da Câmara) exigido para apresentação, geraria, sozinha, um clique completo de $\binom{200}{2} = 19.900$ arestas com peso 1, distorcendo e dominando toda a estrutura topológica subsequente. 
     
     Para mitigar esse viés de escala e capturar a verdadeira intensidade da colaboração política, adota-se a metodologia de projeção ponderada proposta por \citeonline{newman2001,newman2010}:
     
