@@ -85,11 +85,11 @@
     % Preencher nomes/titulações reais quando a banca for definida; os DOIS
     % membros abaixo devem ficar em ORDEM ALFABÉTICA (o orientador vem primeiro).
     % Titulações: Dr./Dra. (doutor), MSc. (mestre), Esp. (especialista).
-    \newcommand{\nomeDoMembroA}{Nome Completo do Membro da Banca}
+    \newcommand{\nomeDoMembroA}{André Chastel Lima}
     \newcommand{\tituloDoMembroA}{Prof. Dr.}
     \newcommand{\instituicaomembroA}{Universidade Estadual de Mato Grosso do Sul}
 
-    \newcommand{\nomeDoMembroB}{Nome Completo do Membro da Banca}
+    \newcommand{\nomeDoMembroB}{Diogo Fernando Trevisan}
     \newcommand{\tituloDoMembroB}{Prof. Dr.}
     \newcommand{\instituicaomembroB}{Universidade Estadual de Mato Grosso do Sul}
 
@@ -229,7 +229,7 @@
     \begin{resumo}[Abstract]
     \begin{otherlanguage*}{english}
 
-    This work addresses the gap between the abundance of open legislative data from the Brazilian Chamber of Deputies and the scarcity of reproducible analytical tools able to extract, from such data, measurable evidence about structures of political influence. Under the \textit{Design Science Research} paradigm, a modular and auditable software architecture was designed, implemented and validated to transform legislative co-authorship records from the 2022--2025 period into a network analyzable through Graph Theory. The network is modeled as a weighted one-mode projection of a bipartite graph, adopting the weight $1/(n_p-1)$ and a signatory-mass filter (\texttt{max\_authors = 30}) to mitigate edge inflation. Over the resulting network, four centrality metrics are computed and communities are detected by two independent algorithms (Louvain and Label Propagation), whose significance is assessed by a permutation test against a weighted null model. The central hypothesis, that the community structure is non-random, was corroborated in all four analyzed years ($p<0.005$), with observed modularity between $0.596$ and $0.640$; the detected communities recover the partisan organization at the coalition level (\textit{Adjusted Rand Index} $\approx 0.30$); legislative articulation is concentrated in a few members; and co-authorship centrality proves to be a measure of articulation, not of formal institutional power. The central contribution, consistent with the adopted paradigm, is the artifact itself: a reproducible tool, covered by automated tests and packaged in a container, released as open source for auditing, extension and reuse.
+    This work addresses the gap between the abundance of open legislative data from the Brazilian Chamber of Deputies and the scarcity of reproducible analytical tools able to extract, from such data, measurable evidence about structures of political influence. Under the \textit{Design Science Research} paradigm, a modular and auditable software architecture was designed, implemented and validated to transform legislative co-authorship records from the 2022--2025 period into a network analyzable through Graph Theory. The network is modeled as a weighted one-mode projection of a bipartite graph, adopting the weight $1/(n_p-1)$ and a signatory-mass filter (\texttt{max\_authors = 30}) to mitigate edge inflation. Over the resulting network, four centrality metrics are computed and communities are detected by two independent algorithms (Louvain and Label Propagation), whose significance is assessed by a permutation test against a weighted null model. The central hypothesis, that the community structure is non-random, was corroborated in all four analyzed years ($p<0.005$), with observed modularity between $0.596$ and $0.640$; the detected communities reflects the partisan organization at the coalition level (\textit{Adjusted Rand Index} $\approx 0.30$); legislative articulation is concentrated in a few members; and co-authorship centrality proves to be a measure of articulation, not of formal institutional power. The central contribution, consistent with the adopted paradigm, is the artifact itself: a reproducible tool, covered by automated tests and packaged in a container, released as open source for auditing, extension and reuse.
 
         \vspace*{0.5cm}
         \noindent\textbf{{Keywords: }} network science; computational social science; software engineering; graph theory; community detection; parliamentary networks.
@@ -313,13 +313,13 @@
     
     O presente trabalho parte da premissa de que a coautoria parlamentar não é fenômeno aleatório, mas reflexo de alinhamentos políticos, ideológicos e estratégicos. Sob essa premissa --- e na esteira de \citeonline{fowler2006} ---, a rede de coautoria é adotada como \textit{proxy} mensurável de articulação política, passível de análise quantitativa. A cobertura estende-se deliberadamente de 2022 a 2025 --- abrangendo a transição entre a 56\textsuperscript{a} e a 57\textsuperscript{a} Legislaturas ---, permitindo tanto a análise da estrutura em regime estável quanto o estudo da sua persistência ao longo do tempo.
     
-    Por \enquote{estruturas de influência} entende-se, neste trabalho, a organização estrutural da rede de coautoria em dois níveis complementares: as \emph{comunidades} --- agrupamentos de deputados com colaboração densa, que revelam blocos e coalizões --- e as \emph{posições de centralidade} --- deputados que atuam como pontes entre grupos ou como polos de articulação. O primeiro nível descreve \textit{como} a articulação se organiza; o segundo, \textit{quem} ocupa as posições estruturalmente mais influentes. A identificação dessas estruturas, em ambos os níveis, é o objeto de análise do artefato desenvolvido.
+    Por \enquote{estruturas de influência} entende-se, neste trabalho, a organização estrutural da rede de coautoria em dois níveis complementares: as comunidades --- agrupamentos de deputados com colaboração densa, que revelam blocos e coalizões --- e as posições de centralidade --- deputados que atuam como pontes entre grupos ou como polos de articulação. O primeiro nível descreve como a articulação se organiza; o segundo, quem ocupa as posições estruturalmente mais influentes. A identificação dessas estruturas, em ambos os níveis, é o objeto de análise do artefato desenvolvido.
     
     \section{PROBLEMA DE PESQUISA}
     
     A despeito da disponibilidade pública dos dados e da maturidade dos métodos de análise de redes, a literatura brasileira sobre o tema apresenta ainda lacunas significativas: (i) a maioria dos estudos existentes concentra-se em períodos isolados ou em legislaturas anteriores, sem análise sistemática multi-anual recente; (ii) raros trabalhos disponibilizam código-fonte reprodutível, dificultando a verificação e a extensão dos achados; (iii) há carência de ferramentas computacionais reutilizáveis que separem com clareza a engenharia de processamento dos dados e a análise política propriamente dita.
     
-    Este trabalho aborda essas lacunas por meio da construção de uma \emph{arquitetura modular, reprodutível e auditável} para análise de redes parlamentares, fundamentada em Teoria dos Grafos e Engenharia de Software contemporânea, aplicada aos quatro anos legislativos completos do período 2022--2025.
+    Este trabalho aborda essas lacunas por meio da construção de uma arquitetura modular, reprodutível e auditável para análise de redes parlamentares, fundamentada em Teoria dos Grafos e Engenharia de Software contemporânea, aplicada aos quatro anos legislativos completos do período 2022--2025.
     
     \section{Objetivos}
 
@@ -339,7 +339,7 @@
     
     \section{HIPÓTESE}
     
-    Este trabalho é orientado por uma \emph{única hipótese falsificável}, formulada em termos estritamente estruturais (topológicos) --- a partir de uma propriedade mensurável do grafo, a modularidade --- e sem recurso a qualquer classificação ideológica atribuída aos partidos. O procedimento que a operacionaliza e a testa é descrito no Capítulo~\ref{cap:metodologia}, e o veredito correspondente --- corroboração ou refutação --- é apresentado no Capítulo~\ref{cap:resultados}.
+    Este trabalho é orientado por uma única hipótese falsificável, formulada em termos estritamente estruturais (topológicos) --- a partir de uma propriedade mensurável do grafo, a modularidade --- e sem recurso a qualquer classificação ideológica atribuída aos partidos. O procedimento que a operacionaliza e a testa é descrito no Capítulo~\ref{cap:metodologia}, e o veredito correspondente --- corroboração ou refutação --- é apresentado no Capítulo~\ref{cap:resultados}.
     
     \begin{itemize}
         \item \textbf{H1 --- Estrutura de comunidades não-aleatória}: a modularidade $Q$ da rede de coautoria parlamentar é significativamente superior à obtida em grafos nulos que preservam a mesma sequência de graus (\textit{configuration model}). Como predição falsificável, H1 é \textbf{refutada} caso a modularidade observada não se distinga estatisticamente da distribuição nula ($p \geq \alpha$) --- situação em que a fragmentação em comunidades seria indistinguível de um arranjo aleatório de colaborações e a coautoria não refletiria organização política estruturada.
@@ -386,7 +386,7 @@
         \item \textbf{Frameworks e Drivers}: o círculo mais externo, composto por detalhes de baixo nível, como bibliotecas de banco de dados e frameworks web. Sob a ótica arquitetural, o banco de dados e a web são considerados meros detalhes ou mecanismos de entrada/saída que não devem poluir a arquitetura central do sistema.
     \end{enumerate}
 
-    A~\ref{fig:ac_limpa} ilustra essa organização em círculos concêntricos,
+    Dessa forma, a~\ref{fig:ac_limpa} ilustra essa organização em círculos concêntricos,
     evidenciando a Regra de Dependência: as setas de dependência apontam sempre
     para dentro, das camadas externas (Frameworks e Drivers) em direção ao
     núcleo (Entidades), nunca no sentido inverso.
