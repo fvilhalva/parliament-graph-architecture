@@ -636,7 +636,7 @@
     
     O paradigma metodológico adotado neste trabalho é o \textit{Design Science Research} (DSR), conforme formalizado por \citeonline{hevner2004} e \citeonline{wieringa2014}. Diferentemente das ciências naturais, que explicam fenômenos existentes, e das ciências sociais empíricas, que descrevem comportamentos observáveis, o DSR é orientado à produção de artefatos (constructos, modelos, métodos ou instanciações de software) projetados para solucionar problemas práticos identificados em um contexto real.
     
-    Como ilustrado no framework clássico de \citeonline{hevner2004} (\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia entre três domínios fundamentais:
+    Como ilustrado no framework clássico de \citeonline{hevner2004}, na \ref{fig:dsr_framework}, a condução desta pesquisa estabelece uma sinergia entre três domínios fundamentais:
     \begin{itemize}
         \item O \textbf{Ambiente} prático da Câmara dos Deputados, que define as necessidades analíticas e fornece os dados brutos de proposições e coautorias;
         \item A \textbf{Base de Conhecimento} científico, que fornece as fundações teóricas (ciência de redes e teoria dos grafos) e as metodologias de desenvolvimento (princípios arquiteturais de software e testes);
@@ -648,10 +648,29 @@
         \caption{Framework de Pesquisa em Design Science}
         \label{fig:dsr_framework}
         \includegraphics[width=0.75\textwidth]{imagens/metodologia/dsr-framework.png}
-        \fonte{Adaptado de \citeonline[p. 80]{hevner2004}.}
+        \fonte{Adaptado de \citeonline[p. 80, Figura 2]{hevner2004}.}
     \end{figure}
+
+    A~\ref{fig:dsr_framework} representa essa dinâmica: o Ambiente e a Base de Conhecimento
+   alimentam o Espaço de Pesquisa por meio dos ciclos de relevância e de rigor,
+   respectivamente, enquanto os resultados do processo retornam a ambos como aplicação
+   prática ao Ambiente e como contribuição à Base de Conhecimento.
     
     Para orquestrar essas frentes, a investigação estrutura-se em torno de três ciclos dinâmicos propostos na literatura de DSR \cite{hevner2007}: o ciclo de relevância, que conecta o ambiente do problema às exigências do artefato; o ciclo de rigor, que fundamenta o desenvolvimento na base de conhecimento existente; e o ciclo de design propriamente dito, que executa iterativamente as fases de construção e avaliação até que o artefato atinja a maturidade necessária para responder ao problema analítico mapeado.
+
+    \begin{figure}[H]
+       \centering
+       \caption{Os três ciclos da pesquisa em Design Science}
+       \label{fig:dsr_ciclos}
+       \includegraphics[width=0.75\textwidth]{imagens/metodologia/dsr-ciclos.png}
+       \fonte{\cite[p. 88, Figura 1]{hevner2007}.}
+    \end{figure}
+
+    A~\ref{fig:dsr_ciclos} ilustra essa dinâmica: o ciclo de relevância conecta o Ambiente
+   ao Design Science Research por meio de requisitos e testes de campo; o ciclo de rigor
+   conecta a Base de Conhecimento por meio de fundamentação teórica e contribuições a ela
+   devolvidas; e o ciclo de design, no centro, itera entre construção e avaliação do
+   artefato até atingir maturidade suficiente.
     
     \subsection{Fases do Método}
     
@@ -672,8 +691,30 @@
     \end{enumerate}
     
     \subsection{Uso de Ferramentas de Inteligência Artificial}
-    
-    Em conformidade com as orientações de integridade acadêmica, registra-se que ferramentas de inteligência artificial generativa, baseadas em modelos de linguagem, foram utilizadas de forma auxiliar durante a elaboração deste trabalho. Seu uso englobou: apoio à revisão gramatical e estruturação textual; auxílio à compreensão e discussão de conceitos técnicos; e suporte na escrita, otimização e refatoração de trechos de código-fonte. A concepção da arquitetura de software, as decisões metodológicas e de modelagem, a validação lógica do sistema, a interpretação dos resultados e a autoria intelectual do trabalho são de responsabilidade exclusiva do autor.
+ 
+    Em conformidade com as orientações de integridade acadêmica da UEMS (Guia de Uso
+    Responsável da Inteligência Artificial Generativa, PROPPI, 2026), registra-se de forma
+    detalhada o uso de ferramentas de inteligência artificial generativa ao longo da
+    elaboração deste trabalho, empregadas com finalidades distintas:
+
+    \begin{itemize}
+        \item \textbf{NotebookLM} (Google): utilizado como apoio ao levantamento
+        bibliográfico, auxiliando na identificação e organização preliminar de fontes e
+        referências relacionadas aos temas do trabalho. A busca em bases de dados reais e
+        a verificação direta de cada fonte citada foram realizadas pelo autor.
+        \item \textbf{Claude Code} (Anthropic): utilizado como apoio à revisão gramatical
+        e estruturação textual, à discussão e ao esclarecimento de conceitos técnicos, à
+        escrita, otimização e refatoração de trechos de código-fonte --- incluindo os
+        \textit{scripts} de geração dos gráficos e figuras analíticas (biblioteca
+        \texttt{matplotlib}/\texttt{seaborn}) apresentados no Capítulo~\ref{cap:resultados}.
+        Todo código e todos os resultados gráficos produzidos com apoio da ferramenta foram validados de forma independente pelo autor.
+    \end{itemize}
+
+   O uso dessas ferramentas foi previamente discutido e autorizado pelo orientador. A
+   concepção da arquitetura de software, as decisões metodológicas e de modelagem, a
+   validação lógica do sistema, a interpretação dos resultados e a autoria intelectual do
+   trabalho são de responsabilidade exclusiva do autor, que verificou integralmente todas
+   as referências, dados e informações apresentados neste trabalho.
     
     \section{PROCEDIMENTOS DE COLETA E TRATAMENTO DE DADOS}
     \label{sec:procedimentos}
