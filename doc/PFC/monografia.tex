@@ -447,7 +447,7 @@
         \caption{Representação de um grafo desconexo não direcionado.}
         \label{fig:grafo_1}
         \includegraphics[width=0.6\textwidth]{imagens/revisao/grafo-exemplo.png}
-        \fonte{Diestel (2017, p. 2).}
+        \fonte{\cite[p. 2, Figura 1.1.1]{diestel2017}.}
     \end{figure}
     
     A topologia de uma rede é ditada pela natureza de suas arestas. \citeonline{barabasi2016} explica que os grafos podem ser direcionados, quando a relação possui um sentido único (como um link na World Wide Web), ou não direcionados, quando a relação é mútua e de via dupla (como uma linha de transmissão de energia). Além da direção, as redes do mundo real frequentemente possuem conexões com intensidades diferentes. Para modelar essas intensidades, utilizam-se os grafos ponderados, onde cada aresta recebe um peso numérico.
@@ -463,10 +463,10 @@
         \caption{Representações de grafos bipartidos}
         \label{fig:grafo_bipartido}
         \includegraphics[width=0.6\textwidth]{imagens/revisao/grafo-bipartido.png}
-        \fonte{Diestel (2017, p. 15).}
+        \fonte{\cite[p. 17, Figura 1.6.1]{diestel2017}.}
     \end{figure}
     
-    Como grafos bipartidos representam dois tipos distintos de entidade simultaneamente, sua análise direta por métricas de centralidade convencionais torna-se pouco intuitiva. A técnica usual consiste em derivar, a partir do grafo bipartido, uma rede unimodal (\textit{one-mode}) por meio de uma operação de \emph{projeção}. Na projeção sobre o subconjunto $U$, dois vértices de $U$ passam a ser conectados sempre que compartilham ao menos um vizinho comum em $V$ \cite{newman2010}. Transpondo essa definição para o objeto deste trabalho, a projeção sobre o conjunto de deputados conecta dois parlamentares sempre que ambos assinam uma mesma proposição legislativa, produzindo a rede de coautoria efetivamente analisada.
+    Como grafos bipartidos representam dois tipos distintos de entidade simultaneamente, sua análise direta por métricas de centralidade convencionais torna-se pouco intuitiva. A técnica usual consiste em derivar, a partir do grafo bipartido, uma rede unimodal (\textit{one-mode}) por meio de uma operação de projeção. Na projeção sobre o subconjunto $U$, dois vértices de $U$ passam a ser conectados sempre que compartilham ao menos um vizinho comum em $V$ \cite{newman2010}. Transpondo essa definição para o objeto deste trabalho, a projeção sobre o conjunto de deputados conecta dois parlamentares sempre que ambos assinam uma mesma proposição legislativa, produzindo a rede de coautoria efetivamente analisada.
     
     A operação de projeção, contudo, introduz uma distorção estrutural conhecida. Cada elemento do subconjunto projetado que agrega $n$ vértices do outro lado gera, na projeção, um subgrafo completo (clique) de $\binom{n}{2}$ arestas. Em consequência, grupos numerosos --- proposições com muitos coautores, no caso legislativo --- produzem, sozinhos, um volume desproporcional de arestas, dominando a topologia resultante e suprimindo o sinal das colaborações menores e mais específicas. Esse fenômeno de inflação de arestas é precisamente a motivação teórica para a heurística de ponderação e para os filtros de massa de signatários formalizados no Capítulo~\ref{cap:metodologia}.
     
@@ -474,16 +474,16 @@
     
     \subsection{Modelagem de Redes Sociais e Coautoria}
     
-    Ao aplicar a Teoria dos Grafos à sociologia, originam-se as chamadas redes sociais. Segundo \citeonline{newman2010}, nas redes sociais os vértices representam pessoas (ou grupos de pessoas), denominados atores, e as arestas representam alguma forma de interação social entre eles, comumente chamadas de laços (\textit{ties}), conforme a figura a seguir, que representa uma rede de atores de Hollywood, na qual dois atores estão conectados se atuaram no mesmo filme:
+    Ao aplicar a Teoria dos Grafos à sociologia, originam-se as chamadas redes sociais. Segundo \citeonline{newman2010}, nas redes sociais os vértices representam pessoas (ou grupos de pessoas), denominados atores, e as arestas representam alguma forma de interação social entre eles, comumente chamadas de laços (\textit{ties}), conforme a \ref{fig:hollywood} a seguir, que representa uma rede de atores de Hollywood, na qual dois atores estão conectados se atuaram no mesmo filme:
     \begin{figure}[H]
         \centering
         \caption{Representação de um grafo aplicado ao contexto}
         \label{fig:hollywood}
         \includegraphics[width=0.6\textwidth]{imagens/revisao/rede-hollywood.png}
-        \fonte{Barabási (2016).}
+        \fonte{\cite[Figura 2.2]{barabasi2016}.}
     \end{figure}
     
-    Uma classe especialmente útil de redes sociais abordada por Newman são as redes de avaliação, onde os atores são conectados através da participação conjunta em grupos ou eventos. Um exemplo clássico e direto dessa estrutura é a rede de coautoria. Na academia, por exemplo, um ator é um autor científico e o laço é formado quando dois autores assinam um mesmo artigo.
+    Uma classe especialmente útil de redes sociais abordada por \citeonline{newman2010} são as redes de avaliação, onde os atores são conectados através da participação conjunta em grupos ou eventos. Um exemplo clássico e direto dessa estrutura é a rede de coautoria. Na academia, por exemplo, um ator é um autor científico e o laço é formado quando dois autores assinam um mesmo artigo.
     
     No contexto da Câmara dos Deputados abordado neste projeto, essa exata estrutura de coautoria é adotada para a modelagem do ecossistema legislativo: os parlamentares assumem o papel de vértices e as proposições legislativas (como Projetos de Lei e PECs) assinadas em conjunto formam as arestas ponderadas da rede. Através dessa modelagem, é possível transformar assinaturas em documentos sociais em um grafo tangível de articulação política.
     
@@ -493,7 +493,7 @@
     Com a topologia da rede computacionalmente definida, a Ciência de Redes atua quantificando a importância estrutural de cada vértice. \citeonline{newman2010} aponta que grande parte da pesquisa em redes busca responder à pergunta: quais são os vértices mais importantes ou centrais em uma rede? Para responder a isso, existem diversas métricas matemáticas que capturam diferentes perspectivas do que significa ter influência. Neste trabalho, destacam-se quatro métricas principais:
     
     \begin{enumerate}[label=\alph*)]
-        \item \textbf{Centralidade de Grau (\textit{Degree})}: é a medida mais intuitiva de centralidade, definida como o número de conexões diretas que um indivíduo possui. A premissa analítica é direta: atores com mais conexões diretas possuem maior acesso à informação e maior influência imediata no seu círculo. Em grafos ponderados (frequentemente denominada força ou \textit{strength} do nó), o grau é calculado como o somatório dos pesos das arestas incidentes naquele vértice:
+        \item \textbf{Centralidade de Grau (\textit{Degree})}: é a medida mais intuitiva de centralidade, definida como o número de conexões diretas que um indivíduo possui. A premissa analítica é direta: atores com mais conexões diretas possuem maior acesso à informação e maior influência imediata no seu círculo. Em grafos ponderados (frequentemente denominada força ou \textit{strength} do nó), o grau é calculado como o somatório dos pesos das arestas incidentes naquele vértice \cite{newman2004, newman2010}:
     
         \begin{equation}
         s_i = \sum_{j \in N(i)} w(i,j)
@@ -502,16 +502,16 @@
     
         onde $s_i$ representa a soma dos pesos das arestas incidentes no vértice $i$, e $N(i)$ representa o conjunto de vizinhos diretos de $i$.
     
-        \item \textbf{Centralidade de Intermediação (\textit{Betweenness})}: desenvolvida inicialmente pelo sociólogo Linton Freeman (\citeyear{freeman1977}), esta métrica avalia a frequência com que um vértice atua como uma ponte ao longo dos caminhos mínimos (geodésicos) entre outros pares de vértices na rede. Matematicamente, ela é a razão entre a quantidade de caminhos mínimos que passam pelo vértice em questão e o número total de caminhos mínimos que conectam cada par de nós:
+        \item \textbf{Centralidade de Intermediação (\textit{Betweenness})}: desenvolvida inicialmente pelo sociólogo Linton Freeman (\citeyear{freeman1977}). Contudo, para viabilizar sua computação no pipeline, adota-se a formulação e o algoritmo otimizado por Ulrik Brandes (\citeyear{brandes2001}), esta métrica avalia a frequência com que um vértice atua como uma ponte ao longo dos caminhos mínimos (geodésicos) entre outros pares de vértices na rede. Matematicamente, ela é a razão entre a quantidade de caminhos mínimos que passam pelo vértice em questão e o número total de caminhos mínimos que conectam cada par de nós:
     
         \begin{equation}
         C_B(v) = \sum_{s \neq v \neq t} \frac{\sigma_{st}(v)}{\sigma_{st}}
         \label{eq:betweenness}
         \end{equation}
     
-        onde $C_B(v)$ é a fração de caminhos mínimos entre todos os pares que passam por $v$ \cite{freeman1977}.
+        onde $C_B(v)$ é a fração de caminhos mínimos entre todos os pares que passam por $v$ \cite{freeman1977, brandes2001}.
         
-        \item \textbf{Centralidade de Proximidade (\textit{Closeness})}: esta métrica avalia a distância geodésica média de um vértice em relação a todos os outros vértices acessíveis na rede. Nós com alta proximidade conseguem disseminar ideias ou influenciar toda a comunidade de maneira mais ágil:
+        \item \textbf{Centralidade de Proximidade (\textit{Closeness})}: esta métrica avalia a distância geodésica média de um vértice em relação a todos os outros vértices acessíveis na rede \cite{brandes2001, newman2010}. Nós com alta proximidade conseguem disseminar ideias ou influenciar toda a comunidade de maneira mais ágil:
     
         \begin{equation}
         C_C(v) = \frac{n-1}{\sum_{u \neq v} d(v,u)}
@@ -520,7 +520,7 @@
     
         onde $n$ é o número de vértices e $d(v,u)$ é a distância geodésica entre $v$ e $u$; ou seja, $C_C(v)$ é o inverso da distância geodésica \emph{média} do vértice $v$ aos demais vértices da rede.
         
-        \item \textbf{Centralidade de Autovetor (\textit{Eigenvector})}: uma extensão natural do grau, a centralidade de autovetor pondera a qualidade das relações \cite{bonacich1972}. O modelo matemático propõe que a importância de um vértice é proporcional à soma das importâncias dos seus vizinhos, incorporando o peso das conexões na versão ponderada:
+        \item \textbf{Centralidade de Autovetor (\textit{Eigenvector})}: uma extensão natural do grau, a centralidade de autovetor pondera a qualidade das relações \cite{bonacich1972, newman2010}. O modelo matemático propõe que a importância de um vértice é proporcional à soma das importâncias dos seus vizinhos, incorporando o peso das conexões na versão ponderada:
     
         \begin{equation}
         C_E(v) = \frac{1}{\lambda} \sum_{u \in N(v)} w(v,u) C_E(u)
@@ -547,17 +547,22 @@
     
     Valores de $Q$ variam tipicamente entre $-0{,}5$ e $1$. Conforme \citeonline{newman2010}, valores acima de $0{,}3$ indicam estrutura comunitária significativa em redes reais; valores próximos de zero indicam que a partição é estatisticamente indistinguível da aleatória; e valores negativos indicam anti-comunidades. A modularidade fornece, portanto, um critério objetivo para comparar partições alternativas geradas por diferentes algoritmos.
     
-    Um aspecto central da formulação da modularidade merece destaque, pois fundamenta o procedimento de validação estatística adotado neste trabalho. O termo $k_i k_j / 2m$ presente na Equação~\ref{eq:modularidade} não é arbitrário: ele representa o peso ou intensidade esperada da conexão entre os vértices $i$ e $j$ em um \emph{modelo nulo}, isto é, em um grafo aleatório que preserva a sequência de graus da rede original mas redistribui as conexões ao acaso \cite{newman2010}. A modularidade mede, portanto, exatamente o excesso de arestas internas às comunidades em relação ao que se esperaria por puro acaso, dada a mesma distribuição de graus.
+    Um aspecto central da formulação da modularidade merece destaque, pois fundamenta o procedimento de validação estatística adotado neste trabalho. O termo $k_i k_j / 2m$ presente na Equação~\ref{eq:modularidade} não é arbitrário: ele representa o peso ou intensidade esperada da conexão entre os vértices $i$ e $j$ em um modelo nulo, isto é, em um grafo aleatório que preserva a sequência de graus da rede original mas redistribui as conexões aleatoriamente \cite{newman2010}. A modularidade mede, portanto, exatamente o excesso de arestas internas às comunidades em relação ao que se esperaria no modelo nulo, dada a mesma distribuição de graus.
     
     Esse modelo nulo, conhecido na literatura como \textit{configuration model}, é a referência estatística contra a qual a significância de uma estrutura comunitária pode ser avaliada. Uma modularidade elevada só constitui evidência robusta de organização não-aleatória quando supera de forma clara os valores obtidos sobre realizações desse modelo nulo. É precisamente essa comparação --- entre a modularidade observada e a distribuição de modularidades de grafos nulos com igual sequência de graus --- que o Capítulo~\ref{cap:metodologia} formaliza como teste de permutação, e cujos resultados são reportados no Capítulo~\ref{cap:resultados}.
     
     \subsection{Algoritmo de Louvain}
     
-    O algoritmo de Louvain, proposto por \citeonline{blondel2008}, é um método heurístico de otimização gulosa que busca maximizar a modularidade $Q$ por meio de duas fases iterativas. Na primeira fase, cada vértice é inicialmente atribuído à sua própria comunidade. Em seguida, para cada vértice $i$, considera-se a remoção de $i$ de sua comunidade atual e sua inserção em cada uma das comunidades de seus vizinhos, escolhendo o movimento que produz o maior ganho positivo em $Q$. A fase termina quando nenhum movimento produz ganho. Na segunda fase, as comunidades resultantes são contraídas em supernodos e o processo recomeça. As iterações continuam até que nenhuma mudança aumente a modularidade.
+    O algoritmo de Louvain, proposto por \citeonline{blondel2008}, é um método heurístico de otimização gulosa que busca maximizar a modularidade $Q$ por meio de duas fases iterativas. Na primeira fase, cada vértice é inicialmente atribuído à sua própria comunidade. Em seguida, para cada vértice $i$, considera-se a remoção de $i$ de sua comunidade atual e sua inserção em cada uma das comunidades de seus vizinhos, escolhendo o movimento que produz o maior ganho positivo em $Q$. A fase termina quando nenhum movimento produz ganho. Na segunda fase, as comunidades resultantes são contraídas em supernós e o processo recomeça. As iterações continuam até que nenhuma mudança aumente a modularidade.
     
     Sua popularidade decorre de três propriedades práticas: (i) complexidade computacional aproximadamente linear no número de arestas para grafos esparsos, viabilizando aplicação a redes com milhares de nós; (ii) qualidade comparável a algoritmos exatos em benchmarks como o de \citeonline{lancichinetti2008}; e (iii) implementações maduras na biblioteca NetworkX, garantindo reprodutibilidade.
     
-    Há, contudo, uma limitação conhecida: o algoritmo é sensível à ordem de processamento dos vértices, podendo produzir partições ligeiramente diferentes em execuções distintas. No presente trabalho, esse efeito foi controlado pela fixação de uma semente aleatória (\textit{seed}) constante.
+    Há, contudo, uma limitação conhecida: o algoritmo é sensível à ordem de processamento dos vértices, podendo produzir partições ligeiramente diferentes em execuções distintas. Por
+    exemplo, um deputado com intensidade de coautoria semelhante em relação a duas bancadas
+    distintas pode apresentar ganho de modularidade praticamente empatado entre ambas; nesse
+    caso, a comunidade à qual ele é alocado depende de qual bancada é avaliada primeiro na
+    fase local do algoritmo --- uma decisão sensível à ordem de processamento, não à estrutura
+    real da rede. No presente trabalho, esse efeito foi controlado pela fixação de uma semente aleatória (\textit{seed}) constante.
     
     No artigo original do Louvain, \citeonline{blondel2008} apresentam a fórmula exata usada na primeira fase do algoritmo. Ela calcula, com baixíssimo custo computacional, qual seria a variação de modularidade ($\Delta Q$), ou ganho de modularidade, ao mover um nó isolado $i$ para dentro de uma comunidade vizinha $C$:
     
@@ -571,7 +576,7 @@
     No livro \textit{Networks}, \citeonline{newman2010} demonstra que, para fins de particionamento de grafos e otimização espectral, a modularidade pode ser reescrita elegantemente em notação matricial:
     
     \begin{equation}
-    Q = \frac{1}{2m}\, \mathbf{s}^{\top} \mathbf{B}\, \mathbf{s}
+    Q = \frac{1}{4m}\, \mathbf{s}^{\top} \mathbf{B}\, \mathbf{s}
     \label{eq:mod_matricial}
     \end{equation}
     
@@ -595,7 +600,7 @@
     
     onde os vizinhos indexados de $i_1$ a $i_m$ já foram atualizados no passo corrente $t$, enquanto os vizinhos de $i_{m+1}$ a $i_k$ mantêm os rótulos do passo anterior $t-1$. 
     
-    Seja $d_i^{C_j}$ a soma dos pesos das arestas do nó $i$ conectadas a vizinhos com o rótulo $C_j$. O processo iterativo de propagação assíncrona encerra-se estritamente quando, para cada nó $i$ que carrega um rótulo $C_m$, a Equação~\ref{eq:lpa_criterio_parada} é satisfeita para todos os rótulos alternativos $j$ ativos na rede:
+    Dessa forma, seja $d_i^{C_j}$ a soma dos pesos das arestas do nó $i$ conectadas a vizinhos com o rótulo $C_j$. O processo iterativo de propagação assíncrona encerra-se estritamente quando, para cada nó $i$ que carrega um rótulo $C_m$, a Equação~\ref{eq:lpa_criterio_parada} é satisfeita para todos os rótulos alternativos $j$ ativos na rede:
     
     \begin{equation}
     d_i^{C_m} \ge d_i^{C_j}, \quad \forall j
@@ -629,7 +634,7 @@
     
     \subsection{O Método DSR (Design Science Research)}
     
-    O paradigma metodológico adotado neste trabalho é o \textit{Design Science Research} (DSR), conforme formalizado por \citeonline{hevner2004} e \citeonline{wieringa2014}. Diferentemente das ciências naturais, que explicam fenômenos existentes, e das ciências sociais empíricas, que descrevem comportamentos observáveis, o DSR é orientado à \emph{produção de artefatos} (constructos, modelos, métodos ou instanciações de software) projetados para solucionar problemas práticos identificados em um contexto real.
+    O paradigma metodológico adotado neste trabalho é o \textit{Design Science Research} (DSR), conforme formalizado por \citeonline{hevner2004} e \citeonline{wieringa2014}. Diferentemente das ciências naturais, que explicam fenômenos existentes, e das ciências sociais empíricas, que descrevem comportamentos observáveis, o DSR é orientado à produção de artefatos (constructos, modelos, métodos ou instanciações de software) projetados para solucionar problemas práticos identificados em um contexto real.
     
     Como ilustrado no framework clássico de \citeonline{hevner2004} (\ref{fig:dsr_framework}), a condução desta pesquisa estabelece uma sinergia entre três domínios fundamentais:
     \begin{itemize}
@@ -646,7 +651,7 @@
         \fonte{Adaptado de \citeonline[p. 80]{hevner2004}.}
     \end{figure}
     
-    Para orquestrar essas frentes, a investigação estrutura-se em torno de três ciclos dinâmicos propostos na literatura de DSR \cite{hevner2007}: o \textit{ciclo de relevância}, que conecta o ambiente do problema às exigências do artefato; o \textit{ciclo de rigor}, que fundamenta o desenvolvimento na base de conhecimento existente; e o \textit{ciclo de design} propriamente dito, que executa iterativamente as fases de construção e avaliação até que o artefato atinja a maturidade necessária para responder ao problema analítico mapeado.
+    Para orquestrar essas frentes, a investigação estrutura-se em torno de três ciclos dinâmicos propostos na literatura de DSR \cite{hevner2007}: o ciclo de relevância, que conecta o ambiente do problema às exigências do artefato; o ciclo de rigor, que fundamenta o desenvolvimento na base de conhecimento existente; e o ciclo de design propriamente dito, que executa iterativamente as fases de construção e avaliação até que o artefato atinja a maturidade necessária para responder ao problema analítico mapeado.
     
     \subsection{Fases do Método}
     
@@ -677,7 +682,7 @@
     
     \subsection{Fonte dos Dados}
     
-    A fonte primária de dados é o Portal de Dados Abertos da Câmara dos Deputados (\url{https://dadosabertos.camara.leg.br}), mantido pela própria instituição em cumprimento à Lei de Acesso à Informação (Lei 12.527/2011). Trata-se da \emph{fonte oficial primária} dos registros legislativos brasileiros, sem autoridade superior de referência. Eventuais inconsistências da fonte representam limitação intrínseca ao registro público nacional e estão fora do escopo deste trabalho.
+    A fonte primária de dados é o Portal de Dados Abertos da Câmara dos Deputados (\url{https://dadosabertos.camara.leg.br}), mantido pela própria instituição em cumprimento à Lei de Acesso à Informação (Lei 12.527/2011). Trata-se da fonte oficial primária dos registros legislativos brasileiros, sem autoridade superior de referência. Eventuais inconsistências da fonte representam limitação intrínseca ao registro público nacional e estão fora do escopo deste trabalho.
     
     Foram utilizados dois conjuntos de arquivos CSV por ano analisado:
     
@@ -690,7 +695,7 @@
     
     \subsection{Recorte Temporal}
     
-    A delimitação do período em 2022 a 2025 resulta de critérios técnicos, e não de conveniência. Primeiro, \emph{estabilidade e homogeneidade do esquema de dados}: os arquivos CSV anuais do Portal de Dados Abertos mantêm formato e cobertura consistentes no período recente, evitando a heterogeneidade de esquema e a degradação de completude observadas em séries mais antigas. Segundo, \emph{coerência institucional}: o intervalo abrange uma legislatura quase completa (a 57\textsuperscript{a}, iniciada em 2023) somada ao ano de transição (2022, encerramento da 56\textsuperscript{a}), permitindo testar a \textit{persistência} da estrutura sob um regime legislativo estável, sem o confundimento de múltiplas mudanças de regras eleitorais e de composição partidária que um intervalo mais amplo (por exemplo, 2010 a 2025) introduziria. Terceiro, \emph{viabilidade computacional e de auditoria}: quatro \textit{snapshots} anuais completos são suficientes para avaliar a estabilidade do padrão estrutural (H1) mantendo cada grafo integralmente reproduzível e inspecionável. A ampliação da série temporal é registrada como trabalho futuro.
+    A delimitação do período em 2022 a 2025 resulta de critérios técnicos, e não de conveniência. Primeiro, estabilidade e homogeneidade do esquema de dados: os arquivos CSV anuais do Portal de Dados Abertos mantêm formato e cobertura consistentes no período recente, evitando a heterogeneidade de esquema e a degradação de completude observadas em séries mais antigas. Segundo, coerência institucional: o intervalo abrange uma legislatura quase completa (a 57\textsuperscript{a}, iniciada em 2023) somada ao ano de transição (2022, encerramento da 56\textsuperscript{a}), permitindo testar a persistência da estrutura sob um regime legislativo estável, sem o confundimento de múltiplas mudanças de regras eleitorais e de composição partidária que um intervalo mais amplo (por exemplo, 2010 a 2025) introduziria. Terceiro, viabilidade computacional e de auditoria: quatro \textit{snapshots} anuais completos são suficientes para avaliar a estabilidade do padrão estrutural (H1) mantendo cada grafo integralmente reproduzível e inspecionável. A ampliação da série temporal é registrada como trabalho futuro.
     
     
     
@@ -801,7 +806,7 @@
         \item \textbf{Filtro de tipos de proposição}: 
         Apenas proposições com conteúdo legislativo substantivo são consideradas: Projetos de Lei (PL), Propostas de Emenda à Constituição (PEC), Projetos de Lei Complementar (PLP), Projetos de Decreto Legislativo (PDL) e Emendas (EMC). Requerimentos, ofícios e proposições administrativas são excluídos.
         
-        \item \textbf{Filtro de massa de signatários}: Proposições com mais de 30 deputados coautores são excluídas da construção de arestas. Empiricamente, a inclusão dessas matérias --- a maior delas uma PEC com 226 signatários --- eleva a densidade da rede de 9{,}9\% para 85{,}4\% em 2025, transformando-a em um grafo quase-completo e inviabilizando a detecção de comunidades (demonstração no Capítulo~\ref{cap:resultados}). Como consequência direta, \textbf{nenhuma PEC integra a rede de coautoria analisada}, pois todas superam o limiar de 30 --- resultado intencional, e não uma perda: a co-assinatura em massa reflete adesão agregada, não articulação coordenada, e sua exclusão é coerente com a definição de influência adotada. Cabe notar que a heurística de ponderação $1/(n_p-1)$ e este filtro são \textbf{complementares}: a primeira trata a distorção de \emph{peso} (cada par de uma PEC de massa contribui apenas $1/225$), enquanto o filtro trata a distorção \emph{topológica} --- a mera \emph{existência} das $\binom{226}{2} \approx 25\,\text{mil}$ arestas, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar. O limite de 30 é uma decisão conservadora, declarada como parâmetro sensível para análise de sensibilidade em trabalhos futuros.
+        \item \textbf{Filtro de massa de signatários}: Proposições com mais de 30 deputados coautores são excluídas da construção de arestas. Empiricamente, a inclusão dessas matérias --- a maior delas uma PEC com 226 signatários --- eleva a densidade da rede de 9{,}9\% para 85{,}4\% em 2025, transformando-a em um grafo quase-completo e inviabilizando a detecção de comunidades (demonstração no Capítulo~\ref{cap:resultados}). Como consequência direta, \textbf{nenhuma PEC integra a rede de coautoria analisada}, pois todas superam o limiar de 30 --- resultado intencional, e não uma perda: a co-assinatura em massa reflete adesão agregada, não articulação coordenada, e sua exclusão é coerente com a definição de influência adotada. Cabe notar que a heurística de ponderação $1/(n_p-1)$ e este filtro são complementares: a primeira trata a distorção de peso (cada par de uma PEC de massa contribui apenas $1/225$), enquanto o filtro trata a distorção topológica --- a mera existência das $\binom{226}{2} \approx 25\,\text{mil}$ arestas, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar. O limite de 30 é uma decisão conservadora, declarada como parâmetro sensível para análise de sensibilidade em trabalhos futuros.
     
         \item \textbf{Pesos uniformes por tipo de proposição}: Embora que durante o desenvolvimento desse trabalho tenha-se experimentado pesos diferenciados por tipo (por exemplo, PEC com peso maior que PL), não existe na literatura uma escala teoricamente justificada para tal ponderação. Adota-se, portanto, peso igual a 1 para todos os tipos, sendo a seleção qualitativa realizada pelo filtro de tipos descrito acima.
     \end{enumerate}
@@ -818,11 +823,11 @@
     
     Quatro métricas de centralidade são computadas para cada deputado em cada ano, conforme definições formais apresentadas na Seção~\ref{subsec:metricas}.
     
-    Antes de aplicar essas métricas, é necessário entender o que se entende por influência neste trabalho. \emph{Influência política é aqui operacionalizada, em sentido estritamente estrutural, como a posição de um deputado na rede de coautoria} --- e não como poder institucional formal (relatorias, presidência de comissões, controle de pauta), que se exerce por mecanismos não capturados pela coautoria. Especificamente, a influência estrutural é mensurada por duas dimensões complementares: a intermediação (\textit{betweenness}), que capta o papel de ponte entre grupos, na tradição de \citeonline{freeman1977}; e a centralidade de autovetor, que capta a inserção em vizinhanças bem conectadas \cite{bonacich1972}. Trata-se, portanto, de uma medida de articulação e colaboração legislativa, não de poder decisório --- distinção retomada na discussão dos resultados.
+    Antes de aplicar essas métricas, é necessário entender o que se entende por influência neste trabalho. Influência política é aqui operacionalizada, em sentido estritamente estrutural, como a posição de um deputado na rede de coautoria --- e não como poder institucional formal (relatorias, presidência de comissões, controle de pauta), que se exerce por mecanismos não capturados pela coautoria. Especificamente, a influência estrutural é mensurada por duas dimensões complementares: a intermediação (\textit{betweenness}), que capta o papel de ponte entre grupos, na tradição de \citeonline{freeman1977}; e a centralidade de autovetor, que capta a inserção em vizinhanças bem conectadas \cite{bonacich1972}. Trata-se, portanto, de uma medida de articulação e colaboração legislativa, não de poder decisório --- distinção retomada na discussão dos resultados.
     
     Dessa forma, cada métrica captura uma dimensão distinta de influência: grau pondera quantidade de colaborações; intermediação captura papel de ponte entre blocos; proximidade mede capacidade de disseminação; autovetor pondera a qualidade das conexões. Estas métricas compõem a caracterização descritiva das estruturas de influência da rede, apresentada no Capítulo~\ref{cap:resultados}.
     
-    Cada métrica emprega, ademais, a representação coerente com sua semântica. Grau e autovetor são calculados sobre o grafo \emph{ponderado}, pois a intensidade da colaboração (afinidade) acumula-se de forma aditiva. Já intermediação e proximidade são calculadas sobre a topologia \emph{não-ponderada}: em grafos ponderados, o peso é interpretado como distância ou custo, ao passo que na rede de coautoria o peso representa afinidade --- semântica inversa, cuja conciliação exigiria uma transformação arbitrária $1/w$. A intermediação é \emph{normalizada} pelo fator $(n-1)(n-2)/2$ (grafos não-direcionados), produzindo valores em $[0,1]$ comparáveis entre anos de tamanhos distintos, requisito da análise temporal (Seção~\ref{sec:temporal}).
+    Cada métrica emprega, ademais, a representação coerente com sua semântica. Grau e autovetor são calculados sobre o grafo ponderado, pois a intensidade da colaboração (afinidade) acumula-se de forma aditiva. Já intermediação e proximidade são calculadas sobre a topologia não-ponderada: em grafos ponderados, o peso é interpretado como distância ou custo, ao passo que na rede de coautoria o peso representa afinidade --- semântica inversa, cuja conciliação exigiria uma transformação arbitrária $1/w$. A intermediação é normalizada pelo fator $(n-1)(n-2)/2$ (grafos não-direcionados), produzindo valores em $[0,1]$ comparáveis entre anos de tamanhos distintos, requisito da análise temporal (Seção~\ref{sec:temporal}).
     
     \subsection{Detecção de Comunidades}
     
