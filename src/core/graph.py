@@ -165,7 +165,12 @@ class ParliamentaryGraph:
     # in a single pass and returns the canonical ordered list.
 
     def compute_degree_centrality(self) -> List[Deputy]:
-        """Compute weighted degree centrality.
+        """Compute weighted degree (strength) and its network-wide share.
+
+        Populates ``weighted_degree`` (raw sum of incident edge weights, per
+        Newman) and ``degree_share`` (that sum as a fraction of the total
+        network strength -- an auxiliary field, not the classical Freeman
+        normalized degree centrality).
 
         Returns:
             Deputies sorted by descending weighted degree.
@@ -181,7 +186,7 @@ class ParliamentaryGraph:
             if deputy is None:
                 continue
             deputy.weighted_degree = strength
-            deputy.degree_centrality = strength / total_strength
+            deputy.degree_share = strength / total_strength
             results.append(deputy)
 
         return results

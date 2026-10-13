@@ -6,32 +6,6 @@ import networkx as nx
 import numpy as np
 
 
-def calculate_degree_centrality(graph: nx.Graph) -> Dict[int, float]:
-    """Compute degree centrality for every node.
-
-    Args:
-        graph: A NetworkX graph.
-
-    Returns:
-        Mapping of ``{node_id: centrality_value}``.
-    """
-    return nx.degree_centrality(graph)
-
-
-def calculate_betweenness_centrality(graph: nx.Graph) -> Dict[int, float]:
-    """Compute betweenness centrality for every node.
-
-    Measures how often a node lies on shortest paths between other pairs.
-
-    Args:
-        graph: A NetworkX graph.
-
-    Returns:
-        Mapping of ``{node_id: centrality_value}``.
-    """
-    return nx.betweenness_centrality(graph)
-
-
 def calculate_closeness_centrality(graph: nx.Graph) -> Dict[int, float]:
     """Compute closeness centrality for every node.
 

@@ -21,7 +21,9 @@ class Deputy:
         party_code: Political party abbreviation.
         state_code: Brazilian state code.
         weighted_degree: Sum of incident edge weights (co-authorship strength).
-        degree_centrality: Weighted degree normalized by total network strength.
+        degree_share: Weighted degree expressed as a share of total network strength
+            (sum of all deputies' weighted degrees in the year). Not the classical
+            Freeman/Newman normalized degree centrality (deg(v)/(n-1)).
         betweenness_centrality: Betweenness centrality.
         closeness_centrality: Closeness centrality.
         eigenvector_centrality: Eigenvector centrality.
@@ -34,7 +36,7 @@ class Deputy:
     party_code: str
     state_code: str
     weighted_degree: float = 0.0
-    degree_centrality: float = 0.0
+    degree_share: float = 0.0
     betweenness_centrality: float = 0.0
     closeness_centrality: float = 0.0
     eigenvector_centrality: float = 0.0

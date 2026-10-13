@@ -15,7 +15,7 @@ class TestDeputyCreation:
 
     def test_create_deputy_with_metrics(self, deputy_silva):
         """Should preserve centrality metrics."""
-        assert deputy_silva.degree_centrality == 0.5
+        assert deputy_silva.degree_share == 0.5
         assert deputy_silva.betweenness_centrality == 0.3
 
     def test_create_deputy_without_metrics(self):
@@ -26,7 +26,7 @@ class TestDeputyCreation:
             party_code="XX",
             state_code="XX"
         )
-        assert deputy.degree_centrality == 0.0
+        assert deputy.degree_share == 0.0
         assert deputy.betweenness_centrality == 0.0
 
 
@@ -61,18 +61,18 @@ class TestDeputyValidation:
 
     def test_centrality_between_0_and_1(self, deputy_silva):
         """Centrality metrics should be between 0 and 1."""
-        assert 0.0 <= deputy_silva.degree_centrality <= 1.0
+        assert 0.0 <= deputy_silva.degree_share <= 1.0
         assert 0.0 <= deputy_silva.betweenness_centrality <= 1.0
 
 
 class TestDeputyMetricsUpdate:
     """Tests for deputy metrics updates."""
 
-    def test_update_degree_centrality(self, deputy_silva):
-        """Should allow updating degree centrality."""
+    def test_update_degree_share(self, deputy_silva):
+        """Should allow updating degree share."""
         # Note: dataclass fields are immutable by default
         # This test documents expected behavior if updates are added
-        assert deputy_silva.degree_centrality == 0.5
+        assert deputy_silva.degree_share == 0.5
 
     def test_update_betweenness_centrality(self, deputy_silva):
         """Should allow updating betweenness centrality."""

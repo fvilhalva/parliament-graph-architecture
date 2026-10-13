@@ -13,7 +13,7 @@ def deputy_silva():
         name="João Silva",
         party_code="PT",
         state_code="SP",
-        degree_centrality=0.5,
+        degree_share=0.5,
         betweenness_centrality=0.3
     )
 
@@ -26,7 +26,7 @@ def deputy_santos():
         name="Maria Santos",
         party_code="PSDB",
         state_code="MG",
-        degree_centrality=0.6,
+        degree_share=0.6,
         betweenness_centrality=0.4
     )
 
@@ -39,7 +39,7 @@ def deputy_oliveira():
         name="Carlos Oliveira",
         party_code="PT",
         state_code="RJ",
-        degree_centrality=0.4,
+        degree_share=0.4,
         betweenness_centrality=0.2
     )
 

@@ -80,10 +80,10 @@ class TestParliamentaryGraphNodeAttributes:
         assert node_data["party_code"] == "PT"
         assert node_data["state_code"] == "SP"
 
-    def test_degree_centrality_normalized(self, example_graph):
+    def test_degree_share_normalized(self, example_graph):
         result = example_graph.compute_degree_centrality()
         assert len(result) == 4
-        total = sum(dep.degree_centrality for dep in result)
+        total = sum(dep.degree_share for dep in result)
         assert total == pytest.approx(1.0)
         top = max(result, key=lambda dep: dep.weighted_degree)
         assert top.id == 1
@@ -109,7 +109,7 @@ class TestParliamentaryGraphNodeAttributes:
         assert len(result) == 4
         for deputy in result:
             assert deputy.weighted_degree > 0
-            assert deputy.degree_centrality > 0
+            assert deputy.degree_share > 0
             # closeness/eigenvector/betweenness are >= 0 for any valid graph
             assert deputy.closeness_centrality >= 0
             assert deputy.eigenvector_centrality >= 0

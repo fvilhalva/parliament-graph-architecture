@@ -41,7 +41,7 @@ EXPECTED_CSV_COLUMNS = {
     "party_code",
     "state_code",
     "weighted_degree",
-    "degree_centrality",
+    "degree_share",
     "betweenness_centrality",
     "closeness_centrality",
     "eigenvector_centrality",
@@ -111,7 +111,7 @@ class TestDeputyMetricsCSV:
         _skip_if_missing(path)
         df = pd.read_csv(path)
         for col in [
-            "degree_centrality",
+            "degree_share",
             "betweenness_centrality",
             "closeness_centrality",
             "eigenvector_centrality",

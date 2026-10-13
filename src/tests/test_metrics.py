@@ -4,9 +4,7 @@ import networkx as nx
 import pytest
 
 from core.algorithms.metrics import (
-    calculate_betweenness_centrality,
     calculate_closeness_centrality,
-    calculate_degree_centrality,
     calculate_eigenvector_centrality,
     gini_coefficient,
     top_k_share,
@@ -72,31 +70,6 @@ def star_graph() -> nx.Graph:
         ]
     )
     return graph
-
-
-class TestDegreeCentrality:
-    def test_returns_value_per_node(self, path_graph):
-        result = calculate_degree_centrality(path_graph)
-        assert set(result.keys()) == {1, 2, 3, 4}
-
-    def test_star_centre_has_highest_value(self, star_graph):
-        result = calculate_degree_centrality(star_graph)
-        assert result[1] == max(result.values())
-
-    def test_empty_graph(self):
-        assert calculate_degree_centrality(nx.Graph()) == {}
-
-
-class TestBetweennessCentrality:
-    def test_path_middle_nodes_have_higher_betweenness(self, path_graph):
-        result = calculate_betweenness_centrality(path_graph)
-        assert result[2] > result[1]
-        assert result[3] > result[4]
-
-    def test_endpoints_have_zero_betweenness(self, path_graph):
-        result = calculate_betweenness_centrality(path_graph)
-        assert result[1] == pytest.approx(0)
-        assert result[4] == pytest.approx(0)
 
 
 class TestClosenessCentrality:
