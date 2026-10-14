@@ -1602,12 +1602,13 @@ class AnalysisStore(Protocol):
                 \item \texttt{src/config/}: configuração centralizada (variáveis de ambiente, constantes, logger);
                 \item \texttt{src/core/}: núcleo analítico (classe \texttt{ParliamentaryGraph} e submódulo \texttt{algorithms/});
                 \item \texttt{src/extraction/}: camada de extração (\texttt{ChamberExtractor});
-                \item \texttt{src/models/}: entidades de domínio (\texttt{Deputy}, \texttt{Proposition}, \texttt{CoauthorshipEdge});
+                \item \texttt{src/models/}: entidades de domínio (\texttt{Deputy}, \texttt{Proposition}, \texttt{CoauthorshipEdge}, \texttt{ParliamentaryNetwork});
                 \item \texttt{src/processing/}: limpeza, filtros e conversão para objetos de domínio (\texttt{ChamberProcessor});
                 \item \texttt{src/repository/}: persistência (CSV, GEXF, SQLite, JSON);
                 \item \texttt{src/visualization/}: geração automática de figuras;
                 \item \texttt{src/tests/}: suíte de testes (217 testes);
-                \item \texttt{scripts/}: utilitários auxiliares (análise comparativa entre anos);
+                \item \texttt{src/main.py}, \texttt{src/pipeline.py}: pontos de composição e orquestração do \textit{pipeline} analítico;
+                \item \texttt{scripts/}: utilitários auxiliares de reprodutibilidade (análise comparativa entre anos, análise de sensibilidade dos filtros);
                 \item \texttt{data/}: artefatos gerados em tempo de execução (não versionados);
                 \item \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{requirements.txt}: empacotamento reprodutível.
             \end{itemize}
