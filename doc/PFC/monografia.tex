@@ -870,7 +870,7 @@
     
     Dessa forma, cada métrica captura uma dimensão distinta de influência: grau pondera quantidade de colaborações; intermediação captura papel de ponte entre blocos; proximidade mede capacidade de disseminação; autovetor pondera a qualidade das conexões. Estas métricas compõem a caracterização descritiva das estruturas de influência da rede, apresentada no Capítulo~\ref{cap:resultados}.
     
-    Cada métrica emprega, ademais, a representação coerente com sua semântica. Grau e autovetor são calculados sobre o grafo ponderado, pois a intensidade da colaboração (afinidade) acumula-se de forma aditiva. Já intermediação e proximidade são calculadas sobre a topologia não-ponderada: em grafos ponderados, o peso é interpretado como distância ou custo, ao passo que na rede de coautoria o peso representa afinidade. A intermediação é normalizada pelo fator $(n-1)(n-2)/2$\footnote{O fator $(n-1)(n-2)/2$ corresponde ao número de pares de vértices distintos de $v$ em um grafo não-direcionado --- o valor máximo que a intermediação não-normalizada pode assumir ---, de modo que a divisão por ele mapeia a métrica para $[0,1]$.} (grafos não-direcionados), produzindo valores em $[0,1]$ comparáveis entre anos de tamanhos distintos, requisito da análise temporal (Seção~\ref{sec:temporal}).
+    Cada métrica emprega, ademais, a representação coerente com sua semântica. Grau e autovetor são calculados sobre o grafo ponderado, pois a intensidade da colaboração (afinidade) acumula-se de forma aditiva. Já intermediação e proximidade são calculadas sobre a topologia não-ponderada: em grafos ponderados, o peso é interpretado como distância ou custo, ao passo que na rede de coautoria o peso representa afinidade. A intermediação é normalizada pelo fator $(n-1)(n-2)/2$\footnote{O fator $(n-1)(n-2)/2$ corresponde ao número de pares de vértices distintos de $v$ em um grafo não-direcionado --- o valor máximo que a intermediação não-normalizada pode assumir, de modo que a divisão por ele mapeia a métrica para $[0,1]$.} (grafos não-direcionados), produzindo valores em $[0,1]$ comparáveis entre anos de tamanhos distintos, requisito da análise temporal (Seção~\ref{sec:temporal}).
     
     \subsection{Detecção de Comunidades}
     
@@ -1025,7 +1025,7 @@
         \item \texttt{AnalysisRepository}: serializa o resultado analítico agregado do ano (\texttt{AnalysisResult}) em arquivo JSON legível e auditável, e o recarrega de forma tipada quando necessário.
     \end{itemize}
 
-    Para concretizar o Princípio da Inversão de Dependência (Seção~\ref{subsec:solid}), esses adaptadores não são referenciados diretamente pelas camadas superiores: cada um implementa um \emph{contrato} (interface) declarado no módulo \texttt{repository/interfaces.py} por meio de \textit{protocolos} (\texttt{typing.Protocol}). A Listagem~\ref{lst:interfaces} apresenta os contratos definidos.
+    Para concretizar o Princípio da Inversão de Dependência (Seção~\ref{subsec:solid}), esses adaptadores não são referenciados diretamente pelas camadas superiores: cada um implementa um \emph{contrato} (interface) declarado no módulo \texttt{repository/interfaces.py} por meio de protocolos (\texttt{typing.Protocol}). A Listagem~\ref{lst:interfaces} apresenta os contratos definidos.
 
 \begin{lstlisting}[language=Python, caption={Contratos da camada de persistência (\texttt{repository/interfaces.py}).}, label={lst:interfaces}]
 class MetricsRepository(Protocol):
@@ -1043,7 +1043,7 @@ class AnalysisStore(Protocol):
     def load(self, year): ...
 \end{lstlisting}
 
-    A orquestração do \textit{pipeline} depende dessas abstrações, e não das classes concretas: a estrutura \texttt{PipelineDependencies} declara seus colaboradores de persistência pelos tipos dos protocolos, e a instanciação das implementações concretas ocorre em um único ponto de composição (\texttt{main.py}). Como consequência, trocar o formato de exportação (por exemplo, substituir o CSV por Parquet, ou o SQLite por outro banco) exige apenas fornecer uma nova classe que satisfaça o mesmo contrato, sem qualquer alteração no núcleo analítico. Trata-se de \emph{injeção de dependências} no ponto de composição, técnica que operacionaliza a inversão de controle e mantém o núcleo (\texttt{core/}) independente de detalhes de I/O --- coerente com a Regra da Dependência, verificável no código: o pacote \texttt{core/} não importa nenhuma das camadas externas.
+    A orquestração do \textit{pipeline} depende dessas abstrações, e não das classes concretas: a estrutura \texttt{PipelineDependencies} declara seus colaboradores de persistência pelos tipos dos protocolos, e a instanciação das implementações concretas ocorre em pontos de composição isolados --- \texttt{main.py} para o \textit{pipeline} principal, \texttt{scripts/compare\_years.py} para a análise comparativa que consome os resultados já persistidos, nunca dentro do núcleo analítico. Trata-se de injeção de dependências no ponto de composição, técnica que operacionaliza a inversão de controle e mantém o núcleo (\texttt{core/}) independente de detalhes de I/O --- coerente com a Regra da Dependência, verificável no código: o pacote \texttt{core/} não importa nenhuma das camadas externas.
 
     Adicionalmente, a camada \texttt{visualization/} consome os dados gerados e produz figuras (PNG) e relatório textual (TXT) por ano, organizados em subdiretórios \texttt{data/plots/\{ano\}/}.
     
@@ -1091,7 +1091,7 @@ class AnalysisStore(Protocol):
     
     \begin{lstlisting}[language=Python, caption={Interface da classe CommunityDetector.}, label={lst:community}]
     class CommunityDetector:
-        def detect_louvain(self, graph, seed=42) -> dict:
+        def detect_louvain(self, graph, resolution=1.0, seed=42) -> dict:
             """Returns {node_id: community_id}"""
     
         def detect_label_propagation(self, graph) -> dict:
