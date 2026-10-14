@@ -1,8 +1,10 @@
 """Main entrypoint for parliamentary network analysis.
 
-Runs the full pipeline for every year in the configured analysis window
-(default: 2022-2025). Each year produces an independent snapshot with its
-own GEXF, CSV exports, SQLite row, null-model p-value and analysis JSON.
+Runs the full pipeline for every year in ``Config.ANALYSIS_YEARS`` (default:
+2022-2025; override via the ``ANALYSIS_YEARS`` environment variable, e.g.
+``ANALYSIS_YEARS=[2022,2023,2024,2025]``). Each year produces an independent
+snapshot with its own GEXF, CSV exports, SQLite row, null-model p-value and
+analysis JSON.
 """
 
 from config import Config, setup_logger
@@ -13,9 +15,6 @@ from pipeline import PipelineDependencies, run_pipeline
 from visualization import generate_analysis_plots
 
 logger = setup_logger(__name__)
-
-# Years analysed for the temporal study. Adjust here if the window changes.
-ANALYSIS_YEARS = [2022, 2023, 2024, 2025]
 
 
 def build_pipeline_dependencies() -> tuple[Config, PipelineDependencies]:
@@ -36,10 +35,10 @@ def build_pipeline_dependencies() -> tuple[Config, PipelineDependencies]:
 if __name__ == "__main__":
     config, pipeline_dependencies = build_pipeline_dependencies()
 
-    logger.info(f"=== TEMPORAL ANALYSIS — years {ANALYSIS_YEARS} ===")
+    logger.info(f"=== TEMPORAL ANALYSIS — years {config.ANALYSIS_YEARS} ===")
 
     failures: list[tuple[int, str]] = []
-    for year in ANALYSIS_YEARS:
+    for year in config.ANALYSIS_YEARS:
         logger.info(f"\n{'#' * 60}\n# YEAR {year}\n{'#' * 60}")
         try:
             run_pipeline(

@@ -50,6 +50,10 @@ class Config(BaseSettings):
         default=30,
         validation_alias=AliasChoices("MAX_AUTHORS_PER_PROPOSAL", "MAX_AUTORES_POR_PROPOSICAO"),
     )
+    ANALYSIS_YEARS: list[int] = Field(
+        default=[2022, 2023, 2024, 2025],
+        validation_alias=AliasChoices("ANALYSIS_YEARS", "ANOS_ANALISE"),
+    )
 
     @classmethod
     def get_coauthorship_csv_url(cls, year: int) -> str:
