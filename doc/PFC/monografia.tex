@@ -1145,7 +1145,7 @@ class AnalysisStore(Protocol):
     diretório \texttt{data/}. Em um \textit{checkout} limpo, sem essa geração prévia,
     executam os 153 testes restantes; a cobertura de 81\% pressupõe, portanto, os
     artefatos de dados já produzidos. Trata-se de uma decisão consciente --- validar
-    também os dados, e não apenas o código ---, cujo custo é essa dependência de
+    também os dados, e não apenas o código, cujo custo é essa dependência de
     ambiente, mitigada pela reprodutibilidade containerizada.
     
     \subsection{Empacotamento Docker}
@@ -1193,13 +1193,13 @@ class AnalysisStore(Protocol):
     \textit{pipeline}); a suíte completa, com os testes de integridade de \textit{dataset},
     é exercida quando os dados já foram gerados.
 
-    O desenvolvimento seguiu, ainda, um fluxo de ramificação disciplinado ---
-    \texttt{main} $\rightarrow$ \texttt{develop} $\rightarrow$ \texttt{feat/*} ---, com a
+    O desenvolvimento adotou, ainda, um fluxo de ramificação disciplinado ---
+    \texttt{main} $\rightarrow$ \texttt{develop} $\rightarrow$ \texttt{feat/*}, com a
     integração de cada funcionalidade mediada por \textit{pull requests}. Esse fluxo é
     reforçado por regras de proteção configuradas no repositório (\textit{rulesets}): o
     ramo \texttt{main} não aceita envio direto --- toda integração exige um \textit{pull
     request} cuja verificação de CI (o \textit{status check} da suíte de testes) tenha
-    sido bem-sucedida ---, além de bloquear reescrita de histórico (\textit{force-push})
+    sido bem-sucedida, além de bloquear reescrita de histórico (\textit{force-push})
     e exclusão do ramo. Em conjunto, CI e proteção de ramo asseguram, por construção, que
     não seja possível integrar ao ramo principal código que não passe na verificação
     automatizada --- uma evidência concreta do compromisso com a reprodutibilidade e a
@@ -1227,29 +1227,29 @@ class AnalysisStore(Protocol):
     \subsection{Desempenho Computacional}
     
     % NORTE: tempo de execução, hardware, determinismo (seed=42), cobertura de testes.
-    O \textit{pipeline} completo (quatro anos) executa em 15 a 25 minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 217 testes automatizados (cobertura total de 81\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. O empacotamento em imagem Docker replica o ambiente de execução de forma exata --- mesma versão de Python, das bibliotecas e do sistema base ---, de modo que qualquer máquina com Docker reproduz integralmente os números reportados neste capítulo, satisfazendo o requisito de reprodutibilidade estrita do artefato.
+    O \textit{pipeline} completo (quatro anos) executa em 15 a 25 minutos em hardware de classe \textit{desktop} (Intel i5-14600KF, 32\,GB DDR5), de forma determinística: a fixação da semente aleatória (\texttt{seed}=42) garante que execuções repetidas produzam resultados idênticos. A suíte de 217 testes automatizados (cobertura total de 81\%, núcleo $\geq$ 93\%) valida a corretude de cada módulo. O empacotamento em imagem Docker replica o ambiente de execução de forma exata --- mesma versão de Python, das bibliotecas e do sistema base, de modo que qualquer máquina com Docker reproduz integralmente os números reportados neste capítulo, satisfazendo o requisito de reprodutibilidade estrita do artefato.
     
     \subsection{Geração de Artefatos (Interoperabilidade)}
     
     % NORTE: listar os formatos exportados e por que importam (auditabilidade, Gephi).
-    Cada execução persiste os resultados em formatos abertos e interoperáveis: CSV (métricas por deputado), GEXF (grafo, compatível com o Gephi), SQLite (persistência consultável) e JSON (\texttt{AnalysisResult} auditável). O formato GEXF cumpre um papel adicional de \emph{validação cruzada independente}: ao importar o grafo no Gephi e recalcular a modularidade com a implementação própria da ferramenta, obtêm-se valores de $Q$ compatíveis com os produzidos pelo \textit{pipeline}, o que confirma que os resultados não são artefato de uma única implementação. A pluralidade de formatos assegura, ainda, que os dados possam ser auditados e reanalisados por terceiros sem depender do código-fonte original.
+    Cada execução persiste os resultados em formatos abertos e interoperáveis: CSV (métricas por deputado), GEXF (grafo, compatível com o Gephi), SQLite (persistência consultável) e JSON (\texttt{AnalysisResult} auditável). O formato GEXF cumpre um papel adicional de validação cruzada independente: ao importar o grafo no Gephi e recalcular a modularidade com a implementação própria da ferramenta, obtêm-se valores de $Q$ compatíveis com os produzidos pelo \textit{pipeline}, o que confirma que os resultados não são artefato de uma única implementação. A pluralidade de formatos assegura, ainda, que os dados possam ser auditados e reanalisados por terceiros sem depender do código-fonte original.
 
     \subsection{Avaliação da Arquitetura: Desacoplamento e Extensibilidade}
 
     % NORTE: avaliar as QUALIDADES DE PROJETO do artefato (contribuição DSR), não só que "roda".
     Coerentemente com o paradigma DSR --- em que o artefato é a própria contribuição ---, avaliam-se aqui as qualidades estruturais do projeto, e não apenas seu desempenho. Três propriedades da arquitetura, afirmadas no Capítulo~\ref{cap:desenvolvimento}, confirmam-se de forma objetiva.
 
-    Primeiro, o \emph{desacoplamento} é verificável no próprio código: o núcleo analítico (\texttt{core/}) não importa nenhuma das camadas externas (extração, processamento, repositório ou visualização), respeitando estritamente a Regra da Dependência. Esse isolamento não é um detalhe estético --- é o que torna o núcleo \emph{testável de forma independente} de banco de dados, arquivos ou rede, e explica por que a cobertura de testes do \texttt{core/} atinge $\geq 93\%$: a alta testabilidade é consequência direta do design, e não um esforço acidental.
+    Primeiro, o desacoplamento é verificável no próprio código: o núcleo analítico (\texttt{core/}) não importa nenhuma das camadas externas (extração, processamento, repositório ou visualização), respeitando estritamente a Regra da Dependência. Esse isolamento não é um detalhe estético --- é o que torna o núcleo testáve de forma independente de banco de dados, arquivos ou rede, e explica por que a cobertura de testes do \texttt{core/} atinge $\geq 93\%$: a alta testabilidade é consequência direta do design, e não um esforço acidental.
 
-    Segundo, a \emph{extensibilidade} decorre da inversão de dependência (Seção~\ref{subsec:solid}), materializada pelos contratos da camada de persistência (Listagem~\ref{lst:interfaces}). Como o \textit{pipeline} depende das abstrações, e não das implementações concretas, substituir um formato de saída --- por exemplo, trocar o CSV por Parquet, ou o SQLite por outro banco --- exige apenas fornecer uma nova classe que satisfaça o mesmo contrato, sem qualquer alteração no núcleo analítico. O artefato é, portanto, extensível por construção, e não apenas em intenção.
+    Segundo, a extensibilidade decorre da inversão de dependência (Seção~\ref{subsec:solid}), materializada pelos contratos da camada de persistência (Listagem~\ref{lst:interfaces}). Como o \textit{pipeline} depende das abstrações, e não das implementações concretas, substituir um formato de saída --- por exemplo, trocar o CSV por Parquet, ou o SQLite por outro banco --- exige apenas fornecer uma nova classe que satisfaça o mesmo contrato, sem qualquer alteração no núcleo analítico. O artefato é, portanto, extensível por construção, e não apenas em intenção.
 
-    Terceiro, a \emph{corretude é reimposta automaticamente}: a integração contínua (Seção~\ref{subsec:ci}) executa a suíte de testes a cada alteração, e a proteção do ramo principal impede a integração de código que não passe nessa verificação. A garantia de qualidade deixa de depender de disciplina manual e passa a ser assegurada pelo próprio fluxo de desenvolvimento.
+    Terceiro, a corretude é reimposta automaticamente: a integração contínua (Seção~\ref{subsec:ci}) executa a suíte de testes a cada alteração, e a proteção do ramo principal impede a integração de código que não passe nessa verificação. A garantia de qualidade deixa de depender de disciplina manual e passa a ser assegurada pelo próprio fluxo de desenvolvimento.
 
-    Em conjunto, essas três evidências demonstram que a arquitetura não é apenas descrita, mas \emph{avaliada}: o artefato realiza os requisitos de modularidade, testabilidade e extensibilidade que motivaram seu projeto --- o que constitui, no paradigma DSR, a demonstração de sua eficácia.
+    Em conjunto, essas três evidências demonstram que a arquitetura não é apenas descrita, mas avaliada: o artefato realiza os requisitos de modularidade, testabilidade e extensibilidade que motivaram seu projeto --- o que constitui, no paradigma DSR, a demonstração de sua eficácia.
 
     \section{ANÁLISE DE CENTRALIDADE E INFLUÊNCIA PARLAMENTAR}
 
-    Esta seção caracteriza a rede de coautoria produzida pelo artefato em dois planos. Primeiro, descreve-se a estrutura global do grafo em cada ano e o efeito empírico dos filtros de modelagem; em seguida, identificam-se os deputados que ocupam as posições estruturalmente mais centrais e discute-se o que essas posições revelam --- e o que \emph{não} revelam --- sobre a articulação legislativa.
+    Esta seção caracteriza a rede de coautoria produzida pelo artefato em dois planos. Primeiro, descreve-se a estrutura global do grafo em cada ano e o efeito empírico dos filtros de modelagem; em seguida, identificam-se os deputados que ocupam as posições estruturalmente mais centrais e discute-se o que essas posições revelam --- e o que não revelam --- sobre a articulação legislativa.
 
     \subsection{O Grafo Resultante}
     
@@ -1292,7 +1292,7 @@ class AnalysisStore(Protocol):
     \fonte{Elaborado pelo autor.}
     \end{table}
     
-    A remoção de 70 proposições com mais de 30 coautores --- a maior com 226 signatários (uma PEC) --- reduz a densidade de 85,35\% para 9,90\%, transformando um grafo quase-completo em uma rede analisável. Vale reforçar que a heurística de ponderação $1/(n_p-1)$ e o filtro de massa atacam distorções \emph{distintas e complementares}: a normalização corrige a distorção de \emph{peso} (cada par de uma PEC de massa contribui apenas $1/225 \approx 0{,}004$ à força do vínculo), enquanto o filtro corrige a distorção \emph{topológica} --- a mera \emph{existência} das dezenas de milhares de arestas de um clique de signatários, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar, por mais baixo que seja o peso.
+    A remoção de 70 proposições com mais de 30 coautores --- a maior com 226 signatários (uma PEC) --- reduz a densidade de 85,35\% para 9,90\%, transformando um grafo quase-completo em uma rede analisável. Vale reforçar que a heurística de ponderação $1/(n_p-1)$ e o filtro de massa atacam distorções distintas e complementares: a normalização corrige a distorção de peso (cada par de uma PEC de massa contribui apenas $1/225 \approx 0{,}004$ à força do vínculo), enquanto o filtro corrige a distorção topológica --- a mera existência das dezenas de milhares de arestas de um clique de signatários, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar, por mais baixo que seja o peso.
     
     A robustez do limiar de 30 e a necessidade do filtro foram avaliadas por uma análise de sensibilidade (Tabela~\ref{tab:sensibilidade}), variando \texttt{max\_authors} em 2025.
     
@@ -1313,7 +1313,7 @@ class AnalysisStore(Protocol):
     \fonte{Elaborado pelo autor.}
     \end{table}
     
-    Dois resultados sobressaem. Primeiro, a modularidade é \emph{estável} na faixa de limiares plausíveis (20 a 40), mantendo-se sempre bem acima do patamar de estrutura significativa ($Q > 0{,}3$); a escolha de 30 é, portanto, um meio-termo conservador que \emph{não determina} o resultado. Segundo, e mais importante, sem o filtro --- e mesmo com a normalização ativa --- a modularidade \emph{colapsa de $0{,}634$ para $0{,}215$}: a prova empírica de que o filtro \emph{não é redundante} com a ponderação, pois trata uma distorção (a topológica) que a ponderação não alcança. Os valores das Tabelas~\ref{tab:filtros} e~\ref{tab:sensibilidade} são gerados de forma reprodutível pelo utilitário \texttt{scripts/sensitivity.py} (comando \texttt{./run.sh sensitivity}), que reconstrói a rede sob cada configuração de \texttt{max\_authors}.
+    Dois resultados sobressaem. Primeiro, a modularidade é estável na faixa de limiares plausíveis (20 a 40), mantendo-se sempre bem acima do patamar de estrutura significativa ($Q > 0{,}3$); a escolha de 30 é, portanto, um meio-termo conservador que não determina o resultado. Segundo, e mais importante, sem o filtro --- e mesmo com a normalização ativa --- a modularidade colapsa de $0{,}634$ para $0{,}215$: a prova empírica de que o filtro não é redundante com a ponderação, pois trata uma distorção (a topológica) que a ponderação não alcança. Os valores das Tabelas~\ref{tab:filtros} e~\ref{tab:sensibilidade} são gerados de forma reprodutível pelo utilitário \texttt{scripts/sensitivity.py} (comando \texttt{./run.sh sensitivity}), que reconstrói a rede sob cada configuração de \texttt{max\_authors}.
     
     \subsection{Os Deputados mais Influentes}
     
@@ -1340,9 +1340,9 @@ class AnalysisStore(Protocol):
     \end{table}
     
     % NORTE (parágrafo-chave da defesa): dois achados a discutir.
-    O primeiro padrão diz respeito às \emph{pontes}. Os deputados de maior intermediação distribuem-se por \emph{quatro partidos distintos}, e o principal \textit{broker} não pertence ao maior bloco. O papel de ponte entre grupos é, portanto, uma posição \emph{estrutural e individual}, não determinada pelo tamanho da bancada: um parlamentar de partido médio pode ocupar posição de mediação mais central que membros de blocos numerosos.
+    O primeiro padrão diz respeito às pontes. Os deputados de maior intermediação distribuem-se por quatro partidos distintos, e o principal \textit{broker} não pertence ao maior bloco. O papel de ponte entre grupos é, portanto, uma posição estrutural e individual, não determinada pelo tamanho da bancada: um parlamentar de partido médio pode ocupar posição de mediação mais central que membros de blocos numerosos.
     
-    O segundo padrão é o mais revelador. O grau ponderado é dominado por deputados de \emph{dois partidos pequenos e coesos}, que coassinam intensamente entre si. Isso evidencia que a centralidade de coautoria mede \emph{intensidade de articulação}, e \emph{não poder institucional}. Retomando a definição operacional adotada (Seção~\ref{subsec:metricas}), influência estrutural é a posição na rede, não o controle de relatorias, da presidência de comissões ou da pauta --- mecanismos que se exercem por fora da coautoria. É por isso que lideranças formais e presidentes de comissão \emph{não} aparecem no topo das métricas: sua influência opera por canais que a rede de coautoria, por construção, não captura. A rede revela quem \emph{articula muito}, não necessariamente quem \emph{decide muito}. Responde-se, assim, à terceira pergunta norteadora: a centralidade de coautoria \emph{não} prediz influência política no sentido institucional --- ela mede articulação e colaboração, dimensão estruturalmente distinta do poder decisório.
+    O segundo padrão é o mais revelador. O grau ponderado é dominado por deputados de dois partidos pequenos e coesos, que coassinam intensamente entre si. Isso evidencia que a centralidade de coautoria mede intensidade de articulação, e não poder institucional. Retomando a definição operacional adotada (Seção~\ref{subsec:metricas}), influência estrutural é a posição na rede, não o controle de relatorias, da presidência de comissões ou da pauta --- mecanismos que se exercem por fora da coautoria. É por isso que lideranças formais e presidentes de comissão não aparecem no topo das métricas: sua influência opera por canais que a rede de coautoria, por construção, não captura. A rede revela quem articula muito, não necessariamente quem decide muito. Responde-se, assim, à terceira pergunta norteadora: a centralidade de coautoria não prediz influência política no sentido institucional --- ela mede articulação e colaboração, dimensão estruturalmente distinta do poder decisório.
     
     % NORTE: responde a pergunta norteadora (i) --- concentração da articulação em poucos.
     A concentração da articulação em poucos parlamentares --- primeira pergunta norteadora --- é quantificada pelo coeficiente de \citeonline{gini1921} da distribuição de cada centralidade (0 indica igualdade total; 1, concentração máxima) e pela participação dos dez deputados mais centrais. A Tabela~\ref{tab:concentracao} apresenta os valores de 2025.
@@ -1372,7 +1372,7 @@ class AnalysisStore(Protocol):
         \fonte{Elaborado pelo autor.}
     \end{figure}
     
-    Os valores respondem afirmativamente à primeira pergunta norteadora: há forte concentração da articulação em poucos parlamentares, com intensidade que \emph{varia} conforme a dimensão medida. A concentração é \emph{extrema no autovetor} (Gini $0{,}951$; os dez deputados mais centrais concentram 82\% da métrica) --- reflexo direto das bancadas coesas que coassinam quase exclusivamente entre si, formando câmaras de eco; \emph{alta na intermediação} ($0{,}740$), pois o papel de ponte é raro; e \emph{moderada no grau ponderado} ($0{,}566$). A proximidade, por sua vez, é quase igualitária ($0{,}113$) --- comportamento esperado da métrica, cujos valores são naturalmente comprimidos em redes conexas, nas quais todo vértice está a poucas arestas dos demais. Cabe a ressalva já discutida: trata-se de concentração da \emph{articulação} (coautoria), não de poder institucional. O padrão é estável ao longo do período (o Gini do autovetor permanece entre $0{,}87$ e $0{,}98$ nos quatro anos). Por fim, a própria divergência entre os coeficientes ($0{,}11$, $0{,}57$, $0{,}74$ e $0{,}95$) confirma que as quatro métricas de centralidade capturam dimensões distintas de influência --- não são redundantes ---, o que justifica reportá-las em conjunto. A~\ref{fig:concentracao_gini} representa graficamente essa concentração por meio das curvas de Lorenz das quatro centralidades: quanto mais distante da diagonal de igualdade, mais concentrada a métrica.
+    Os valores respondem afirmativamente à primeira pergunta norteadora: há forte concentração da articulação em poucos parlamentares, com intensidade que varia conforme a dimensão medida. A concentração é no autovetor (Gini $0{,}951$; os dez deputados mais centrais concentram 82\% da métrica) --- reflexo direto das bancadas coesas que coassinam quase exclusivamente entre si, formando câmaras de eco; alta na intermediação ($0{,}740$), pois o papel de ponte é raro; e moderada no grau ponderado ($0{,}566$). A proximidade, por sua vez, é quase igualitária ($0{,}113$) --- comportamento esperado da métrica, cujos valores são naturalmente comprimidos em redes conexas, nas quais todo vértice está a poucas arestas dos demais. Cabe a ressalva já discutida: trata-se de concentração da articulação (coautoria), não de poder institucional. O padrão é estável ao longo do período (o Gini do autovetor permanece entre $0{,}87$ e $0{,}98$ nos quatro anos). Por fim, a própria divergência entre os coeficientes ($0{,}11$, $0{,}57$, $0{,}74$ e $0{,}95$) confirma que as quatro métricas de centralidade capturam dimensões distintas de influência --- não são redundantes, o que justifica reportá-las em conjunto. A~\ref{fig:concentracao_gini} representa graficamente essa concentração por meio das curvas de Lorenz das quatro centralidades: quanto mais distante da diagonal de igualdade, mais concentrada a métrica.
     
     \section{DETECÇÃO DE COMUNIDADES E TESTE DA HIPÓTESE CENTRAL}
 
@@ -1399,7 +1399,7 @@ class AnalysisStore(Protocol):
     \fonte{Elaborado pelo autor.}
     \end{table}
     
-    A concordância é \emph{moderada} (ARI entre $0{,}281$ e $0{,}423$). Esse valor não deve ser lido como fragilidade, mas como o que de fato é: os dois algoritmos \emph{convergem no essencial} --- ambos detectam forte estrutura modular na mesma rede ---, divergindo apenas na \emph{granularidade} das fronteiras, isto é, em como partem os deputados situados entre blocos e em quantas comunidades reconhecem (o Label Propagation, reconhecidamente mais instável, varia de 10 a 19 comunidades). O ARI funciona, assim, como uma \emph{verificação de consistência do sinal}: se os dois métodos concordassem apenas ao acaso (ARI $\approx 0$), a estrutura detectada seria suspeita; a concordância moderada e positiva indica um sinal estrutural real, ainda que suas bordas dependam do algoritmo. Não se trata, portanto, de exigir partições idênticas, mas de confirmar que a fragmentação em comunidades é robusta à escolha do método.
+    A concordância é moderada (ARI entre $0{,}281$ e $0{,}423$). Esse valor não deve ser lido como fragilidade, mas como o que de fato é: os dois algoritmos convergem no essencial --- ambos detectam forte estrutura modular na mesma rede, divergindo apenas na granularidade das fronteiras, isto é, em como partem os deputados situados entre blocos e em quantas comunidades reconhecem (o Label Propagation, reconhecidamente mais instável, varia de 10 a 19 comunidades). O ARI funciona, assim, como uma verificação de consistência do sinal: se os dois métodos concordassem apenas na aleatoriedade (ARI $\approx 0$), a estrutura detectada seria suspeita; a concordância moderada e positiva indica um sinal estrutural real, ainda que suas bordas dependam do algoritmo. Não se trata, portanto, de exigir partições idênticas, mas de confirmar que a fragmentação em comunidades é robusta à escolha do método.
     
     \subsection{Análise pela Modularidade (Q) --- Teste da Hipótese H1}
     
@@ -1424,7 +1424,7 @@ class AnalysisStore(Protocol):
     \fonte{Elaborado pelo autor.}
     \end{table}
     
-    Em todos os anos, a modularidade observada supera a média do modelo nulo, e \emph{nenhum dos 200 grafos nulos atinge $Q_{\text{obs}}$} ($p<0{,}005$). \emph{A hipótese H1 é, portanto, corroborada}: a estrutura de comunidades da rede é não-aleatória. Ressalte-se que o modelo nulo é \emph{ponderado} --- os pesos originais são reatribuídos às arestas reconfiguradas ---, de modo que a comparação é homogênea com a modularidade observada, também ponderada. Corroborada H1, cria-se a \emph{condição de validade} que autoriza a etapa seguinte: interpretar as comunidades detectadas como estruturas reais, e não como ruído. É sobre essa base que se responde à segunda pergunta norteadora.
+    Em todos os anos, a modularidade observada supera a média do modelo nulo, e nenhum dos 200 grafos nulos atinge $Q_{\text{obs}}$ ($p<0{,}005$). A hipótese H1 é, portanto, corroborada: a estrutura de comunidades da rede é não-aleatória. Ressalte-se que o modelo nulo é ponderado --- os pesos originais são reatribuídos às arestas reconfiguradas, de modo que a comparação é homogênea com a modularidade observada, também ponderada. Corroborada H1, cria-se a condição de validade que autoriza a etapa seguinte: interpretar as comunidades detectadas como estruturas reais, e não como ruído. É sobre essa base que se responde à segunda pergunta norteadora.
     
     % NORTE: aqui vai o "ouro" --- mostrar que as comunidades correspondem a partidos.
     A correspondência entre as comunidades detectadas e a filiação partidária foi avaliada de forma estritamente estrutural, sem recurso a qualquer classificação ideológica. A Tabela~\ref{tab:comunidade_partido} apresenta a composição das principais comunidades de 2025.
@@ -1442,7 +1442,7 @@ class AnalysisStore(Protocol):
     9 & 47  & Partido G (30\%) + H, E \\
     4 & 33  & Partido I (39\%) + E, J \\
     6 & 24  & Partido D (25\%) + C, K \\
-    7 & 6   & Partido L (67\%) \\
+    10 & 15 & Partido B (33\%) + C, D \\
     \bottomrule
     \end{tabular}
     \fonte{Elaborado pelo autor.}
@@ -1450,9 +1450,16 @@ class AnalysisStore(Protocol):
     
     
     
-    O algoritmo \emph{recupera a organização partidária} sem jamais receber rótulo de partido: cada comunidade é dominada por uma legenda real. Contudo, a correspondência é \emph{parcial, e não idêntica} --- medida pelo \textit{Adjusted Rand Index} entre a partição de comunidades e a partição por filiação, obtém-se ARI $\approx 0{,}30$ e pureza partidária $\approx 48\%$ (proporção média de deputados no partido dominante de sua comunidade). Isso significa que as comunidades são \emph{mais amplas que partidos isolados}: enquanto algumas correspondem a um partido coeso (a comunidade~3, essencialmente de uma única legenda), outras agregam um partido dominante e legendas estruturalmente aliadas por coautoria (a comunidade~1 reúne um partido dominante e três legendas aliadas). Respondendo à pergunta norteadora, as comunidades correspondem, portanto, \emph{mais a agrupamentos do tipo coalizão do que a linhas partidárias puras}. Essa leitura permanece no plano estrutural: descreve-se \emph{quais partidos se agrupam por coautoria} --- um fato observável ---, sem atribuir-lhes rótulos de posição ideológica. O \textit{Adjusted Rand Index} e a pureza aqui reportados são calculados de forma reprodutível por \texttt{scripts/compare\_years.py}, que cruza a partição de comunidades (Louvain) com a filiação partidária a partir das métricas por deputado exportadas pelo \textit{pipeline}.
+    O algoritmo recupera a organização partidária sem jamais receber rótulo de partido: cada comunidade é dominada por uma legenda real. Contudo, a correspondência é parcial, e não idêntica --- medida pelo \textit{Adjusted Rand Index} entre a partição de comunidades e a partição por filiação, obtém-se ARI $\approx 0{,}30$ e pureza partidária $\approx 48\%$ (proporção média de deputados no partido dominante de sua comunidade). Isso significa que as comunidades são mais amplas que partidos isolados: enquanto algumas correspondem a um partido coeso (a comunidade~3, essencialmente de uma única legenda), outras agregam um partido dominante e legendas estruturalmente aliadas por coautoria (a comunidade~1 reúne um partido dominante e três legendas aliadas). Respondendo à pergunta norteadora, as comunidades correspondem, portanto, mais a agrupamentos do tipo coalizão do que a linhas partidárias puras. Essa leitura permanece no plano estrutural: descreve-se quais partidos se agrupam por coautoria --- um fato observável, sem atribuir-lhes rótulos de posição ideológica. O \textit{Adjusted Rand Index} e a pureza aqui reportados são calculados de forma reprodutível por \texttt{scripts/compare\_years.py}, que cruza a partição de comunidades (Louvain) com a filiação partidária a partir das métricas por deputado exportadas pelo \textit{pipeline}.
     
-    A~\ref{fig:gephi_comunidades_partido} oferece a validação visual dessa correspondência. As duas imagens usam \emph{o mesmo posicionamento} de nós, gerado pelo algoritmo ForceAtlas~2 a partir exclusivamente das arestas (sem qualquer informação de partido ou comunidade). Na imagem superior (a), a coloração é por comunidade (Louvain); na inferior (b), pela filiação partidária. A concordância espacial entre as duas colorações confirma, de forma independente do algoritmo de detecção, que os agrupamentos são reais: onde a comunidade é um partido coeso, as cores coincidem; onde é uma coalizão, um único bloco espacial aparece multicolorido no painel de partidos --- exatamente o comportamento previsto pelo ARI moderado.
+    A~\ref{fig:gephi_legenda_comunidades_partido} apresenta a legenda de cores por
+    comunidade (Louvain) usada na imagem (a) da figura seguinte; a legenda de
+    cores por partido foi omitida em razão do período eleitoral. A~\ref{fig:gephi_comunidades_partido} oferece a validação visual da correspondência entre comunidades e partidos. As duas imagens --- (a), colorida por comunidade (Louvain), e (b), colorida por filiação partidária --- usam o mesmo posicionamento de nós, gerado pelo algoritmo ForceAtlas~2 a partir exclusivamente das arestas (sem qualquer informação de partido ou comunidade). A concordância espacial entre as duas
+   colorações confirma, de forma independente do algoritmo de detecção, que os
+   agrupamentos são reais: onde a comunidade é um partido coeso, as cores
+   coincidem; onde é uma coalizão, um único bloco espacial aparece multicolorido
+   no painel de partidos --- exatamente o comportamento previsto pelo ARI
+   moderado.
     
     \begin{figure}[H]
         \centering

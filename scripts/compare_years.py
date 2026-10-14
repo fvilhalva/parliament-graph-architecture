@@ -101,6 +101,47 @@ def _community_party_agreement(df: pd.DataFrame) -> tuple[float, float]:
     return ari, purity
 
 
+def _community_party_composition(df: pd.DataFrame, top_n: int = 6, min_allies: int = 2) -> pd.DataFrame:
+    """Per-community party breakdown behind the composition table (Chapter 5).
+
+    Reproduces, for the ``top_n`` *largest* Louvain communities of the given
+    year, the dominant party and its share, plus up to three "allied"
+    parties: the next most frequent parties in the community with at least
+    ``min_allies`` members each (a party with a single member is noise, not
+    a structural ally). Communities are selected strictly by size --
+    unlike a manually curated table, this cannot silently skip a larger
+    community in favour of a smaller, more "interesting" one.
+
+    Returns:
+        DataFrame with one row per community, columns ``community``,
+        ``size``, ``dominant_party``, ``dominant_pct`` and ``allies``
+        (comma-separated party codes, largest first).
+    """
+    subset = df[["party_code", "community_louvain"]].dropna()
+    if subset.empty:
+        return pd.DataFrame(
+            columns=["community", "size", "dominant_party", "dominant_pct", "allies"]
+        )
+
+    sizes = subset.groupby("community_louvain").size().sort_values(ascending=False)
+    rows = []
+    for community_id, size in sizes.head(top_n).items():
+        counts = subset.loc[subset["community_louvain"] == community_id, "party_code"].value_counts()
+        dominant_party, dominant_count = counts.index[0], counts.iloc[0]
+        allies = [party for party, count in counts.iloc[1:4].items() if count >= min_allies]
+        rows.append(
+            {
+                "community": community_id,
+                "size": int(size),
+                "dominant_party": dominant_party,
+                "dominant_pct": round(float(dominant_count) / float(size) * 100),
+                "allies": ", ".join(allies),
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
 # ── plots ───────────────────────────────────────────────────────────────────
 
 def _plot_nodes_edges(rows: list[dict]) -> None:
@@ -277,6 +318,16 @@ def main() -> None:
             f"  {r['year']}: ARI(community vs party)={ari_party:.3f}; "
             f"partisan purity={purity:.1%}"
         )
+
+    # ── Community composition table (Chapter 5, Tabela 8) ──
+    print("\n=== Community composition (top communities by size) ===")
+    for r in rows:
+        composition = _community_party_composition(r["df"])
+        print(f"\n{r['year']}:")
+        print(composition.to_string(index=False))
+        out_path = ANALYSIS_DIR / f"community_composition_{r['year']}.csv"
+        composition.to_csv(out_path, index=False, encoding="utf-8-sig")
+        print(f"  Saved: {out_path}")
 
     # ── Top deputies per year ──
     print("\n=== Top 5 by Betweenness Centrality per Year ===")
