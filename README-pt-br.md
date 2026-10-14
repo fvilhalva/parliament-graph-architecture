@@ -100,7 +100,7 @@ extraction → processing → core (Graph + Algorithms) → repository → visua
 w(i,j) = Σ  1 / (n_p − 1)    para cada proposição compartilhada p (n_p = nº de autores de p)
 ```
 
-**Filtro `max_authors`** — proposições com mais de 30 coautores são excluídas da construção de arestas. Uma PEC com 226 signatários gera ~25.400 pares, elevando a densidade a ~85% e inviabilizando a detecção de comunidades. Esse filtro está **ativo** em toda execução; a análise de sensibilidade do limite fica registrada como trabalho futuro.
+**Filtro `max_authors`** — proposições com mais de 30 coautores são excluídas da construção de arestas. Uma PEC com 226 signatários gera ~25.400 pares, elevando a densidade a ~85% e inviabilizando a detecção de comunidades. Esse filtro está **ativo** em toda execução. A análise de sensibilidade do limiar (valores 20/30/40 e sem filtro) é reprodutível via `./run.sh sensitivity [ano]` (`scripts/sensitivity.py`): a modularidade se mantém estável (Q ≈ 0,60–0,70) entre limiares plausíveis e cai para ≈ 0,21 sem o filtro.
 
 **Pesos uniformes por tipo (= 1)** — todos os tipos válidos recebem peso 1. Não há escala numérica teoricamente justificada para ponderar PL vs. PEC; a filtragem qualitativa (por tipo) já faz a seleção relevante.
 
@@ -176,6 +176,8 @@ PLOTS_DIR=data/plots
 
 # --- GRAPH ANALYSIS ---
 MAX_AUTHORS_PER_PROPOSAL=30
+ANALYSIS_YEARS=[2022,2023,2024,2025]
+ANALYSIS_DIR=data/analysis
 ```
 
 ---
@@ -213,7 +215,7 @@ Cada execução persiste um único JSON legível e auditável por ano — a font
 ```
 
 As métricas por deputado são exportadas em `data/metricas/deputados_metricas_{ano}.csv` com colunas em inglês:
-`deputy_id, name, party_code, state_code, weighted_degree, degree_centrality, betweenness_centrality, closeness_centrality, eigenvector_centrality, community_louvain`.
+`deputy_id, name, party_code, state_code, weighted_degree, degree_share, betweenness_centrality, closeness_centrality, eigenvector_centrality, community_louvain`.
 
 ---
 

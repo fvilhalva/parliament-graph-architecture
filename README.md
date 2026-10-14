@@ -176,6 +176,8 @@ PLOTS_DIR=data/plots
 
 # --- GRAPH ANALYSIS ---
 MAX_AUTHORS_PER_PROPOSAL=30
+ANALYSIS_YEARS=[2022,2023,2024,2025]
+ANALYSIS_DIR=data/analysis
 ```
 
 ---
@@ -213,7 +215,7 @@ Each pipeline run persists a single, human-readable, auditable JSON per year —
 ```
 
 Per-deputy metrics are exported to `data/metricas/deputados_metricas_{year}.csv` with English columns:
-`deputy_id, name, party_code, state_code, weighted_degree, degree_centrality, betweenness_centrality, closeness_centrality, eigenvector_centrality, community_louvain`.
+`deputy_id, name, party_code, state_code, weighted_degree, degree_share, betweenness_centrality, closeness_centrality, eigenvector_centrality, community_louvain`.
 
 ---
 
