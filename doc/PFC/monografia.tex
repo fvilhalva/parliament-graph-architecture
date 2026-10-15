@@ -196,7 +196,7 @@
     
     Aos meus colegas de curso, com quem dividi madrugadas de estudo, ansiedades de prova, descobertas e amizades que pretendo levar para a vida.
     
-    Aos meus amigos, que entenderam as ausências e celebraram cada conquista deste percurso como se fosse delas também.
+    Aos meus amigos, que entenderam as ausências e celebraram cada conquista deste percurso como se fosse deles também.
     
     \end{agradecimentos}
     
@@ -311,7 +311,7 @@
     
     A Teoria dos Grafos oferece precisamente esse instrumental. Ao modelar a coautoria legislativa como uma rede ponderada, na qual deputados são vértices e colaborações em proposições são arestas, torna-se possível aplicar métricas consolidadas de centralidade, algoritmos de detecção de comunidades e testes estatísticos de significância. Essa abordagem, inaugurada no contexto legislativo por \citeonline{fowler2006} no estudo do Congresso dos Estados Unidos, transforma assinaturas em documentos oficiais em um objeto matemático tratável, do qual se podem extrair evidências mensuráveis sobre poder informal, coalizões e mediação política.
     
-    O presente trabalho parte da premissa de que a coautoria parlamentar não é fenômeno aleatório, mas reflexo de alinhamentos políticos, ideológicos e estratégicos. Sob essa premissa --- e na esteira de \citeonline{fowler2006} ---, a rede de coautoria é adotada como \textit{proxy} mensurável de articulação política, passível de análise quantitativa. A cobertura estende-se deliberadamente de 2022 a 2025 --- abrangendo a transição entre a 56\textsuperscript{a} e a 57\textsuperscript{a} Legislaturas ---, permitindo tanto a análise da estrutura em regime estável quanto o estudo da sua persistência ao longo do tempo.
+    O presente trabalho parte da premissa de que a coautoria parlamentar não é fenômeno aleatório, mas reflexo de alinhamentos políticos, ideológicos e estratégicos. Sob essa premissa --- e na esteira de \citeonline{fowler2006}, a rede de coautoria é adotada como \textit{proxy} mensurável de articulação política, passível de análise quantitativa. A cobertura estende-se deliberadamente de 2022 a 2025 --- abrangendo a transição entre a 56\textsuperscript{a} e a 57\textsuperscript{a} Legislaturas, permitindo tanto a análise da estrutura em regime estável quanto o estudo da sua persistência ao longo do tempo.
     
     Por \enquote{estruturas de influência} entende-se, neste trabalho, a organização estrutural da rede de coautoria em dois níveis complementares: as comunidades --- agrupamentos de deputados com colaboração densa, que revelam blocos e coalizões --- e as posições de centralidade --- deputados que atuam como pontes entre grupos ou como polos de articulação. O primeiro nível descreve como a articulação se organiza; o segundo, quem ocupa as posições estruturalmente mais influentes. A identificação dessas estruturas, em ambos os níveis, é o objeto de análise do artefato desenvolvido.
     
@@ -1604,7 +1604,7 @@ class AnalysisStore(Protocol):
                 \item \texttt{src/core/}: núcleo analítico (classe \texttt{ParliamentaryGraph} e submódulo \texttt{algorithms/});
                 \item \texttt{src/extraction/}: camada de extração (\texttt{ChamberExtractor});
                 \item \texttt{src/models/}: entidades de domínio (\texttt{Deputy}, \texttt{Proposition}, \texttt{CoauthorshipEdge}, \texttt{ParliamentaryNetwork});
-                \item \texttt{src/processing/}: limpeza, filtros e conversão para objetos de domínio (\texttt{ChamberProcessor});
+                \item \texttt{src/processing/}: limpeza, filtros e conversão para objetos de domínio;
                 \item \texttt{src/repository/}: persistência (CSV, GEXF, SQLite, JSON);
                 \item \texttt{src/visualization/}: geração automática de figuras;
                 \item \texttt{src/tests/}: suíte de testes (217 testes);
