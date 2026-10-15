@@ -1296,20 +1296,20 @@ class AnalysisStore(Protocol):
     
     \begin{table}[H]
     \centering
-    \caption{Efeito do filtro de massa de signatários sobre a densidade (2025).}
+    \caption{Efeito do filtro de massa de signatários sobre a estrutura da rede (2025).}
     \label{tab:filtros}
-    \begin{tabular}{lrr}
+    \begin{tabular}{lrrr}
     \toprule
-    \textbf{Configuração} & \textbf{Arestas} & \textbf{Densidade} \\
+    \textbf{Configuração} & \textbf{Nós} & \textbf{Arestas} & \textbf{Densidade} \\
     \midrule
-    Sem filtro de massa (apenas tipo)      & 124.671 & 85,35\% \\
-    Com filtro (\texttt{max\_authors}=30)  & 5.407   & 9,90\%  \\
+    Sem filtro de massa (apenas tipo)      & 541 & 124.671 & 85,35\% \\
+    Com filtro (\texttt{max\_authors}=30)  & 331 & 5.407   & 9,90\%  \\
     \bottomrule
     \end{tabular}
     \fonte{Elaborado pelo autor.}
     \end{table}
     
-    A remoção de 70 proposições com mais de 30 coautores, a maior com 226 signatários (uma PEC), reduz a densidade de 85,35\% para 9,90\%, transformando um grafo quase-completo em uma rede analisável. Vale reforçar que a heurística de ponderação $1/(n_p-1)$ e o filtro de massa atacam distorções distintas e complementares: a normalização corrige a distorção de peso (cada par de uma PEC de massa contribui apenas $1/225 \approx 0{,}004$ à força do vínculo), enquanto o filtro corrige a distorção topológica, a mera existência das dezenas de milhares de arestas de um clique de signatários, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar, por mais baixo que seja o peso.
+    A remoção de 70 proposições com mais de 30 coautores, a maior com 226 signatários (uma PEC), reduz a densidade de 85,35\% para 9,90\%, transformando um grafo quase-completo em uma rede analisável. Cabe explicitar que o filtro não atua apenas sobre as arestas: o número de nós cai de 541 para 331, pois 210 deputados participam exclusivamente de proposições de assinatura em massa e, excluídas essas matérias, deixam de apresentar qualquer vínculo de coautoria. Essa redução é coerente com a definição de articulação adotada, segundo a qual a co-assinatura em massa reflete adesão agregada, e não coordenação; a densidade de cada configuração é, por isso, calculada sobre a rede efetivamente resultante, e não sobre um conjunto fixo de vértices. Vale reforçar que a heurística de ponderação $1/(n_p-1)$ e o filtro de massa atacam distorções distintas e complementares: a normalização corrige a distorção de peso (cada par de uma PEC de massa contribui apenas $1/225 \approx 0{,}004$ à força do vínculo), enquanto o filtro corrige a distorção topológica, a mera existência das dezenas de milhares de arestas de um clique de signatários, que as métricas topológicas (intermediação, proximidade) e a própria densidade não conseguem ignorar, por mais baixo que seja o peso.
     
     A robustez do limiar de 30 e a necessidade do filtro foram avaliadas por uma análise de sensibilidade (Tabela~\ref{tab:sensibilidade}), variando \texttt{max\_authors} em 2025.
     
@@ -1317,14 +1317,14 @@ class AnalysisStore(Protocol):
     \centering
     \caption{Sensibilidade da rede ao limiar \texttt{max\_authors} (2025).}
     \label{tab:sensibilidade}
-    \begin{tabular}{lrrr}
+    \begin{tabular}{lrrrr}
     \toprule
-    \texttt{max\_authors} & \textbf{Arestas} & \textbf{Densidade} & \textbf{$Q$ Louvain} \\
+    \texttt{max\_authors} & \textbf{Nós} & \textbf{Arestas} & \textbf{Densidade} & \textbf{$Q$ Louvain} \\
     \midrule
-    20                 & 2.415   & 5,84\%  & 0,699 \\
-    30 (adotado)       & 5.407   & 9,90\%  & 0,634 \\
-    40                 & 7.521   & 12,04\% & 0,601 \\
-    Sem filtro         & 124.671 & 85,35\% & 0,215 \\
+    20                     & 288 & 2.415   & 5,84\%  & 0,699 \\
+    30 (adotado)           & 331 & 5.407   & 9,90\%  & 0,634 \\
+    40                     & 354 & 7.521   & 12,04\% & 0,601 \\
+    Sem filtro de massa    & 541 & 124.671 & 85,35\% & 0,215 \\
     \bottomrule
     \end{tabular}
     \fonte{Elaborado pelo autor.}

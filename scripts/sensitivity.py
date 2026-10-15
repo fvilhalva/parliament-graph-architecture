@@ -7,7 +7,7 @@ Reproduces the numbers behind two tables of Chapter 5:
 
 For a single reference year (default: 2025) it rebuilds the co-authorship
 network under several configurations and reports, for each one, the number of
-edges, the density and the Louvain modularity ``Q``:
+nodes, the number of edges, the density and the Louvain modularity ``Q``:
 
   - ``max_authors`` in {20, 30, 40}         -> type filter + mass filter
   - "type only (no mass filter)"            -> type filter, mass filter disabled
@@ -49,8 +49,14 @@ THRESHOLDS = [20, 30, 40]
 NO_MASS_FILTER = 10**9  # effectively disables the mass-signature filter
 
 
-def _measure(deputies: dict, propositions: list, coauthorships: list, year: int) -> tuple[int, float, float]:
-    """Build the graph for one configuration and return (edges, density, Q)."""
+def _measure(deputies: dict, propositions: list, coauthorships: list, year: int) -> tuple[int, int, float, float]:
+    """Build the graph for one configuration and return (nodes, edges, density, Q).
+
+    The node count matters because the mass-signature filter removes deputies,
+    not only edges: a deputy whose sole co-authorships come from mass-signed
+    proposals leaves the network entirely. Reporting it makes the density
+    figures verifiable, since density is computed over each resulting network.
+    """
     graph = ParliamentaryGraph(deputies, propositions, coauthorships, year)
     graph.build()
 
@@ -58,9 +64,10 @@ def _measure(deputies: dict, propositions: list, coauthorships: list, year: int)
     partition = detector.detect_louvain(graph.graph, seed=42)
     modularity = detector.calculate_modularity(graph.graph, partition) if partition else 0.0
 
+    nodes = graph.graph.number_of_nodes()
     edges = graph.graph.number_of_edges()
-    density = float(nx.density(graph.graph)) if graph.graph.number_of_nodes() > 1 else 0.0
-    return edges, density, modularity
+    density = float(nx.density(graph.graph)) if nodes > 1 else 0.0
+    return nodes, edges, density, modularity
 
 
 def run(year: int) -> pd.DataFrame:
@@ -78,11 +85,17 @@ def run(year: int) -> pd.DataFrame:
         deputies, propositions, coauthorships_list = processor.convert_to_domain_objects(
             deputy_map, groups, coauthorships, type_map, year
         )
-        edges, density, modularity = _measure(deputies, propositions, coauthorships_list, year)
+        nodes, edges, density, modularity = _measure(deputies, propositions, coauthorships_list, year)
         rows.append(
-            {"config": label, "edges": edges, "density_pct": round(density * 100, 2), "q_louvain": round(modularity, 4)}
+            {
+                "config": label,
+                "nodes": nodes,
+                "edges": edges,
+                "density_pct": round(density * 100, 2),
+                "q_louvain": round(modularity, 4),
+            }
         )
-        print(f"  {label:<28} edges={edges:>7}  density={density:6.2%}  Q={modularity:.4f}")
+        print(f"  {label:<28} nodes={nodes:>5}  edges={edges:>7}  density={density:6.2%}  Q={modularity:.4f}")
 
     # Type filter + mass filter, for each threshold.
     for threshold in THRESHOLDS:
