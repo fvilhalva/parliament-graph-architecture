@@ -63,5 +63,4 @@ htmlcov/
 # ==========================================
 # Padrão amplo: ignora qualquer pasta "bibliografia" (independente de onde ela
 # esteja — ex.: doc/bibliografia/ ou doc/PFC/bibliografia/).
-bibliografia/
-refs/
+/doc/
