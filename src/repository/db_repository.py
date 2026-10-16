@@ -11,7 +11,7 @@ from .interfaces import DatabaseRepository
 # logical schema. Each entry is ``(column_name, sqlite_type_with_default)``.
 _METRIC_COLUMNS: tuple[tuple[str, str], ...] = (
     ("weighted_degree", "REAL NOT NULL DEFAULT 0"),
-    ("degree_centrality", "REAL NOT NULL DEFAULT 0"),
+    ("degree_share", "REAL NOT NULL DEFAULT 0"),
     ("betweenness_centrality", "REAL NOT NULL DEFAULT 0"),
     ("closeness_centrality", "REAL NOT NULL DEFAULT 0"),
     ("eigenvector_centrality", "REAL NOT NULL DEFAULT 0"),
@@ -75,7 +75,7 @@ class DB_Exporter(DatabaseRepository):
                     dep.get("party_code"),
                     dep.get("state_code"),
                     dep.get("weighted_degree", 0.0),
-                    dep.get("degree_centrality", 0.0),
+                    dep.get("degree_share", 0.0),
                     dep.get("betweenness_centrality", 0.0),
                     dep.get("closeness_centrality", 0.0),
                     dep.get("eigenvector_centrality", 0.0),
@@ -94,7 +94,7 @@ class DB_Exporter(DatabaseRepository):
                     party_code,
                     state_code,
                     weighted_degree,
-                    degree_centrality,
+                    degree_share,
                     betweenness_centrality,
                     closeness_centrality,
                     eigenvector_centrality,

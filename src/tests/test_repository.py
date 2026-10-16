@@ -19,9 +19,9 @@ class TestCSVRepository:
     @pytest.fixture
     def example_deputies(self):
         return [
-            Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4, betweenness_centrality=0.2),
-            Deputy(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_centrality=0.2, betweenness_centrality=0.1),
-            Deputy(3, "Carla", "MDB", "MG", weighted_degree=30, degree_centrality=0.6, betweenness_centrality=0.3),
+            Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_share=0.4, betweenness_centrality=0.2),
+            Deputy(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_share=0.2, betweenness_centrality=0.1),
+            Deputy(3, "Carla", "MDB", "MG", weighted_degree=30, degree_share=0.6, betweenness_centrality=0.3),
         ]
 
     def test_export_creates_file(self, tmp_path, example_deputies):
@@ -57,7 +57,7 @@ class TestCSVRepository:
             "party_code",
             "state_code",
             "weighted_degree",
-            "degree_centrality",
+            "degree_share",
             "betweenness_centrality",
         }
         assert colunas_esperadas.issubset(set(data.columns))
@@ -164,8 +164,8 @@ class TestDBExporter:
         db_path = tmp_path / "metricas.db"
         exporter = DB_Exporter(db_path)
         deputies = [
-            Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4, betweenness_centrality=0.2),
-            Deputy(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_centrality=0.2, betweenness_centrality=0.1),
+            Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_share=0.4, betweenness_centrality=0.2),
+            Deputy(2, "Bruno", "PSB", "RJ", weighted_degree=10, degree_share=0.2, betweenness_centrality=0.1),
         ]
 
         path_return = exporter.export_deputy_metrics(deputies, year=2025)
@@ -182,11 +182,11 @@ class TestDBExporter:
         exporter = DB_Exporter(db_path)
 
         exporter.export_deputy_metrics(
-            [Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_centrality=0.4)],
+            [Deputy(1, "Ana", "PT", "SP", weighted_degree=20, degree_share=0.4)],
             year=2025,
         )
         exporter.export_deputy_metrics(
-            [Deputy(1, "Ana", "PT", "SP", weighted_degree=99, degree_centrality=0.9)],
+            [Deputy(1, "Ana", "PT", "SP", weighted_degree=99, degree_share=0.9)],
             year=2025,
         )
 

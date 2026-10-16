@@ -36,7 +36,7 @@ class CsvRepository(MetricsRepository):
                     "party_code": deputy_dict.get("party_code"),
                     "state_code": deputy_dict.get("state_code"),
                     "weighted_degree": deputy_dict.get("weighted_degree", 0.0),
-                    "degree_centrality": deputy_dict.get("degree_centrality", 0.0),
+                    "degree_share": deputy_dict.get("degree_share", 0.0),
                     "betweenness_centrality": deputy_dict.get("betweenness_centrality", 0.0),
                     "closeness_centrality": deputy_dict.get("closeness_centrality", 0.0),
                     "eigenvector_centrality": deputy_dict.get("eigenvector_centrality", 0.0),
@@ -46,7 +46,7 @@ class CsvRepository(MetricsRepository):
 
         data_frame = pd.DataFrame(records)
         data_frame = data_frame.sort_values(
-            by=["degree_centrality", "betweenness_centrality"],
+            by=["degree_share", "betweenness_centrality"],
             ascending=False,
         )
 

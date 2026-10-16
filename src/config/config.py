@@ -14,8 +14,9 @@ class Config(BaseSettings):
 
     All settings are read from environment variables (``.env`` file) and
     validated by pydantic at load time. An invalid value (for example a
-    non-integer ``API_TIMEOUT``) fails fast with a descriptive error naming
-    the offending field, instead of a raw ``ValueError`` raised at import time.
+    non-integer ``MAX_AUTHORS_PER_PROPOSAL``) fails fast with a descriptive
+    error naming the offending field, instead of a raw ``ValueError`` raised
+    at import time.
 
     Legacy (Portuguese) variable names are still accepted through
     ``AliasChoices`` for backwards compatibility.
@@ -49,6 +50,10 @@ class Config(BaseSettings):
     MAX_AUTHORS_PER_PROPOSAL: int = Field(
         default=30,
         validation_alias=AliasChoices("MAX_AUTHORS_PER_PROPOSAL", "MAX_AUTORES_POR_PROPOSICAO"),
+    )
+    ANALYSIS_YEARS: list[int] = Field(
+        default=[2022, 2023, 2024, 2025],
+        validation_alias=AliasChoices("ANALYSIS_YEARS", "ANOS_ANALISE"),
     )
 
     @classmethod

@@ -157,7 +157,7 @@ def _plot_metrics_correlation(df: pd.DataFrame, output_dir: Path) -> None:
     fig, ax = plt.subplots()
     sns.scatterplot(
         data=df,
-        x="degree_centrality",
+        x="degree_share",
         y="betweenness_centrality",
         hue="party_code",
         size="weighted_degree",
